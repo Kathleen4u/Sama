@@ -1,0 +1,114 @@
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Recent Activity</div>
+        <a href="#" style="color:var(--primary-blue); text-decoration:none; font-weight:500; font-size:14px;">
+            View all
+        </a>
+    </div>
+
+    <!-- Desktop: Table View -->
+    <table class="activity-table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Description <i class="fas fa-folder"></i></th>
+                <th>Reference <i class="fas fa-receipt"></i></th>
+                <th>Amount <i class="fas fa-money-bill-wave"></i></th>
+                <th>Status <i class="fas fa-check-circle"></i></th>
+                <th>Date <i class="fas fa-calendar"></i></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if recent_activity %}
+                {% for item in recent_activity %}
+                <tr class="{{ 'unread-row' if not item.is_read else '' }}">
+
+                    <!-- TYPE -->
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="{{ item.icon }}"
+                               style="font-size:14px; color:var(--primary-blue); width:16px;"></i>
+                            <strong>{{ item.type }}</strong>
+                        </div>
+                    </td>
+
+                    <!-- DESCRIPTION -->
+                    <td>{{ item.description }}</td>
+
+                    <!-- REFERENCE -->
+                    <td>{{ item.reference }}</td>
+
+                    <!-- AMOUNT -->
+                    <td class="{% if item.amount and item.amount > 0 %}amount-positive{% elif item.amount and item.amount < 0 %}amount-negative{% endif %}">
+                        {% if item.amount %}
+                            {% if item.amount > 0 %}+${{ "{:,.2f}".format(item.amount) }}
+                            {% elif item.amount < 0 %}-${{ "{:,.2f}".format(item.amount | abs) }}
+                            {% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <!-- STATUS -->
+                    <td>
+                        <span class="status-badge {{ item.status.lower() }}">
+                            {{ item.status }}
+                        </span>
+                    </td>
+
+                    <!-- DATE -->
+                    <td>{{ item.date.strftime('%d-%m-%Y') }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:32px; color:#9AA0A6;">
+                        <i class="fas fa-history" style="font-size:24px; margin-bottom:8px; display:block; opacity:0.4;"></i>
+                        No activity yet
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Mobile: Card View -->
+    <div class="activity-cards">
+        {% for item in recent_activity %}
+        <div class="activity-card {{ 'unread-row' if not item.is_read else '' }}"
+             onclick="this.classList.toggle('expanded')">
+
+            <div class="activity-card-header">
+                <span class="activity-card-type">
+                    <i class="{{ item.icon }}" style="margin-right:6px; color:var(--primary-blue);"></i>
+                    {{ item.type }}
+                </span>
+                <span class="activity-card-amount
+                    {% if item.amount and item.amount > 0 %}amount-positive
+                    {% elif item.amount and item.amount < 0 %}amount-negative{% endif %}">
+                    {% if item.amount %}
+                        {% if item.amount > 0 %}+${{ "{:,.2f}".format(item.amount) }}
+                        {% elif item.amount < 0 %}-${{ "{:,.2f}".format(item.amount | abs) }}
+                        {% endif %}
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+
+            <div class="activity-card-footer">
+                <span class="status-badge {{ item.status.lower() }}">{{ item.status }}</span>
+                <span class="activity-card-date">{{ item.date.strftime('%d-%m-%Y') }}</span>
+            </div>
+
+            <div class="activity-card-details">
+                <div class="activity-detail-row">
+                    <span class="activity-detail-label">Description:</span>
+                    <span class="activity-detail-value">{{ item.description }}</span>
+                </div>
+                <div class="activity-detail-row">
+                    <span class="activity-detail-label">Reference:</span>
+                    <span class="activity-detail-value">{{ item.reference }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

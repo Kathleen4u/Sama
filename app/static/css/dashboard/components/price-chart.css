@@ -1,0 +1,78 @@
+/* Price Chart */
+.price-chart-container {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.chart-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.chart-timeframes {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.timeframe-btn {
+    padding: 6px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.timeframe-btn:hover {
+    background: #F3F4F6;
+}
+
+.timeframe-btn.active {
+    background: #2563EB;
+    color: white;
+}
+
+.chart-canvas {
+    height: 300px;
+    position: relative;
+}
+
+.chart-canvas canvas {
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .chart-timeframes {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .timeframe-btn {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}

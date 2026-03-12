@@ -1,0 +1,417 @@
+
+    /* Modal Base Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 10000;
+}
+
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #F3F4F6;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #E5E7EB;
+}
+/* Stock Modal Specific Styles */
+.stock-modal {
+    max-width: 900px !important;
+    max-height: 85vh;
+}
+
+.stock-modal .modal-title {
+    margin-bottom: 20px;
+}
+
+/* Stock Search */
+.stock-search {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.stock-search i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+    font-size: 16px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 15px;
+    background: #F9FAFB;
+    color: var(--text-dark);
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input::placeholder {
+    color: #9CA3AF;
+}
+
+/* Stocks Grid */
+.stocks-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Stock Card */
+.stock-card {
+    background: #1E293B;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.stock-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Stock Header */
+.stock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.stock-info-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stock-icon {
+    width: 36px;
+    height: 36px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.stock-name-symbol {
+    display: flex;
+    flex-direction: column;
+}
+
+.stock-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stock-symbol {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.stock-change {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.stock-change.positive {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+}
+
+.stock-change.negative {
+    background: rgba(239, 68, 68, 0.15);
+    color: #EF4444;
+}
+
+/* Stock Chart Placeholder */
+.stock-chart {
+    height: 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    margin: 8px 0;
+}
+
+.chart-bar {
+    flex: 1;
+    background: linear-gradient(to top, #3B82F6, #60A5FA);
+    border-radius: 2px;
+    opacity: 0.7;
+}
+
+/* Stock Price and Buy */
+.stock-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.stock-price-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stock-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.stock-shares {
+    font-size: 11px;
+    color: #94A3B8;
+}
+
+.buy-btn {
+    padding: 8px 20px;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.buy-btn:hover {
+    background: #2563EB;
+    transform: scale(1.05);
+}
+
+.buy-btn:active {
+    transform: scale(0.98);
+}
+
+/* Scrollbar */
+.stocks-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.stocks-grid::-webkit-scrollbar-track {
+    background: #F3F4F6;
+    border-radius: 3px;
+}
+
+.stocks-grid::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 3px;
+}
+
+.stocks-grid::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* No Results */
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6B7280;
+}
+
+.no-results i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+}
+
+.modal-tab-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #F1F3F4;
+    color: #5f6368;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.modal-tab-btn:hover  { background: #E8EAED; }
+.modal-tab-btn.active { background: #E3F2FD; color: #1976D2; font-weight: 600; }
+
+.stocks-loading {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+}
+
+.logo-fallback {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #E3F2FD;
+    color: #1976D2;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Mobile Responsive */
+/* Mobile Responsive - Update the existing @media query */
+@media (max-width: 968px) {
+    .stocks-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    /* Full viewport modal on mobile */
+    .modal-container {
+        padding: 5;
+        align-items: flex-start;
+    }
+    
+    .modal-content {
+        max-height: 95vh;
+        height: 95vh;
+        max-width: 100%;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        padding: 24px 16px;
+        margin: 0;
+    }
+    
+    .stock-modal {
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    /* Adjust modal title for mobile */
+    .modal-title {
+        font-size: 20px;
+        padding-right: 40px; /* Space for close button */
+    }
+    
+    /* Close button positioning */
+    .modal-close {
+        top: 16px;
+        right: 16px;
+    }
+    
+    /* Search bar on mobile */
+    .stock-search {
+        margin-bottom: 16px;
+    }
+    
+    .search-input {
+        padding: 12px 12px 12px 40px;
+        font-size: 14px;
+    }
+    
+    /* Stocks grid mobile */
+    .stocks-grid {
+        grid-template-columns: 1fr;
+        max-height: calc(95vh - 180px); /* Adjust based on header + search height */
+        gap: 12px;
+    }
+
+    .stock-card {
+        padding: 14px;
+    }
+
+    .stock-price {
+        font-size: 16px;
+    }
+
+    .buy-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 20px 12px;
+    }
+    
+    .stocks-grid {
+        max-height: calc(95vh - 160px);
+    }
+}

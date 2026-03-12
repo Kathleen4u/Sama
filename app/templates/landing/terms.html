@@ -1,0 +1,101 @@
+{% extends "landing/layouts/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/css/landing/terms.css">{% endblock %}
+
+{% block content %}
+<div class="legal-container">
+    <a href="/" class="back-button">
+        <i class="bi bi-arrow-left"></i>
+        Back
+    </a>
+
+    <div class="legal-content">
+        <h1>Terms & Conditions</h1>
+        <p class="last-updated">Last Updated: <strong>{{ month }}, {{ year }}</strong></p>
+
+        <p class="intro-text">
+            Welcome to StocksCo. By accessing or using our Platform, you agree to be bound by these Terms & Conditions.
+            If you do not agree, please do not use the Platform.
+        </p>
+
+        <h2>1. Eligibility</h2>
+        <p>To use StocksCo, you must:</p>
+        <ul>
+            <li>Be at least 18 years old</li>
+            <li>Have legal capacity to enter into agreements</li>
+            <li>Complete identity verification where required</li>
+        </ul>
+
+        <h2>2. Account Registration</h2>
+        <ul>
+            <li>You are responsible for maintaining the confidentiality of your account credentials</li>
+            <li>You agree to provide accurate and up-to-date information</li>
+            <li>StocksCo may suspend or terminate accounts with false or misleading information</li>
+        </ul>
+
+        <h2>3. Investment Disclaimer</h2>
+        <ul>
+            <li>StocksCo provides access to investment tools and market data</li>
+            <li>We do not provide financial, legal, or tax advice</li>
+            <li>All investments carry risk, including potential loss of capital</li>
+            <li>Past performance does not guarantee future results</li>
+        </ul>
+        <p>Users are solely responsible for their investment decisions.</p>
+
+        <h2>4. Transactions & Wallets</h2>
+        <ul>
+            <li>All transactions are recorded and visible in your account</li>
+            <li>Prices may fluctuate due to market conditions</li>
+            <li>StocksCo is not responsible for losses caused by market volatility</li>
+            <li>Withdrawals are subject to verification and compliance checks</li>
+        </ul>
+
+        <h2>5. Fees</h2>
+        <ul>
+            <li>Certain services may incur fees</li>
+            <li>All applicable fees will be clearly displayed before confirmation</li>
+            <li>StocksCo reserves the right to update its fee structure</li>
+        </ul>
+
+        <h2>6. Prohibited Activities</h2>
+        <p>Users may not:</p>
+        <ul>
+            <li>Engage in fraudulent or illegal activity</li>
+            <li>Attempt to manipulate market data</li>
+            <li>Access or disrupt platform infrastructure</li>
+            <li>Use the platform for money laundering or terrorist financing</li>
+        </ul>
+        <p>Violations may result in account suspension or termination.</p>
+
+        <h2>7. Intellectual Property</h2>
+        <p>All content, designs, logos, and software on StocksCo are owned by or licensed to StocksCo and may not be
+            copied or reused without permission.</p>
+
+        <h2>8. Account Suspension & Termination</h2>
+        <p>StocksCo may suspend or terminate your account if:</p>
+        <ul>
+            <li>You violate these Terms</li>
+            <li>Required by law or regulators</li>
+            <li>Security risks are detected</li>
+        </ul>
+        <p>Remaining balances will be handled in accordance with applicable laws.</p>
+
+        <h2>9. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by law:</p>
+        <ul>
+            <li>StocksCo is not liable for indirect or consequential damages</li>
+            <li>We do not guarantee uninterrupted or error-free service</li>
+        </ul>
+
+        <h2>10. Governing Law</h2>
+        <p>These Terms are governed by applicable laws of the jurisdiction in which StocksCo operates.</p>
+
+        <h2>11. Changes to Terms</h2>
+        <p>We may update these Terms from time to time. Continued use of the Platform constitutes acceptance of the
+            updated Terms.</p>
+
+        <h2>12. Contact Information</h2>
+        <p>For questions or concerns, contact us at: <a href="mailto:support@stocksco.io">support@stocksco.io</a></p>
+    </div>
+</div>
+{% endblock %}

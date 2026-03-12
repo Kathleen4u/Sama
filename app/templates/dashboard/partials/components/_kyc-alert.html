@@ -1,0 +1,26 @@
+{% if current_user.kyc_status == "unverified" %}
+<div class="kyc-alert kyc-alert--warning">
+    <div class="kyc-alert-content">
+        <i class="fas fa-shield-alt"></i>
+        <span>Complete your KYC now to start trading, funding, and withdrawing securely.</span>
+    </div>
+    <a href="{{ url_for('dashboard.settings', tab='kyc') }}" class="verify-btn">Verify Now</a>
+</div>
+
+{% elif current_user.kyc_status == "pending" %}
+<div class="kyc-alert kyc-alert--pending">
+    <div class="kyc-alert-content">
+        <i class="fas fa-clock"></i>
+        <span>Your KYC documents are under review. This usually takes 1–2 business days.</span>
+    </div>
+</div>
+
+{% elif current_user.kyc_status == "rejected" %}
+<div class="kyc-alert kyc-alert--rejected">
+    <div class="kyc-alert-content">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>Your KYC verification was unsuccessful. Please resubmit your documents.</span>
+    </div>
+    <a href="{{ url_for('dashboard.settings', tab='kyc') }}" class="verify-btn">Resubmit</a>
+</div>
+{% endif %}

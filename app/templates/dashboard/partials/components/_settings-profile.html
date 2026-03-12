@@ -1,0 +1,71 @@
+{% block extra_css %}
+<link rel="stylesheet" href="../../../../static/css/dashboard/components/settings-profile.css">
+{% endblock %}
+
+
+<!-- Profile Tab Content -->
+
+<div class="settings-form">
+    <form action="{{ url_for('dashboard.settings') }}" method="post">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">First Name</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" class="form-input" name="first_name" placeholder="First Name"
+                        value="{{ current_user.first_name or '' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" class="form-input" name="last_name" placeholder="Last Name"
+                        value="{{ current_user.last_name or '' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" class="form-input" name="username" placeholder="Username"
+                        value="{{ current_user.username or '' }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" class="form-input" name="email" placeholder="Email"
+                        value="{{ current_user.email or '' }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="phone" class="form-input" placeholder="Phone number"
+                        value="{{ current_user.phone_number or '' }}">
+                    <input type="hidden" name="phone_number" id="phone_hidden"
+                        value="{{ current_user.phone_number or '' }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="submit-btn-container">
+            <button type="submit" class="submit-btn">Save Changes</button>
+        </div>
+    </form>
+</div>

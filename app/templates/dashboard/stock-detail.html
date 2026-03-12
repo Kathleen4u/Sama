@@ -1,0 +1,599 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = stock.symbol %}
+{% set page_icon = "fa-chart-line" %}
+
+{# ─── Reusable logo macro — uses the stock_domain filter registered in __init__.py ─── #}
+{% macro stock_logo(symbol) %}
+{% set domain = symbol | stock_domain %}
+{% if domain %}
+<img
+    src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64"
+    alt="{{ symbol }}"
+    class="stock-logo-img"
+    width="32" height="32"
+    onerror="this.onerror=null; this.src='/static/images/stock-fallback.png';">
+<span class="stock-logo-fallback" style="display:none;">{{ symbol[:2] }}</span>
+{% else %}
+<span class="stock-logo-fallback">{{ symbol[:2] }}</span>
+{% endif %}
+{% endmacro %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="../../../../static/css/dashboard/stock-detail.css">
+
+{% endblock %}
+
+{% block content %}
+
+<div id="buyToast" style="
+    display: none;
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    max-width: 380px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    font-size: 14px;
+    line-height: 1.5;
+    animation: slideInToast 0.3s ease;
+">
+    <div style="display:flex; align-items:flex-start; gap:12px;">
+        <i id="buyToastIcon" style="font-size:18px; margin-top:2px;"></i>
+        <div style="flex:1;">
+            <div id="buyToastMessage"></div>
+        </div>
+        <button onclick="dismissToast()"
+            style="background:none; border:none; cursor:pointer; opacity:0.6; font-size:16px; padding:0; line-height:1;">
+            ✕
+        </button>
+    </div>
+</div>
+
+<style>
+@keyframes slideInToast {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+</style>
+
+<!-- Back Navigation -->
+<a href="{{ url_for('dashboard.markets') }}" class="back-btn">
+    <i class="fas fa-arrow-left"></i> Back to Markets
+</a>
+
+{% if stock %}
+<div class="stock-detail-grid">
+
+    <!-- ── LEFT COLUMN ─────────────────────────── -->
+    <div class="stock-left">
+
+        <!-- Hero Card -->
+        <div class="stock-hero">
+            <div class="stock-hero-header">
+                <div class="stock-identity">
+                    <div class="stock-icon-circle">
+                        {{ stock_logo(stock.symbol) }}
+                    </div>
+                    <div class="stock-name-block">
+                        <h1>{{ stock.company_name or stock.symbol }}</h1>
+                        <div class="stock-meta">
+                            <span class="exchange-badge">{{ stock.exchange or 'NASDAQ' }}</span>
+                            <span>{{ stock.symbol }}</span>
+                            <span class="market-status-pill {{ 'open' if stock.is_market_open else 'closed' }}">
+                                {{ 'Market Open' if stock.is_market_open else 'Market Closed' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stock-price-block">
+                    <div class="stock-current-price">
+                        ${{ "%.2f"|format(stock.close) if stock.close else "—" }}
+                    </div>
+                    <div class="stock-change-row">
+                        {% if stock.percent_change is not none %}
+                            {% set pct = stock.percent_change|float %}
+                            <span class="change-pill {{ 'positive' if pct >= 0 else 'negative' }}">
+                                {{ '+' if pct >= 0 else '' }}{{ "%.2f"|format(pct) }}%
+                            </span>
+                            {% if stock.change is not none %}
+                            <span class="change-abs">
+                                {{ '+' if stock.change|float >= 0 else '' }}{{ "%.2f"|format(stock.change|float) }} today
+                            </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="change-abs">No change data</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- OHLC Row -->
+            <div class="price-stats-row">
+                <div class="price-stat">
+                    <span class="price-stat-label">Open</span>
+                    <span class="price-stat-value">${{ "%.2f"|format(stock.open) if stock.open else "—" }}</span>
+                </div>
+                <div class="price-stat">
+                    <span class="price-stat-label">High</span>
+                    <span class="price-stat-value">${{ "%.2f"|format(stock.high) if stock.high else "—" }}</span>
+                </div>
+                <div class="price-stat">
+                    <span class="price-stat-label">Low</span>
+                    <span class="price-stat-value">${{ "%.2f"|format(stock.low) if stock.low else "—" }}</span>
+                </div>
+                <div class="price-stat">
+                    <span class="price-stat-label">Prev Close</span>
+                    <span class="price-stat-value">${{ "%.2f"|format(stock.previous_close) if stock.previous_close else "—" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Card -->
+        <!-- Chart Card HTML (place in your layout where you want the chart) -->
+<div class="chart-card mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-3">
+            <h6 class="mb-0 text-white fw-semibold">Price Chart</h6>
+            <span id="chartPriceChange" class="text-muted">—</span>
+        </div>
+        <div class="d-flex gap-1" id="intervalButtons">
+            <button class="chart-interval-btn" data-interval="1min">1m</button>
+            <button class="chart-interval-btn" data-interval="5min">5m</button>
+            <button class="chart-interval-btn" data-interval="1h">1H</button>
+            <button class="chart-interval-btn active" data-interval="1day">1D</button>
+            <button class="chart-interval-btn" data-interval="1week">1W</button>
+        </div>
+    </div>
+    <div class="chart-wrapper">
+        <div class="chart-loading" id="chartLoading">
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            Loading chart data...
+        </div>
+        <canvas id="stockPriceChart"></canvas>
+    </div>
+</div>
+
+        <!-- News Card -->
+        <div class="news-card">
+            <div class="news-card-header">
+                <h3><i class="fas fa-newspaper" style="color:#1976D2; margin-right:8px;"></i>Related News</h3>
+            </div>
+
+            {% if stock_news %}
+                {% for article in stock_news %}
+                <a href="{{ article.article_url }}" target="_blank" rel="noopener" class="news-item">
+                    <div class="news-sentiment-dot {{ article.sentiment or 'neutral' }}"></div>
+                    <div class="news-body">
+                        <div class="news-title">{{ article.title }}</div>
+                        <div class="news-meta">
+                            <span>{{ article.source or 'News' }}</span>
+                            {% if article.published_at %}
+                            <span>·</span>
+                            <span>{{ article.published_at.strftime('%b %d') }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="news-empty">
+                    <i class="fas fa-newspaper" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+                    No news articles found for {{ stock.symbol }}
+                </div>
+            {% endif %}
+        </div>
+
+    </div><!-- end left -->
+
+    <!-- ── RIGHT COLUMN ────────────────────────── -->
+    <div class="stock-right">
+
+        <!-- Buy/Invest Card -->
+        <div class="action-card">
+            <h3>Invest in {{ stock.symbol }}</h3>
+
+            <div class="action-price-display">
+                <div class="action-price-label">Current Price per Share</div>
+                <div class="action-price-value" id="priceDisplay">
+                    ${{ "%.2f"|format(stock.close) if stock.close else "0.00" }}
+                </div>
+            </div>
+
+            <div class="quantity-input-wrap">
+                <label>Number of Shares</label>
+                <div class="quantity-control">
+                    <button class="qty-btn" onclick="changeQty(-1)">−</button>
+                    <input type="number" class="qty-input" id="qtyInput" value="1" min="1" max="10000"
+                           oninput="updateTotal()">
+                    <button class="qty-btn" onclick="changeQty(1)">+</button>
+                </div>
+            </div>
+
+            <div class="total-cost-row">
+                <span class="total-cost-label">Estimated Total</span>
+                <span class="total-cost-value" id="totalCost">
+                    ${{ "%.2f"|format(stock.close) if stock.close else "0.00" }}
+                </span>
+            </div>
+
+            <div class="action-btns">
+                <button class="btn-buy" onclick="handleBuy()">
+                    <i class="fas fa-shopping-cart" style="margin-right:8px;"></i>
+                    Buy {{ stock.symbol }}
+                </button>
+                <button class="btn-watchlist">
+                    <i class="far fa-star" style="margin-right:8px;"></i>
+                    Add to Watchlist
+                </button>
+            </div>
+
+            <div class="wallet-hint">
+                Available balance: <strong id="walletBalance">${{ "%.2f"|format(wallet.balance) if wallet and wallet.balance else "0.00" }}</strong>
+            </div>
+        </div>
+
+        <!-- Key Stats -->
+        <div class="stats-card">
+            <h3>Key Statistics</h3>
+
+            <div class="key-stat-row">
+                <span class="key-stat-label">Symbol</span>
+                <span class="key-stat-value">{{ stock.symbol }}</span>
+            </div>
+            <div class="key-stat-row">
+                <span class="key-stat-label">Exchange</span>
+                <span class="key-stat-value">{{ stock.exchange or '—' }}</span>
+            </div>
+            <div class="key-stat-row">
+                <span class="key-stat-label">Volume</span>
+                <span class="key-stat-value">
+                    {% if stock.volume %}
+                        {% set v = stock.volume %}
+                        {% if v >= 1000000000 %}{{ "%.1f"|format(v/1000000000) }}B
+                        {% elif v >= 1000000 %}{{ "%.1f"|format(v/1000000) }}M
+                        {% elif v >= 1000 %}{{ "%.1f"|format(v/1000) }}K
+                        {% else %}{{ v }}
+                        {% endif %}
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+            <div class="key-stat-row">
+                <span class="key-stat-label">Day Range</span>
+                <span class="key-stat-value">
+                    {% if stock.low and stock.high %}
+                        ${{ "%.2f"|format(stock.low) }} – ${{ "%.2f"|format(stock.high) }}
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+            <div class="key-stat-row">
+                <span class="key-stat-label">Prev Close</span>
+                <span class="key-stat-value">${{ "%.2f"|format(stock.previous_close) if stock.previous_close else "—" }}</span>
+            </div>
+            <div class="key-stat-row">
+                <span class="key-stat-label">Data Updated</span>
+                <span class="key-stat-value">
+                    {% if stock.fetched_at %}
+                        {{ stock.fetched_at.strftime('%b %d, %H:%M') }} UTC
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Related Stocks -->
+        {% if related_stocks %}
+        <div class="related-card">
+            <h3>Related Stocks</h3>
+            {% for rel in related_stocks %}
+            <a href="{{ url_for('dashboard.stock_detail', symbol=rel.symbol) }}" class="related-item">
+                <div class="related-info">
+                    <span class="related-name">{{ rel.company_name.split(' ')[0] if rel.company_name else rel.symbol }}</span>
+                    <span class="related-symbol">{{ rel.symbol }}</span>
+                </div>
+                <div class="related-right">
+                    <div class="related-price">${{ "%.2f"|format(rel.close) if rel.close else "—" }}</div>
+                    {% if rel.percent_change is not none %}
+                        {% set rpct = rel.percent_change|float %}
+                        <div class="related-change {{ 'positive' if rpct >= 0 else 'negative' }}">
+                            {{ '+' if rpct >= 0 else '' }}{{ "%.2f"|format(rpct) }}%
+                        </div>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div><!-- end right -->
+
+</div><!-- end grid -->
+
+{% else %}
+<!-- Stock not found -->
+<div style="padding: 60px 24px; text-align: center;">
+    <div style="font-size: 48px; margin-bottom: 16px;">📉</div>
+    <h2 style="color: #202124; margin-bottom: 8px;">Stock Not Found</h2>
+    <p style="color: #5f6368; margin-bottom: 24px;">
+        We don't have data for this symbol yet. Market data updates every 30 minutes.
+    </p>
+    <a href="{{ url_for('dashboard.markets') }}" class="btn btn-primary" style="border-radius: 10px; padding: 10px 24px;">
+        Browse Markets
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const pricePerShare = {{ stock.close|float if stock and stock.close else 0 }};
+    const stockSymbol   = "{{ stock.symbol if stock else '' }}";
+
+    // ── Quantity controls ───────────────────────────────────────────
+    function changeQty(delta) {
+        const input = document.getElementById('qtyInput');
+        let val = Math.max(1, (parseInt(input.value) || 1) + delta);
+        input.value = val;
+        updateTotal();
+    }
+
+    function updateTotal() {
+        const qty   = parseInt(document.getElementById('qtyInput').value) || 1;
+        const total = (pricePerShare * qty).toFixed(2);
+        document.getElementById('totalCost').textContent =
+            '$' + parseFloat(total).toLocaleString('en-US', { minimumFractionDigits: 2 });
+    }
+
+    // ── Buy handler ─────────────────────────────────────────────────
+    async function handleBuy() {
+        const qty      = parseInt(document.getElementById('qtyInput').value) || 1;
+        const buyBtn   = document.querySelector('.btn-buy');
+
+        // Disable button and show loading state
+        buyBtn.disabled    = true;
+        buyBtn.innerHTML   = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Processing...';
+
+        try {
+            const response = await fetch('/api/buy', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ symbol: stockSymbol, quantity: qty }),
+            });
+
+            const result = await response.json();
+
+            // Show toast notification
+            showToast(result.message, result.category);
+
+            if (result.success) {
+                // Update wallet balance display without page reload
+                if (result.new_balance !== null) {
+                    const balanceEl = document.getElementById('walletBalance');
+                    if (balanceEl) {
+                        balanceEl.textContent = '$' + parseFloat(result.new_balance)
+                            .toLocaleString('en-US', { minimumFractionDigits: 2 });
+                    }
+                }
+                // Reset quantity back to 1 after successful buy
+                document.getElementById('qtyInput').value = 1;
+                updateTotal();
+            }
+
+        } catch (err) {
+            // Network error
+            showToast('Connection error. Please check your internet and try again.', 'error');
+        } finally {
+            // Always re-enable button
+            buyBtn.disabled  = false;
+            buyBtn.innerHTML = '<i class="fas fa-shopping-cart" style="margin-right:8px;"></i>Buy ' + stockSymbol;
+        }
+    }
+
+    // ── Toast helpers ───────────────────────────────────────────────
+    const toastColors = {
+        success: { bg: '#F0FDF4', border: '#86EFAC', text: '#166534', icon: 'fas fa-check-circle', iconColor: '#22C55E' },
+        warning: { bg: '#FFFBEB', border: '#FCD34D', text: '#92400E', icon: 'fas fa-exclamation-triangle', iconColor: '#F59E0B' },
+        error:   { bg: '#FFF1F2', border: '#FECDD3', text: '#9F1239', icon: 'fas fa-times-circle', iconColor: '#EF4444' },
+    };
+
+    let toastTimer = null;
+
+    function showToast(message, category) {
+        const toast   = document.getElementById('buyToast');
+        const msgEl   = document.getElementById('buyToastMessage');
+        const iconEl  = document.getElementById('buyToastIcon');
+        const style   = toastColors[category] || toastColors.error;
+
+        // Apply styles
+        toast.style.background   = style.bg;
+        toast.style.border       = `1.5px solid ${style.border}`;
+        toast.style.color        = style.text;
+        iconEl.className         = style.icon;
+        iconEl.style.color       = style.iconColor;
+        msgEl.textContent        = message;
+
+        // Show
+        toast.style.display = 'block';
+
+        // Auto-dismiss after 6 seconds
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(dismissToast, 6000);
+    }
+
+    function dismissToast() {
+        const toast = document.getElementById('buyToast');
+        toast.style.display = 'none';
+        if (toastTimer) clearTimeout(toastTimer);
+    }
+
+    // ── Timeframe buttons (chart) ────────────────────────────────────
+    document.querySelectorAll('.timeframe-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    (function () {
+    const SYMBOL = "{{ symbol }}";
+    const canvas = document.getElementById("stockPriceChart");
+    const loadingEl = document.getElementById("chartLoading");
+    const priceChangeEl = document.getElementById("chartPriceChange");
+    let chartInstance = null;
+    let activeInterval = "1day";
+
+    // Format datetime labels per interval
+    function formatLabel(isoString, interval) {
+        const d = new Date(isoString);
+        if (["1min", "5min", "15min"].includes(interval)) {
+            return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+        if (interval === "1h") {
+            return d.toLocaleDateString([], { month: "short", day: "numeric" }) +
+                   " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+        return d.toLocaleDateString([], { month: "short", day: "numeric", year: "2-digit" });
+    }
+
+    function renderChart(data) {
+        if (!data.candles || data.candles.length === 0) {
+            loadingEl.innerHTML = '<i class="fa fa-chart-line me-2"></i>No chart data available';
+            return;
+        }
+
+        const candles = data.candles;
+        const labels = candles.map(c => formatLabel(c.t, activeInterval));
+        const closes = candles.map(c => c.c);
+
+        // Determine color: green if last close > first close
+        const first = closes[0];
+        const last = closes[closes.length - 1];
+        const isPositive = last >= first;
+        const lineColor = isPositive ? "#00c896" : "#ff4d5e";
+        const pct = (((last - first) / first) * 100).toFixed(2);
+
+        // Update price change badge
+        priceChangeEl.textContent = `${isPositive ? "+" : ""}${pct}%`;
+        priceChangeEl.style.color = isPositive ? "#00c896" : "#ff4d5e";
+
+        // Destroy previous instance
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
+
+        loadingEl.style.display = "none";
+        canvas.style.display = "block";
+
+        // Build gradient fill
+        const ctx = canvas.getContext("2d");
+        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, isPositive ? "rgba(0,200,150,0.25)" : "rgba(255,77,94,0.25)");
+        gradient.addColorStop(1, "rgba(0,0,0,0)");
+
+        chartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels,
+                datasets: [{
+                    data: closes,
+                    borderColor: lineColor,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: lineColor,
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.3,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false,
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "#1a2332",
+                        borderColor: "rgba(255,255,255,0.1)",
+                        borderWidth: 1,
+                        titleColor: "rgba(255,255,255,0.5)",
+                        bodyColor: "#fff",
+                        padding: 10,
+                        callbacks: {
+                            label(ctx) {
+                                const c = candles[ctx.dataIndex];
+                                return [
+                                    `Close: $${c.c.toFixed(2)}`,
+                                    `Open: $${c.o.toFixed(2)}`,
+                                    `High: $${c.h.toFixed(2)}`,
+                                    `Low: $${c.l.toFixed(2)}`,
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: "rgba(255,255,255,0.05)", drawBorder: false },
+                        ticks: {
+                            color: "rgba(255,255,255,0.3)",
+                            maxTicksLimit: 8,
+                            maxRotation: 0,
+                            font: { size: 11 }
+                        },
+                    },
+                    y: {
+                        position: "right",
+                        grid: { color: "rgba(255,255,255,0.05)", drawBorder: false },
+                        ticks: {
+                            color: "rgba(255,255,255,0.3)",
+                            font: { size: 11 },
+                            callback: v => "$" + v.toFixed(2)
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadChart(interval) {
+        // Show loading state
+        if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+        canvas.style.display = "none";
+        loadingEl.style.display = "flex";
+        loadingEl.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>&nbsp;Loading...';
+
+        try {
+            const res = await fetch(`/dashboard/markets/${SYMBOL}/chart?interval=${interval}`);
+            if (!res.ok) throw new Error("Network error");
+            const data = await res.json();
+            renderChart(data);
+        } catch (e) {
+            loadingEl.style.display = "flex";
+            loadingEl.innerHTML = '<i class="fa fa-exclamation-triangle me-2 text-warning"></i>Failed to load chart';
+        }
+    }
+
+    // Interval button handlers
+    document.querySelectorAll(".chart-interval-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll(".chart-interval-btn").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+            activeInterval = this.dataset.interval;
+            loadChart(activeInterval);
+        });
+    });
+
+    // Initial load
+    loadChart(activeInterval);
+})();
+</script>
+{% endblock %}

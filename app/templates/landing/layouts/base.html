@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StocksCo - Track Your Investment Portfolio | Stock Market Platform</title>
+    <meta name="description" content="Track stocks, manage your portfolio, and simulate investments across US and global markets. Real-time stock prices, watchlists, and comprehensive portfolio analytics.">
+    <meta name="keywords" content="StocksCo stocksco portfolio tracker, investment trading platform US, stock market simulator, portfolio management">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://stocksco.io{{ request.path }}">
+
+    <!-- Open Graph for social sharing -->
+    <meta property="og:title" content="StocksCo - Investment Portfolio Tracker">
+    <meta property="og:description" content="Track and simulate investments with real-time market data">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://stocksco.io">
+    <meta property="og:image" content="https://stocksco.io/static/img/og-image.jpg">
+    <link rel="stylesheet" href="../../../static/css//landing/base.css">
+    {% block styles %}{% endblock %}
+    <link rel="shortcut icon" href="../../../static/images/favicon.png" type="image/x-icon">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body class="bg-light">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-div rounded-4">
+        <div class="container-fluid">
+            <!-- Logo/Brand -->
+            <a class="navbar-brand" href="/">
+                <img src="../../../static/images/StocksCo-logo.png" alt="Logo" max-width="30" height="24"
+                    class="d-inline-block align-text-top">
+            </a>
+
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Content -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- Navigation Links -->
+                <ul class="navbar-nav mx-auto nav-centered">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.about_us') }}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.features') }}">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.contact_us') }}">Contact</a>
+                    </li>
+                </ul>
+
+                <!-- Auth Buttons -->
+                <div class="auth-buttons">
+                    <a href="{{ url_for('auth.login') }}" class="btn-sign-in text-decoration-none">Sign in</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn-get-started text-decoration-none">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% block content %}{% endblock %}
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-white rounded-4 cta-div ">
+        <div class="container">
+            <div class="cta-section">
+                <!-- Background Image -->
+                <img src="../../../static/images/stock-market.png" alt="Trading Background" class="cta-background">
+
+                <!-- Dark Overlay -->
+                <div class="cta-overlay"></div>
+
+                <!-- Content -->
+                <div class="cta-content">
+                    <h2 class="display-4 fw-bold mb-4">Start Trading with StocksCo Today</h2>
+                    <p class="lead mb-4 px-lg-5">
+                        Your financial future begins with a single smart investment.<br>
+                        Join thousands of traders building wealth with secure, simple, and transparent tools.
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                        <a href="{{ url_for('auth.register') }}" class="btn cta-btn-primary">Get Started</a>
+                        <a href="{{ url_for('main.features') }}" class="btn cta-btn-secondary">Explore Markets</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Footer Section -->
+    <footer class="footer-gradient text-white py-5">
+        <div class="container">
+            <div class="row g-4">
+                <!-- Brand Column -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <img src="../../../static/images/StocksCo-logo-white.png" max-width="70" height="50" alt="logo">
+                    </div>
+                    <p class="mb-0">Digital investment platform empowering Traders and global users</p>
+                </div>
+
+                <!-- Quick Links Column 1 -->
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="mb-3 fw-semibold">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('main.index') }}" class="text-white text-decoration-none">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.about_us') }}" class="text-white text-decoration-none">About</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.features') }}" class="text-white text-decoration-none">Features</a></li>
+                        <!-- <li class="mb-2"><a href="#faqs" class="text-white text-decoration-none">FAQs</a></li> -->
+                        <li class="mb-2"><a href="{{ url_for('main.contact_us') }}" class="text-white text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+
+                <!-- Quick Links Column 2 -->
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="mb-3 fw-semibold">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.legal') }}" class="text-white text-decoration-none">Legal</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.privacy') }}" class="text-white text-decoration-none">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.cookie') }}" class="text-white text-decoration-none">Cookie Policy</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.terms') }}" class="text-white text-decoration-none">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+
+                <!-- Office Location Column -->
+                <div class="col-lg-5 col-md-6">
+                    <h5 class="mb-3 fw-semibold">StocksCo Global Office</h5>
+                    <p class="mb-3">
+                        106 Church Way, BRADFORD, BD1 9PB, United Kingdom
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-white fs-5"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-twitter-x"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-telegram"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <hr class="my-4 border-white opacity-25">
+
+            <!-- Bottom Footer -->
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ url_for('main.privacy') }}" class="text-white text-decoration-none">Privacy Policy</a>
+                        <span class="text-white">|</span>
+                        <a href="{{ url_for('main.terms') }}" class="text-white text-decoration-none">Terms & Conditions</a>
+                        <span class="text-white">|</span>
+                        <a href="{{ url_for('main.cookie') }}" class="text-white text-decoration-none">Cookie Policy</a>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <p class="mb-0">© Copyright {{ year }} - StocksCo. All rights reserved</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../../../static/js/testimonials.js"></script>
+
+    <!-- Custom jQuery -->
+    <script>
+        $(document).ready(function () {
+            // Active link highlighting on click
+            $('.nav-link').on('click', function () {
+                $('.nav-link').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Close mobile menu when clicking a nav link
+            $('.nav-link').on('click', function () {
+                if ($(window).width() < 992) {
+                    $('.navbar-collapse').collapse('hide');
+                }
+            });
+
+            // Smooth scroll for anchor links
+            $('a[href^="#"]').on('click', function (e) {
+                e.preventDefault();
+                var target = $(this).attr('href');
+                if ($(target).length) {
+                    $('html, body').animate({
+                        scrollTop: $(target).offset().top - 80
+                    }, 800);
+                }
+            });
+
+            // Add shadow on scroll
+            $(window).on('scroll', function () {
+                if ($(window).scrollTop() > 10) {
+                    $('.navbar').css('box-shadow', '0 4px 12px rgba(0, 0, 0, 0.1)');
+                } else {
+                    $('.navbar').css('box-shadow', '0 2px 4px rgba(0, 0, 0, 0.05)');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

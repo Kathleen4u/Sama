@@ -1,0 +1,70 @@
+/* ─────────────────────────────────────────────────────────────────
+   asset-accents.css
+   Five rotating background accents for the My Assets strip.
+   Applied via accent-0 through accent-4 classes, cycling by
+   loop index so every stock gets a color regardless of symbol.
+───────────────────────────────────────────────────────────────── */
+
+.asset-card.accent-0 {
+    background: #A6F7E2;
+}
+
+.asset-card.accent-1 {
+    background: #B79BFF;
+}
+
+.asset-card.accent-2 {
+    background: #FFE5A5;
+}
+
+.asset-card.accent-3 {
+    background: #C7FFA5;
+}
+
+.asset-card.accent-4 {
+    background: #F8A5FF;
+}
+
+/* Ensure text stays white/light on all accent backgrounds */
+.asset-card[class*="accent-"] .asset-name,
+.asset-card[class*="accent-"] .asset-ticker,
+.asset-card[class*="accent-"] .asset-value-label,
+.asset-card[class*="accent-"] .asset-value {
+    color: #000000;
+}
+
+.asset-card[class*="accent-"] .asset-change.positive {
+    color: #6ee7b7;
+}
+
+.asset-card[class*="accent-"] .asset-change.negative {
+    color: #fca5a5;
+}
+
+.asset-chart-wrap {
+    position: relative;
+    height: 40px;
+    margin-top: 8px;
+}
+
+.asset-sparkline {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.asset-sparkline-shimmer {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer-sweep 1.4s infinite linear;
+}
+
+/* shimmer-sweep is already defined in trending-stocks.css —
+   only add this if my-assets.css is loaded independently */
+/* @keyframes shimmer-sweep {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+} */

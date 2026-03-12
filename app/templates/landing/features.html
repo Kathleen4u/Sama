@@ -1,0 +1,224 @@
+{% extends "landing/layouts/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/css/landing/features.css">{% endblock %}
+
+{% block content %}
+<section class="py-5 features-section rounded-4">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-4">Features</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 1000px;">
+                Essential features built to make investing easy for everyone whether you're just getting started or
+                expanding a growing portfolio. From real-time market data to secure transactions and intuitive tools,
+                StocksCo provides everything you need to invest confidently and effortlessly
+            </p>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Fractional Shares</h4>
+                    <p class="text-muted mb-2">Invest in global companies without needing large capital.</p>
+                    <p class="text-muted mb-0">Fractional investing makes it easy for beginners and everyday earners to
+                        start small and grow steadily at their own pace.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Automated & Recurring Investing</h4>
+                    <p class="text-muted mb-2">Build wealth without stress.</p>
+                    <p class="text-muted mb-0">Choose how much you want to invest weekly or monthly, and StocksCo
+                        handles the rest.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Expert-Curated Portfolios</h4>
+                    <p class="text-muted mb-2">Invest like a pro, even if you're a beginner.</p>
+                    <p class="text-muted mb-0">Access ready-made portfolios created by financial experts—such as Tech
+                        Growth, Blue-Chip Giants, Starter Plans, Dividend Picks, and more.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Real-Time Market Insights</h4>
+                    <p class="text-muted mb-2">Stay informed and make smarter decisions.</p>
+                    <p class="text-muted mb-0">Set custom alerts, track asset performance, and follow trending stocks,
+                        all in one clean and visually intuitive dashboard.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Safe & Secure Transactions</h4>
+                    <p class="text-muted mb-2">Your peace of mind is our priority.</p>
+                    <p class="text-muted mb-0">StocksCo uses multi-layer protection including 2FA, end-to-end
+                        encryption, biometric verification, and strict anti-fraud monitoring.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-item">
+                    <div class="feature-icon-box">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Easy Deposits & Withdrawals</h4>
+                    <p class="text-muted mb-2">Simple, fast, and stress-free.</p>
+                    <p class="text-muted mb-0">Fund your wallet instantly using bank transfers, cards, or digital
+                        wallets. Withdraw your money anytime with fast processing, designed for convenience and
+                        financial flexibility.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQs -->
+<section class="py-5 faq-section rounded-4">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="mb-5">
+            <h2 class="display-5 fw-bold mb-3">Frequently Asked Questions (FAQs)</h2>
+            <p class="lead text-muted">Find Answers to Your Most Important Questions</p>
+        </div>
+
+        <!-- FAQ Accordions - Two Columns -->
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-6">
+                <!-- FAQ 1 -->
+                <div class="accordion" id="faqLeft">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#faq1" aria-expanded="false" aria-controls="faq1">
+                                Is StocksCo regulated?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqLeft">
+                            <div class="accordion-body">
+                                Yes, StocksCo operates in full compliance with financial regulations and is committed to
+                                maintaining the highest standards of security and transparency. We work with licensed
+                                partners and follow strict regulatory guidelines to protect your investments.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 2 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#faq2" aria-expanded="false" aria-controls="faq2">
+                                What are fractional shares?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqLeft">
+                            <div class="accordion-body">
+                                Fractional shares allow you to invest in high-value stocks with any amount you can
+                                afford. Instead of buying a full share, you can purchase a portion of it. For example,
+                                if a stock costs $1,000 and you have $100, you can own 10% of that share.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 3 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#faq3" aria-expanded="false" aria-controls="faq3">
+                                How secure is the platform?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqLeft">
+                            <div class="accordion-body">
+                                StocksCo uses bank-grade encryption, multi-layer authentication (including 2FA and
+                                biometric verification), and strict compliance standards to protect your funds,
+                                identity, and personal data. We continuously monitor for suspicious activity and employ
+                                industry-leading security measures.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-6">
+                <!-- FAQ 4 -->
+                <div class="accordion" id="faqRight">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#faq4" aria-expanded="false" aria-controls="faq4">
+                                How do I withdraw my money?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqRight">
+                            <div class="accordion-body">
+                                Withdrawing your funds is simple. Go to your Wallet, select Withdraw, choose your
+                                preferred withdrawal method (bank transfer or digital wallet), enter the amount, and
+                                confirm. Your funds are typically processed within 1-3 business days depending on your
+                                bank or payment provider.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 5 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#faq5" aria-expanded="false" aria-controls="faq5">
+                                What fees does StocksCo charge?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqRight">
+                            <div class="accordion-body">
+                                StocksCo is committed to transparency. We charge minimal fees for trading and
+                                withdrawals, with no hidden costs. All fees are clearly displayed before you complete
+                                any transaction, so you always know exactly what you're paying.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 6 -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#faq6" aria-expanded="false" aria-controls="faq6">
+                                How do I fund my account?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqRight">
+                            <div class="accordion-body">
+                                You can fund your StocksCo account instantly using multiple payment options. We support
+                                bank transfers, debit cards, and digital wallets, making it easy to add money whenever
+                                you're ready to invest. Simply go to Wallet → Deposit, choose your preferred method, and
+                                follow the onscreen steps. Funds reflect almost immediately.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

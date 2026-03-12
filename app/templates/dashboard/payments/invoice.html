@@ -1,0 +1,391 @@
+{% extends "dashboard/partials/_base.html" %}
+{% set page_title = "Invoice" %}
+
+{% block title %}Payment Invoice - {{ payment.order_id }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="../../../../static/css/dashboard/payments/invoice.css">{% endblock %}
+{% block content %}
+
+<div class="invoice-container">
+    <div class="invoice-card">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="invoice-header-content">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+
+                <div class="invoice-title">
+                    <div>
+                        <h1>
+                            <i class="fas fa-receipt"></i>
+                            Payment Invoice
+                        </h1>
+                        <p>Complete your deposit transaction</p>
+                    </div>
+                    <div>
+                        <span class="status-badge" id="statusBadge"
+                            {% if is_completed %}class="status-badge completed"
+                            {% elif is_pending %}class="status-badge pending"
+                            {% else %}class="status-badge failed"
+                            {% endif %}>
+                            {{ payment.payment_status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="invoice-body">
+            <!-- Order Information -->
+            <div class="order-info">
+                <div class="info-item">
+                    <h6>Order ID</h6>
+                    <p>{{ payment.order_id }}</p>
+                </div>
+                <div class="info-item">
+                    <h6>Payment ID</h6>
+                    <p>{{ payment.payment_id or '—' }}</p>
+                </div>
+                <div class="info-item">
+                    <h6>Created Date</h6>
+                    <p>{{ payment.created_at.strftime('%b %d, %Y') }}</p>
+                </div>
+                <div class="info-item">
+                    <h6>Created Time</h6>
+                    <p>{{ payment.created_at.strftime('%I:%M %p') }}</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Amount Section -->
+            <div class="amount-section">
+                <div class="amount-label">Amount to Pay</div>
+                <div class="amount-value">${{ "%.2f"|format(payment.price_amount) }}</div>
+                <div class="amount-currency">{{ payment.price_currency }}</div>
+
+                {% if payment.pay_amount and payment.pay_currency %}
+                <div class="crypto-equivalent">
+                    <i class="fab fa-bitcoin"></i>
+                    <strong>≈ {{ payment.pay_amount }} {{ payment.pay_currency.upper() }}</strong>
+                </div>
+                {% endif %}            </div>
+
+            <!-- Status-Based Content -->
+            {% if is_completed %}
+            <!-- COMPLETED STATUS -->
+            <div class="status-section success text-center">
+                <div class="status-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Payment Successful!</h3>
+                <p>Your deposit has been confirmed and added to your StocksCo wallet.</p>
+            </div>
+
+            <a href="{{ url_for('dashboard.dashboard') }}" class="payment-btn">
+                <i class="fas fa-home"></i>
+                Return to Dashboard
+            </a>
+
+            {% elif is_pending %}
+            <!-- PENDING STATUS -->
+            <div class="status-section warning text-center">
+                <div class="status-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Payment Pending</h3>
+                <p>Please complete your payment using the button below.</p>
+            </div>
+
+            <!-- Payment Button -->
+            {% if payment.invoice_url %}
+            <a href="{{ payment.invoice_url }}" target="_blank" class="payment-btn">
+                <i class="fas fa-external-link-alt"></i>
+                Proceed to Payment Gateway
+            </a>
+
+            <!-- Instructions -->
+            <div class="instructions-box">
+                <h6>
+                    <i class="fas fa-info-circle"></i>
+                    Payment Instructions
+                </h6>
+                <ol>
+                    <li>Click "Proceed to Payment Gateway" above</li>
+                    <li>Select your preferred cryptocurrency (BTC, ETH, USDT, etc.)</li>
+                    <li>Send the exact amount to the provided wallet address</li>
+                    <li>Wait for blockchain confirmation (10-60 minutes)</li>
+                    <li>Your balance will update automatically once confirmed</li>
+                </ol>
+            </div>
+            {% endif %}
+
+            <!-- Timer -->
+            {% if payment.expiration_estimate_date %}
+            <div class="timer-box">
+                <div class="timer-label">
+                    <i class="fas fa-hourglass-half"></i>
+                    Time Remaining
+                </div>
+                <div class="timer-value" id="countdown">--:--:--</div>
+                <div class="timer-note">Complete payment before expiration</div>
+            </div>
+            {% endif %}
+
+            <!-- Check Status Button -->
+            <button type="button" class="check-status-btn" id="checkStatusBtn" onclick="checkPaymentStatus()">
+                <i class="fas fa-sync-alt"></i>
+                Check Payment Status
+            </button>
+
+            {% else %}
+            <!-- FAILED/EXPIRED STATUS -->
+            <div class="status-section danger text-center">
+                <div class="status-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h3>Payment {{ payment.payment_status.title() }}</h3>
+                <p>This payment could not be completed. Please try again or contact support.</p>
+            </div>
+
+            <a href="{{ url_for('dashboard.dashboard') }}" class="payment-btn">
+                <i class="fas fa-home"></i>
+                Return to Dashboard
+            </a>
+            {% endif %}
+
+            <!-- Accordion -->
+            <div class="accordion custom-accordion" id="invoiceAccordion">
+                <!-- Payment Details -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#detailsCollapse">
+                            <i class="fas fa-file-invoice me-2"></i>
+                            Payment Details
+                        </button>
+                    </h2>
+                    <div id="detailsCollapse" class="accordion-collapse collapse" data-bs-parent="#invoiceAccordion">
+                        <div class="accordion-body">
+                            <table class="detail-table">
+                                <tr>
+                                    <th>Payment ID:</th>
+                                    <td>{{ payment.payment_id or '—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Order ID:</th>
+                                    <td>{{ payment.order_id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Amount:</th>
+                                    <td>${{ "%.2f"|format(payment.price_amount) }} {{ payment.price_currency }}</td>
+                                </tr>
+                                {% if payment.pay_amount and payment.pay_currency %}
+                                <tr>
+                                    <th>Crypto Amount:</th>
+                                    <td>{{ payment.pay_amount }} {{ payment.pay_currency.upper() }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Status:</th>
+                                    <td id="detailStatus">{{ payment.payment_status }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>{{ payment.created_at.strftime('%B %d, %Y at %I:%M %p') }}</td>
+                                </tr>
+                                {% if payment.updated_at %}
+                                <tr>
+                                    <th>Last Updated:</th>
+                                    <td>{{ payment.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help & Support -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpCollapse">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Need Help?
+                        </button>
+                    </h2>
+                    <div id="helpCollapse" class="accordion-collapse collapse" data-bs-parent="#invoiceAccordion">
+                        <div class="accordion-body">
+                            <div class="help-item">
+                                <strong>How long does payment take?</strong>
+                                <p>Cryptocurrency payments typically take 10-60 minutes for blockchain confirmation, depending on network congestion.</p>
+                            </div>
+                            <div class="help-item">
+                                <strong>What if I sent the wrong amount?</strong>
+                                <p>Partial payments will be recorded. Contact our support team immediately if you sent an incorrect amount.</p>
+                            </div>
+                            <div class="help-item">
+                                <strong>Is my payment secure?</strong>
+                                <p>Yes! All payments are processed through secure, encrypted channels with industry-standard security protocols.</p>
+                            </div>
+                            <div class="help-item">
+                                <strong>Need assistance?</strong>
+                                <p>Contact our support team at <a href="mailto:support@stocksco.io">support@stocksco.io</a> or use the live chat feature.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+{% if is_pending %}
+
+// The order_id Jinja passes in at render time — used in the fetch URL below
+const ORDER_ID = "{{ payment.order_id }}";
+
+// Track the polling interval so we can stop it when the status resolves
+let pollingInterval = null;
+
+const TERMINAL_STATUSES = new Set(['finished', 'confirmed', 'failed', 'expired', 'refunded']);
+
+function checkPaymentStatus() {
+    const btn = document.getElementById('checkStatusBtn');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+    }
+
+    fetch(`/dashboard/payments/status/${ORDER_ID}`)
+        .then(response => {
+            if (!response.ok) {
+                // Server returned 4xx/5xx — don't crash, just log and wait for next poll
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) return;
+
+            const status = data.payment.payment_status;
+
+            // Update the status badge text live so the user sees something
+            // is happening even before the page reloads
+            const badge = document.getElementById('statusBadge');
+            const detailStatus = document.getElementById('detailStatus');
+            if (badge) badge.textContent = status;
+            if (detailStatus) detailStatus.textContent = status;
+
+            if (TERMINAL_STATUSES.has(status)) {
+                // Status is final — stop polling and reload to show correct UI
+                stopPolling();
+                // Small delay so the user briefly sees the updated badge
+                // before the page reloads — gives visual feedback
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        })
+        .catch(error => {
+            // LEARNING NOTE — Silent failure on network errors
+            // -------------------------------------------------
+            // If the fetch fails (network issue, server restarting),
+            // we just log it and let the next interval try again.
+            // We never want a network error to break the polling loop
+            // or show an error to the user — just try again in 30s.
+            console.warn('Status check failed (will retry):', error.message);
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Check Payment Status';
+            }
+        });
+}
+
+function startPolling() {
+    // Check immediately on load, then every 30 seconds
+    // LEARNING NOTE — Why check immediately?
+    // The payment status might have changed between when the page
+    // was first requested and when the JS finishes loading.
+    // An immediate check catches that gap.
+    checkPaymentStatus();
+    pollingInterval = setInterval(checkPaymentStatus, 30000);
+}
+
+function stopPolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+}
+
+// Start polling when page loads
+startPolling();
+
+// Clean up interval when user navigates away — prevents memory leaks
+window.addEventListener('beforeunload', stopPolling);
+
+{% endif %}{# end is_pending #}
+
+
+{% if payment.expiration_estimate_date and is_pending %}
+
+/*
+ * LEARNING NOTE — Why pass the date from Jinja rather than fetching it?
+ * ----------------------------------------------------------------------
+ * The expiration_estimate_date is set once at payment creation and never
+ * changes. Passing it directly from the template avoids an extra API call.
+ * We use .isoformat() on the Python side to produce a standard ISO 8601
+ * string that JavaScript's Date constructor can parse reliably across
+ * all browsers.
+ */
+const EXPIRATION_DATE = new Date('{{ payment.expiration_estimate_date.isoformat() }}');
+let countdownInterval = null;
+
+function updateCountdown() {
+    const now = new Date();
+    const diff = EXPIRATION_DATE - now;
+    const el = document.getElementById('countdown');
+    if (!el) return;
+
+    if (diff <= 0) {
+        // Timer hit zero — payment has expired on NOWPayments' side
+        el.textContent = 'EXPIRED';
+        el.style.color = '#EF4444';
+
+        // Stop the countdown — no point updating a zero timer
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+
+        setTimeout(() => window.location.reload(), 3000);
+        return;
+    }
+
+    // Format remaining time as HH:MM:SS
+    const hours   = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    el.textContent = [
+        hours.toString().padStart(2, '0'),
+        minutes.toString().padStart(2, '0'),
+        seconds.toString().padStart(2, '0')
+    ].join(':');
+
+    // Turn red when under 5 minutes to create urgency
+    el.style.color = diff < 5 * 60 * 1000 ? '#EF4444' : '';
+}
+
+// Run immediately then every second
+updateCountdown();
+countdownInterval = setInterval(updateCountdown, 1000);
+
+{% endif %}{# end expiration countdown #}
+</script>
+
+{% endblock %}

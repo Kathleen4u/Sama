@@ -1,0 +1,30 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/markets-search.css">{% endblock %}
+
+<!-- Markets Search Bar -->
+<div class="markets-search">
+    <div class="search-box" id="searchBox">
+        <i class="fas fa-search search-icon" id="searchIcon"></i>
+        <input
+            type="text"
+            placeholder="Search stocks, ETFs, crypto..."
+            class="search-input"
+            id="marketsSearch"
+            autocomplete="off"
+            spellcheck="false"
+        >
+        <button class="search-clear-btn" id="searchClear" style="display:none;" title="Clear">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <button class="filter-btn" id="filterBtn" title="Filters">
+        <i class="fas fa-sliders-h"></i>
+    </button>
+
+    <!-- Suggestions Dropdown -->
+    <div class="search-dropdown" id="searchDropdown">
+        <!-- Populated by JS -->
+    </div>
+</div>
+{% block extra_js %}
+<script src="../../../../static/js/market-search.js"></script>
+{% endblock %}

@@ -1,0 +1,317 @@
+{% block extra_css %}
+<link rel="stylesheet" href="../../../../static/css/dashboard/components/trending-stocks.css">{% endblock %}
+
+
+{# ─── Reusable logo macro ─── #}
+{% macro stock_logo(symbol) %}
+{% set domain = symbol | stock_domain %}
+{% if domain %}
+<img
+    src="https://www.google.com/s2/favicons?domain={{ symbol | stock_domain }}&sz=64"
+    alt="{{ symbol }}"
+    class="stock-logo-img"
+    width="32" height="32"
+    onerror="this.onerror=null; this.src='/static/images/stock-fallback.png';">
+<span class="stock-logo-fallback" style="display:none;">{{ symbol[:2] }}</span>
+{% else %}
+<span class="stock-logo-fallback">{{ symbol[:2] }}</span>
+{% endif %}
+{% endmacro %}
+
+{# ─── Reusable card macro ─── #}
+{% macro stock_card(stock, pct) %}
+<a href="{{ url_for('dashboard.stock_detail', symbol=stock.symbol) }}"
+   class="trending-card"
+   data-symbol="{{ stock.symbol }}">
+    <div class="trending-card-header">
+        <div class="trending-logo">
+            {{ stock_logo(stock.symbol) }}
+        </div>
+        <div class="trending-info">
+            <div class="trending-name">{{ stock.symbol }}</div>
+            <div class="trending-company">
+                {{ stock.company_name.split(' ')[0] if stock.company_name else stock.symbol }}
+            </div>
+        </div>
+    </div>
+    <div class="trending-card-body">
+        <div class="trending-price">
+            ${{ "%.2f"|format(stock.close) if stock.close else "—" }}
+        </div>
+        <div class="trending-change {{ 'positive' if pct >= 0 else 'negative' }}">
+            <i class="fas fa-caret-{{ 'up' if pct >= 0 else 'down' }}"></i>
+            {{ '+' if pct >= 0 else '' }}{{ "%.2f"|format(pct) }}%
+        </div>
+    </div>
+    <div class="trending-mini-chart">
+        <canvas class="sparkline-canvas"
+                data-symbol="{{ stock.symbol }}"
+                data-positive="{{ 'true' if pct >= 0 else 'false' }}">
+        </canvas>
+        <div class="sparkline-shimmer"></div>
+    </div>
+</a>
+{% endmacro %}
+
+
+<!-- Trending Stocks -->
+<div class="trending-section">
+
+    <div class="trending-header">
+        <h3 class="trending-title">All Stocks</h3>
+        {% if market_updated_at %}
+        <span class="market-updated-at">
+            <i class="fas fa-clock"></i>
+            Updated {{ market_updated_at.strftime('%H:%M UTC') }}
+        </span>
+        {% endif %}
+    </div>
+
+    <div class="trending-tabs">
+        <button class="timeframe-btn active" onclick="switchStockTab('all', this)">All</button>
+        <button class="timeframe-btn" onclick="switchStockTab('gainers', this)">Gainers</button>
+        <button class="timeframe-btn" onclick="switchStockTab('losers', this)">Losers</button>
+    </div>
+
+    <!-- All Stocks -->
+    <div class="stock-tab-content active" id="tab-all">
+        {% if all_quotes %}
+        <div class="trending-grid">
+            {% for stock in all_quotes %}
+                {% set pct = stock.percent_change|float if stock.percent_change else 0 %}
+                {{ stock_card(stock, pct) }}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="trending-empty">
+            <i class="fas fa-chart-bar"></i>
+            Market data is loading. Check back in a few minutes.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Gainers -->
+    <div class="stock-tab-content" id="tab-gainers" style="display:none;">
+        {% if gainers %}
+        <div class="trending-grid">
+            {% for stock in gainers %}
+                {% set pct = stock.percent_change|float %}
+                {{ stock_card(stock, pct) }}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="trending-empty">No gainers data yet.</div>
+        {% endif %}
+    </div>
+
+    <!-- Losers -->
+    <div class="stock-tab-content" id="tab-losers" style="display:none;">
+        {% if losers %}
+        <div class="trending-grid">
+            {% for stock in losers %}
+                {% set pct = stock.percent_change|float %}
+                {{ stock_card(stock, pct) }}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="trending-empty">No losers data yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+
+<script>
+(function () {
+
+    // ── sessionStorage cache ───────────────────────────────────────
+    const CACHE_PREFIX = 'sc_spark_';
+    const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+    function getCached(symbol) {
+        try {
+            const raw = sessionStorage.getItem(CACHE_PREFIX + symbol);
+            if (!raw) return null;
+            const { closes, ts } = JSON.parse(raw);
+            if (Date.now() - ts > CACHE_TTL_MS) {
+                sessionStorage.removeItem(CACHE_PREFIX + symbol);
+                return null;
+            }
+            return closes;
+        } catch { return null; }
+    }
+
+    function setCached(symbol, closes) {
+        try {
+            sessionStorage.setItem(CACHE_PREFIX + symbol, JSON.stringify({
+                closes,
+                ts: Date.now(),
+            }));
+        } catch { /* sessionStorage full — fail silently */ }
+    }
+
+    // ── In-memory cache + in-flight tracker ───────────────────────
+    const sparkCache = {};
+    const inFlight = new Set();
+
+    // ── Tab switching ──────────────────────────────────────────────
+    window.switchStockTab = function (tab, btn) {
+        document.querySelectorAll('.stock-tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.trending-section .timeframe-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).style.display = 'block';
+        btn.classList.add('active');
+        observeVisibleCanvases();
+    };
+
+    // ── Draw sparkline on a single canvas ─────────────────────────
+    //
+    // WHY requestAnimationFrame:
+    // When fetchAndDraw() finishes, the fetch came back from the server
+    // but the browser may not have finished painting the card onto the
+    // screen yet. At that instant canvas.offsetWidth is still 0.
+    // We measure the parent container (.trending-mini-chart) which is
+    // more reliably sized, and if it's still 0 we hand control back to
+    // the browser with requestAnimationFrame — which means "run this
+    // again after the next paint". By then layout has settled and we
+    // get the real width.
+    //
+    function drawSparkline(canvas, closes, isPositive) {
+        const container = canvas.closest('.trending-mini-chart');
+        const W = (container ? container.offsetWidth : 0) || canvas.offsetWidth || 200;
+        const H = (container ? container.offsetHeight : 0) || canvas.offsetHeight || 50;
+
+        // Layout hasn't settled — wait one frame and try again
+        if (W < 10) {
+            requestAnimationFrame(() => drawSparkline(canvas, closes, isPositive));
+            return;
+        }
+
+        // Hide the shimmer placeholder
+        const shimmer = canvas.nextElementSibling;
+        if (shimmer) shimmer.style.display = 'none';
+
+        // Set canvas pixel size to match its CSS layout size
+        canvas.width  = W;
+        canvas.height = H;
+        canvas.style.width  = W + 'px';
+        canvas.style.height = H + 'px';
+        canvas.style.display = 'block';
+        canvas.style.opacity = '1';
+
+        const ctx = canvas.getContext('2d');
+
+        // Work out the price range so we can scale to the canvas height
+        const min   = Math.min(...closes);
+        const max   = Math.max(...closes);
+        const range = max - min || 1;  // avoid division by zero for flat lines
+        const pad   = 4;
+        const color = isPositive ? '#10B981' : '#EF4444';
+
+        // Gradient fill that fades out toward the bottom
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, isPositive ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+
+        // Convert each close price into an (x, y) canvas coordinate
+        const points = closes.map((c, i) => ({
+            x: (i / (closes.length - 1)) * (W - pad * 2) + pad,
+            y: H - pad - ((c - min) / range) * (H - pad * 2),
+        }));
+
+        // Draw the filled area under the line
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, H);
+        points.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.lineTo(points[points.length - 1].x, H);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Draw the price line on top
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        points.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.strokeStyle = color;
+        ctx.lineWidth   = 1.5;
+        ctx.lineJoin    = 'round';
+        ctx.stroke();
+    }
+
+    // ── Draw on every canvas that shares a symbol ─────────────────
+    // The same symbol can appear in the All tab AND Gainers/Losers tab,
+    // so we draw on all of them at once from a single data fetch.
+    function drawAllCanvases(symbol, closes) {
+        document.querySelectorAll(`.sparkline-canvas[data-symbol="${symbol}"]`).forEach(canvas => {
+            drawSparkline(canvas, closes, canvas.dataset.positive === 'true');
+        });
+    }
+
+    // ── Fetch data, populate caches, then draw ────────────────────
+    async function fetchAndDraw(symbol) {
+        if (inFlight.has(symbol)) return;
+
+        // Layer 1: in-memory — fastest, no serialisation overhead
+        if (sparkCache[symbol]) {
+            drawAllCanvases(symbol, sparkCache[symbol]);
+            return;
+        }
+
+        // Layer 2: sessionStorage — survives page navigations
+        const cached = getCached(symbol);
+        if (cached) {
+            sparkCache[symbol] = cached;
+            drawAllCanvases(symbol, cached);
+            return;
+        }
+
+        // Layer 3: network — Flask serves from its PostgreSQL cache,
+        // only hitting Twelve Data if the DB cache is stale
+        inFlight.add(symbol);
+        try {
+            const res = await fetch(`/dashboard/markets/${symbol}/chart?interval=1day`);
+            if (!res.ok) throw new Error('fetch failed');
+            const data = await res.json();
+            if (!data.candles || data.candles.length === 0) return;
+
+            // 30 daily closes gives a clean shape without being noisy
+            const closes = data.candles.slice(-30).map(c => c.c);
+
+            sparkCache[symbol] = closes;
+            setCached(symbol, closes);
+            drawAllCanvases(symbol, closes);
+        } catch (e) {
+            // Fail silently — shimmer stays, nothing breaks
+        } finally {
+            inFlight.delete(symbol);
+        }
+    }
+
+    // ── IntersectionObserver ───────────────────────────────────────
+    // Only fetch a sparkline when the card is about to scroll into view.
+    // rootMargin '100px' gives us a 100px head-start before it's visible.
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const canvas = entry.target;
+            observer.unobserve(canvas);
+            fetchAndDraw(canvas.dataset.symbol);
+        });
+    }, {
+        rootMargin: '100px',
+        threshold: 0,
+    });
+
+    // ── Register undrawn canvases with the observer ────────────────
+    // Called on page load and on every tab switch, since switching tabs
+    // reveals new canvases that haven't been registered yet.
+    function observeVisibleCanvases() {
+        document.querySelectorAll('.sparkline-canvas').forEach(canvas => {
+            if (canvas.style.opacity !== '1') {
+                observer.observe(canvas);
+            }
+        });
+    }
+
+    observeVisibleCanvases();
+
+})();
+</script>

@@ -1,0 +1,159 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/investment-assets.css">{% endblock %}
+
+
+<!-- Investment Assets Section -->
+<div class="investment-assets-grid">
+    <!-- US Stocks Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">US Stocks</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Invest in leading U.S. companies and global market leaders.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Medium–High</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$10</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="openStockModal('US Stocks')">Explore</button>
+    </div>
+
+    <!-- International Stocks Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">International Stocks</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Trade top-performing International companies listed on the market.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Medium–High</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$10</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="openStockModal('NG Stocks')">Explore</button>
+    </div>
+
+    <!-- Managed Portfolio Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">Managed Portfolio</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Professionally managed portfolios tailored to your financial goals.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Low-Medium</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$500</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="alert('Coming Soon')">Explore</button>
+    </div>
+
+
+    <!-- Dollar Savings Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">Dollar Savings</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Grow your savings securely while earning competitive interest in naira.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Low</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$1,000</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="alert('Coming Soon')">Explore</button>
+    </div>
+
+    <!-- Fixed Returns Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">Fixed Returns</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Lock in stable returns with fixed-term investment options.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Low</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$50,000</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">ROI</span>
+                <span class="detail-value">5%/weekly</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="alert('Coming Soon')">Explore</button>
+    </div>
+
+
+       <!-- Treasury Bills Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">Treasury Bills</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Low-risk government-backed investments with predictable returns.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Very low</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$1,000,000</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">ROI</span>
+                <span class="detail-value">7%/weekly</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="alert('Coming Soon')">Explore</button>
+    </div>
+</div>

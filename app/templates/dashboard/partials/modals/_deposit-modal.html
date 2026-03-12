@@ -1,0 +1,67 @@
+{% block extra_css %}
+<link rel="stylesheet" href="../../../../static/css/dashboard/components/deposit-modal.css">{% endblock %}
+
+<!-- Deposit Modal -->
+<div class="modal" id="depositModal">
+    <div class="modal-overlay" onclick="closeModal('depositModal')"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('depositModal')">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2 class="modal-title">Select Currency and Payment</h2>
+
+        <form id="depositForm" class="modal-form">
+            <!-- Select Currency -->
+            <div class="form-group">
+                <label class="form-label">Select Currency</label>
+                <div class="select-wrapper">
+                    <i class="fas fa-dollar-sign select-icon"></i>
+                    <select class="form-select" id="depositCurrency" onchange="updateDepositIcon(this)">
+                        <option value="USD" data-icon="fa-dollar-sign">USD</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+                <label class="form-label">Amount</label>
+                <input class="form-input" type="text" id="depositAmount" min="20.00" step="0.01" placeholder="Minimum $20.00">
+                <small class="text-muted">⚠️ Minimum: $20 (network fees apply)</small>
+                <!-- <input type="text" class="form-input" placeholder="$0.00" id="depositAmount"> -->
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="form-group">
+                <label class="form-label">Choose payment method:</label>
+
+                <div class="payment-options">
+                    <!-- Crypto Option -->
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="crypto" onchange="togglePaymentFields()">
+                        <div class="payment-option-content">
+                            <span class="payment-option-text">Cryptocurrency</span>
+                            <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" alt="Bitcoin"
+                                class="payment-logo">
+                        </div>
+                    </label>
+
+                    <label class="payment-option">
+                        <input type="radio" name="paymentMethod" value="bankTransfer" onchange="togglePaymentFields()" disabled>
+                        <div class="payment-option-content">
+                            <span class="payment-option-text">Bank Transfer</span>
+                            <i class="fa-solid fa-building-columns"></i>
+
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="modal-submit-btn">Deposit</button>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="../../../../static/js/deposit-modal.js"></script>{% endblock %}

@@ -1,0 +1,178 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Settings" %}
+{% set page_icon = "fa-cog" %}
+
+{% block content %}
+    <!-- KYC Alert Banner -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Settings Section -->
+    <div class="settings-container">
+        <!-- Tab Navigation -->
+        <div class="tabs-navigation">
+            <button class="tab-btn active" data-tab="profile" onclick="switchTab('profile')">
+                Profile
+            </button>
+            <button class="tab-btn" data-tab="password" onclick="switchTab('password')">
+                Password
+            </button>
+            <button class="tab-btn" data-tab="kyc" onclick="switchTab('kyc')">
+                KYC
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content-container">
+            <!-- Profile Tab -->
+            <div class="tab-content active" id="profile-tab">
+                {% include "dashboard/partials/components/_settings-profile.html" %}
+            </div>
+
+            <!-- Password Tab -->
+            <div class="tab-content" id="password-tab">
+                {% include "dashboard/partials/components/_settings-password.html" %}
+            </div>
+
+            <!-- KYC Tab -->
+            <div class="tab-content" id="kyc-tab">
+                {% include "dashboard/partials/components/_settings-kyc.html" %}
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block extra_css %}
+    <style>
+        .settings-container {
+            max-width: 1200px;
+        }
+
+        .settings-page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0 0 32px 0;
+        }
+
+        /* Tab Navigation */
+        .tabs-navigation {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #E5E7EB;
+            margin-bottom: 40px;
+        }
+
+        .tab-btn {
+            padding: 14px 32px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 15px;
+            font-weight: 500;
+            color: #9CA3AF;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-btn:hover {
+            color: #2563EB;
+        }
+
+        .tab-btn.active {
+            color: #2563EB;
+            border-bottom-color: #2563EB;
+        }
+
+        /* Tab Content */
+        .tab-content-container {
+            position: relative;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .settings-page-title {
+                font-size: 22px;
+                margin-bottom: 24px;
+            }
+
+            .tabs-navigation {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .tabs-navigation::-webkit-scrollbar {
+                display: none;
+            }
+
+            .tab-btn {
+                padding: 12px 20px;
+                font-size: 14px;
+                white-space: nowrap;
+            }
+        }
+    </style>
+    {% endblock %}
+
+    {% block extra_js %}
+    <script>
+        function switchTab(tabName) {
+            // Remove active class from all tabs and buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Add active class to clicked button and corresponding content
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Update URL without page reload (optional)
+            if (history.pushState) {
+                const newUrl = window.location.pathname + '?tab=' + tabName;
+                history.pushState({ tab: tabName }, '', newUrl);
+            }
+        }
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function (event) {
+            if (event.state && event.state.tab) {
+                switchTab(event.state.tab);
+            }
+        });
+
+        // Load tab from URL parameter on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab && ['profile', 'password', 'kyc'].includes(tab)) {
+                switchTab(tab);
+            }
+        });
+    </script>
+{% endblock %}

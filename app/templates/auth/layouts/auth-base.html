@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StocksCo - {% block title %}{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../../static/css/auth-base.css">
+    <link rel="shortcut icon" href="../../../static/images/favicon.png" type="image/x-icon">
+    <!-- Phone Number  -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/css/intlTelInput.css">
+
+
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left Side - Form -->
+            <div class="col-lg-5 col-md-6 d-flex align-items-center justify-content-center bg-white">
+                <div class="w-100 px-4 px-md-5" style="max-width: 400px;">
+                    <!-- Logo -->
+                    <div class="mb-3 text-center">
+                        <a href="{{ url_for('main.index') }}"><img src="../../../static/images/StocksCo-logo.png"
+                                alt="StocksCo" style="max-width: 150px; height: auto;"></a>
+                    </div>
+
+                    <div style="padding-top: 10px;">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+                                role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        {% block content %}{% endblock %}
+                    </div>
+
+                    <!-- Right Side - Background -->
+                    <div class="col-lg-7 col-md-6 d-none d-md-block p-5">
+                        <div
+                            class="background-section d-flex align-items-center justify-content-center position-relative rounded-4">
+                            <img src="../../../static/images/sign-up.jpg" alt=""
+                                class="background-pattern position-absolute rounded-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            <!-- Different countries flag and phone number -->
+            <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/intlTelInput.min.js"></script>
+
+            <script>
+                const input = document.querySelector("#tel");
+                const iti = window.intlTelInput(input, {
+                    initialCountry: "us",
+                    separateDialCode: true,
+                    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/utils.js"
+                });
+
+                // Replace the input value with full international number before submission
+                document.getElementById('register').addEventListener('submit', function (e) {
+                    input.value = iti.getNumber();
+                });
+                function togglePassword() {
+                    const passwordInput = document.getElementById('password');
+                    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+                }
+                function togglePassword2() {
+                    const passwordInput = document.getElementById('confirmPassword');
+                    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+                }
+
+
+                // Disappear flash messages after 5seconds 
+                document.addEventListener('DOMContentLoaded', function () {
+                    const alerts = document.querySelectorAll('.flash-container .alert');
+
+                    alerts.forEach(alert => {
+                        setTimeout(() => {
+                            alert.classList.add('slide-out');
+                            setTimeout(() => alert.remove(), 500);
+                        }, 5000); // Disappears after 5 seconds
+                    });
+                });
+            </script>
+            {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

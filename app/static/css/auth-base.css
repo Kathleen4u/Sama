@@ -1,0 +1,103 @@
+html {
+  font-size: 14px; 
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+}
+.logo-text {
+    color: #1A73E8;
+    font-weight: 600;
+    font-size: 1.75rem;
+}
+.btn-primary {
+    background-color: #1A73E8;
+    border-color: #1A73E8;
+    padding: 0.75rem;
+}
+.btn-primary:hover {
+    background-color: #1a6de0;
+    border-color: #1a6de0;
+}
+.background-section {
+    background: linear-gradient(135deg, #0a1628 0%, #1a3a5c 100%);
+    min-height: 100%;
+    height: 100%;  
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+}
+.col-lg-5 {
+    position: relative; /* Makes position-absolute logo work relative to this column */
+}
+.background-pattern {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+}
+.form-control:focus {
+    border-color: #1A73E8;
+    box-shadow: 0 0 0 0.25rem rgba(46, 127, 243, 0.25);
+}
+.link-primary {
+    color: #1A73E8;
+    text-decoration: none;
+}
+.link-primary:hover {
+    color: #1a6de0;
+    text-decoration: underline;
+}
+
+.otp-input {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    outline: none;
+}
+
+.otp-input:focus {
+    border-color: #2E7FF3;
+    box-shadow: 0 0 0 0.2rem rgba(46, 127, 243, 0.25);
+}
+
+/* Target the intl-tel-input wrapper */
+.iti {
+    width: 100%;
+    display: block;
+}
+
+/* Make sure the input inside also takes full width */
+.iti input {
+    width: 100%;
+}
+
+/* # Flash styles  */
+.flash-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.flash-container .alert {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+.flash-container .alert.slide-out {
+    animation: slideOut 0.5s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    to { transform: translateY(-100px); opacity: 0; }
+}

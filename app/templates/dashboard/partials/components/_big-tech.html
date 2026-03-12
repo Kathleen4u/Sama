@@ -1,0 +1,59 @@
+<!-- Big Tech Stocks Strip -->
+<div class="card" style="margin-bottom: 20px;">
+    <div class="card-header">
+        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-building" style="color: var(--primary-blue);"></i>
+            Big Tech
+        </div>
+        <a href="/dashboard/markets" style="font-size: 12px; color: var(--primary-blue); text-decoration: none; margin-left: auto;">
+            All markets <i class="fas fa-arrow-right" style="font-size: 10px;"></i>
+        </a>
+    </div>
+
+    {% if big_tech_stocks %}
+    <div style="display: flex; overflow-x: auto; gap: 12px; padding: 12px 16px; scrollbar-width: none;">
+        {% for stock in big_tech_stocks %}
+        <a href="/dashboard/markets/{{ stock.symbol }}"
+           style="text-decoration: none; flex-shrink: 0; min-width: 110px; background: var(--bg-secondary, #f8f9fa);
+                  border-radius: 10px; padding: 12px; border: 1px solid var(--border-color, #eee);
+                  transition: all 0.2s ease;"
+           onmouseover="this.style.borderColor='var(--primary-blue)'"
+           onmouseout="this.style.borderColor='var(--border-color, #eee)'">
+
+            <!-- Symbol badge -->
+            <div style="font-size: 11px; font-weight: 800; color: var(--primary-blue);
+                        letter-spacing: 0.5px; margin-bottom: 4px;">
+                {{ stock.symbol }}
+            </div>
+
+            <!-- Company short name -->
+            <div style="font-size: 12px; color: var(--text-muted, #888); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ stock.company_name.split(" ")[0] }}
+            </div>
+
+            <!-- Price -->
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary, #111); margin-bottom: 4px;">
+                ${{ "%.2f"|format(stock.close|float) if stock.close else "—" }}
+            </div>
+
+            <!-- Percent change pill -->
+            {% if stock.percent_change %}
+                {% set pct = stock.percent_change|float %}
+                <div style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 20px; display: inline-block;
+                            background: {{ 'rgba(34,197,94,0.12)' if pct >= 0 else 'rgba(239,68,68,0.12)' }};
+                            color: {{ '#22c55e' if pct >= 0 else '#ef4444' }};">
+                    {{ "%+.2f"|format(pct) }}%
+                </div>
+            {% else %}
+                <div style="font-size: 11px; color: var(--text-muted, #888);">—</div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding: 20px; text-align: center; color: var(--text-muted, #888); font-size: 13px;">
+        <i class="fas fa-sync-alt" style="margin-bottom: 6px; display: block;"></i>
+        Market data loading...
+    </div>
+    {% endif %}
+</div>

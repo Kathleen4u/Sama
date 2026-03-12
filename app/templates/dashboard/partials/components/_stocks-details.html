@@ -1,0 +1,120 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/stocks-details-partials.css">{% endblock %}
+
+<!-- Stock Details Panel — shows featured (top mover) by default -->
+{% set s = featured %}
+<div class="stock-details-panel">
+    <h3 class="details-title">Details</h3>
+
+    {% if s %}
+
+    <!-- Company Info -->
+    <div class="details-group">
+        <div class="detail-item">
+            <span class="detail-label">Company</span>
+            <span class="detail-value">{{ s.company_name or s.symbol }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Ticker Symbol</span>
+            <span class="detail-value">{{ s.symbol }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Exchange</span>
+            <span class="detail-value">{{ s.exchange or '—' }}</span>
+        </div>
+    </div>
+
+    <div class="details-divider"></div>
+
+    <!-- Market Data -->
+    <div class="details-group">
+        <div class="detail-item">
+            <span class="detail-label">Current Price</span>
+            <span class="detail-value primary">
+                ${{ "%.2f"|format(s.close) if s.close else "—" }}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Change Today</span>
+            <span class="detail-value {{ 'positive' if s.percent_change and s.percent_change|float >= 0 else 'negative' }}">
+                {% if s.percent_change %}
+                    {{ '+' if s.percent_change|float >= 0 else '' }}{{ "%.2f"|format(s.percent_change|float) }}%
+                {% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Volume</span>
+            <span class="detail-value">
+                {% if s.volume %}
+                    {% set v = s.volume %}
+                    {% if v >= 1000000000 %}{{ "%.1f"|format(v/1000000000) }}B
+                    {% elif v >= 1000000 %}{{ "%.1f"|format(v/1000000) }}M
+                    {% elif v >= 1000 %}{{ "%.1f"|format(v/1000) }}K
+                    {% else %}{{ v }}{% endif %}
+                {% else %}—{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="details-divider"></div>
+
+    <!-- OHLC -->
+    <div class="details-group">
+        <div class="detail-item">
+            <span class="detail-label">Open</span>
+            <span class="detail-value">${{ "%.2f"|format(s.open) if s.open else "—" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Day High</span>
+            <span class="detail-value">${{ "%.2f"|format(s.high) if s.high else "—" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Day Low</span>
+            <span class="detail-value">${{ "%.2f"|format(s.low) if s.low else "—" }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Prev Close</span>
+            <span class="detail-value">${{ "%.2f"|format(s.previous_close) if s.previous_close else "—" }}</span>
+        </div>
+    </div>
+
+    <div class="details-divider"></div>
+
+    <!-- Data freshness -->
+    <div class="details-group">
+        <div class="detail-item">
+            <span class="detail-label">Last Updated</span>
+            <span class="detail-value" style="font-size:12px;">
+                {% if s.fetched_at %}
+                    {{ s.fetched_at.strftime('%b %d, %H:%M') }} UTC
+                {% else %}—{% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Market Status</span>
+            <span class="detail-value">
+                <span style="
+                    font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px;
+                    background:{{ '#E8F5E9' if s.is_market_open else '#FFF3E0' }};
+                    color:{{ '#388E3C' if s.is_market_open else '#E65100' }};">
+                    {{ 'Open' if s.is_market_open else 'Closed' }}
+                </span>
+            </span>
+        </div>
+    </div>
+
+    <div style="margin-top:16px;">
+        <a href="{{ url_for('dashboard.stock_detail', symbol=s.symbol) }}"
+           style="display:block; text-align:center; padding:10px; background:#E3F2FD;
+                  color:#1976D2; border-radius:10px; font-size:13px; font-weight:600;
+                  text-decoration:none;">
+            Full Details for {{ s.symbol }} →
+        </a>
+    </div>
+
+    {% else %}
+    <div style="text-align:center; padding:32px; color:#9AA0A6; font-size:13px;">
+        <i class="fas fa-database" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+        No market data yet. Run the sync to populate.
+    </div>
+    {% endif %}
+</div>

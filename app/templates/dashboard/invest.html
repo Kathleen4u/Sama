@@ -1,0 +1,15 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Invest" %}
+{% set page_icon = "fa-exchange-alt" %}
+
+{% block content %}
+    <!-- KYC Alert Banner -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Investment Assets Grid -->
+    {% include "dashboard/partials/components/_investment-assets.html" %}
+
+    <!-- Stock Selection Modal -->
+    {% include "dashboard/partials/modals/_stock-selection-modal.html" %}
+{% endblock %}

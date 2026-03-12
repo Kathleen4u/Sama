@@ -1,0 +1,66 @@
+/* Stock Details Panel */
+.stock-details-panel {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.details-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 20px 0;
+}
+
+.details-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.detail-label {
+    font-size: 13px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: var(--text-dark);
+    font-weight: 600;
+    text-align: right;
+}
+
+.detail-value.primary {
+    color: #2563EB;
+    font-size: 16px;
+}
+
+.details-divider {
+    height: 1px;
+    background: #F3F4F6;
+    margin: 20px 0;
+}
+
+@media (max-width: 768px) {
+    .stock-details-panel {
+        padding: 20px;
+    }
+
+    .detail-item {
+        gap: 12px;
+    }
+
+    .detail-label,
+    .detail-value {
+        font-size: 13px;
+    }
+}

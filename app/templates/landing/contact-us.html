@@ -1,0 +1,176 @@
+{% extends "landing/layouts/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/css/landing/contact-us.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/css/intlTelInput.css">
+{% endblock %}
+
+{% block content %}
+<!-- Contact Us Section -->
+<section class="py-5 contact-section rounded-4">
+    <div style="padding-top: 10px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    <div class="container">
+        <!-- Section Header -->
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Contact us</h2>
+            <p class="lead text-muted">We're Here to Help</p>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="row g-5">
+            <!-- Left Column: Image and Contact Info -->
+            <div class="col-lg-6">
+                <!-- Support Image -->
+                <div class="contact-image-container mb-4">
+                    <img src="../../static/images/customer-support.png" alt="Customer Support">
+                </div>
+
+                <!-- Contact Information -->
+                <div class="contact-info mt-4">
+                    <!-- Email -->
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Email</h5>
+                            <p class="text-muted mb-0">support@stocksco.io</p>
+                        </div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-telephone"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Phone</h5>
+                            <p class="text-muted mb-0">+447311134144</p>
+                        </div>
+                    </div>
+
+                    <!-- Office -->
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Office</h5>
+                            <p class="text-muted mb-0">106 Church Way, BRADFORD, BD1 9PB, United Kingdom.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Contact Form and Social Links -->
+            <div class="col-lg-6">
+                <form action="{{ url_for('main.contact_us') }}" method="post" id="contactForm">
+                    <!-- First Name -->
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">First name</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="First name"
+                            name="first_name" required>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" placeholder="billykimber@email.com"
+                            name="email" required>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="mb-3">
+                        <label for="tel" class="form-label text-muted small">Phone number</label>
+                        <input type="tel" class="form-control" placeholder="(555) 000-0000" name="tel" id="tel">
+                        <input type="hidden" id="fullPhone" name="phone_number">
+                    </div>
+
+                    <!-- Subject-->
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Subject</label>
+                        <select id="category" name="category" class="form-select form-control" required>
+                            <option value="" disabled selected>Select a category</option>
+
+                            <optgroup label="General">
+                                <option value="general_inquiry">General Inquiry</option>
+                                <option value="other">Other</option>
+                            </optgroup>
+
+                            <optgroup label="Support">
+                                <option value="technical_support">Technical Support</option>
+                                <option value="account_issue">Account Issue</option>
+                            </optgroup>
+
+                            <optgroup label="Transactions">
+                                <option value="payment_deposit">Payment/Deposit</option>
+                                <option value="withdrawal">Withdrawal</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Message -->
+                    <div class="mb-4">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea maxlength="2000" class="form-control" id="message" rows="5" placeholder="Leave us a message"
+                            name="message"></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-send mb-4">Send message</button>
+
+                    <!-- Social Links -->
+                    <div class="social-links d-flex gap-3 justify-content-center">
+                        <a href="#" aria-label="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" aria-label="Twitter">
+                            <i class="bi bi-twitter-x"></i>
+                        </a>
+                        <a href="#" aria-label="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" aria-label="Telegram">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        <a href="#" aria-label="YouTube">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/intlTelInput.min.js"></script>
+
+{% block extra_js %}
+<script>
+    const input = document.querySelector("#tel");
+    const iti = window.intlTelInput(input, {
+        initialCountry: "us",
+        separateDialCode: true,
+        utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/utils.js"
+    });
+
+    // Replace the input value with full international number before submission
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+        const fullNumber = iti.getNumber();
+        document.getElementById('fullPhone').value = fullNumber;
+    });
+</script>
+{% endblock %}
+{% endblock %}

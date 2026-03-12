@@ -1,0 +1,246 @@
+{% block extra_css %}
+<link rel="stylesheet" href="../../../../static/css/dashboard/components/my-assets.css">
+{% endblock %}
+
+<div class="card" style="margin-bottom: 30px;">
+    <div class="card-header">
+        <div class="card-title">My Asset</div>
+        {% if my_assets %}
+        <a href="{{ url_for('dashboard.portfolio') }}"
+           style="color:var(--primary-blue); text-decoration:none; font-size:13px; font-weight:500;">
+            View all
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="assets-container">
+        <div class="assets-scroll">
+
+            {% if my_assets %}
+                {% for asset in my_assets %}
+                {% set positive = asset.pl_pct and asset.pl_pct >= 0 %}
+                <a href="{{ url_for('dashboard.stock_detail', symbol=asset.symbol) }}"
+                   class="asset-card accent-{{ loop.index0 % 5 }}" style="text-decoration:none;">
+
+                    <div class="asset-header">
+                        <div class="asset-logo">
+                            <img src="https://www.google.com/s2/favicons?domain={{ asset.symbol | stock_domain }}&sz=64"
+                                 alt="{{ asset.symbol }}"
+                                 onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';"
+                                 style="width:28px; height:28px; border-radius:6px; object-fit:contain;">
+                            <span style="display:none; font-size:11px; font-weight:700; color:#1976D2;">
+                                {{ asset.symbol[:2] }}
+                            </span>
+                        </div>
+                        <div class="asset-name">
+                            {{ asset.company_name }}
+                        </div>
+                    </div>
+
+                    <div class="asset-ticker">{{ asset.symbol }}</div>
+
+                    <div class="asset-change {{ 'positive' if positive else 'negative' }}">
+                        {% if asset.pl_pct is not none %}
+                            {{ '+' if positive else '' }}{{ "%.2f"|format(asset.pl_pct) }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+
+                    <div class="asset-value-label">Current Value</div>
+
+                    <div class="asset-value">
+                        {% if asset.current_value %}
+                            ${{ "{:,.2f}".format(asset.current_value) }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+
+                    {# Canvas sparkline replaces the static SVG path #}
+                    <div class="asset-chart-wrap">
+                        <canvas class="asset-sparkline"
+                                data-symbol="{{ asset.symbol }}"
+                                data-positive="{{ 'true' if positive else 'false' }}"
+                                style="opacity:0; display:block; width:100%; height:40px;">
+                        </canvas>
+                        <div class="asset-sparkline-shimmer"></div>
+                    </div>
+
+                </a>
+                {% endfor %}
+
+            {% else %}
+                <div style="padding:32px; text-align:center; color:#9AA0A6; min-width:200px;">
+                    <i class="fas fa-briefcase"
+                       style="font-size:28px; margin-bottom:10px; display:block; opacity:0.4;"></i>
+                    <p style="font-size:13px; margin-bottom:12px;">No assets yet</p>
+                    <a href="{{ url_for('dashboard.markets') }}"
+                       style="font-size:12px; color:#1976D2; text-decoration:none; font-weight:500;">
+                        Browse Markets →
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+
+        {% if my_assets and my_assets|length > 3 %}
+        <button class="scroll-btn right"
+            onclick="document.querySelector('.assets-scroll').scrollBy({left: 200, behavior: 'smooth'})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function () {
+
+    // ── sessionStorage cache (shared key prefix with trending grid) ─
+    const CACHE_PREFIX = 'sc_spark_';
+    const CACHE_TTL_MS = 15 * 60 * 1000;
+
+    function getCached(symbol) {
+        try {
+            const raw = sessionStorage.getItem(CACHE_PREFIX + symbol);
+            if (!raw) return null;
+            const { closes, ts } = JSON.parse(raw);
+            if (Date.now() - ts > CACHE_TTL_MS) {
+                sessionStorage.removeItem(CACHE_PREFIX + symbol);
+                return null;
+            }
+            return closes;
+        } catch { return null; }
+    }
+
+    function setCached(symbol, closes) {
+        try {
+            sessionStorage.setItem(CACHE_PREFIX + symbol, JSON.stringify({
+                closes, ts: Date.now(),
+            }));
+        } catch {}
+    }
+
+    // ── In-memory cache + in-flight tracker ───────────────────────
+    // NOTE: these are scoped to this IIFE so they don't conflict with
+    // the same variables declared in _trending-stocks.html's IIFE.
+    const assetSparkCache = {};
+    const assetInFlight   = new Set();
+
+    // ── Draw sparkline onto a canvas ──────────────────────────────
+    function drawSparkline(canvas, closes, isPositive) {
+        const container = canvas.closest('.asset-chart-wrap');
+        const W = (container ? container.offsetWidth : 0) || canvas.offsetWidth || 200;
+        const H = (container ? container.offsetHeight : 0) || canvas.offsetHeight || 40;
+
+        // Layout not ready — wait one paint and retry
+        if (W < 10) {
+            requestAnimationFrame(() => drawSparkline(canvas, closes, isPositive));
+            return;
+        }
+
+        const shimmer = canvas.nextElementSibling;
+        if (shimmer) shimmer.style.display = 'none';
+
+        canvas.width  = W;
+        canvas.height = H;
+        canvas.style.width   = W + 'px';
+        canvas.style.height  = H + 'px';
+        canvas.style.opacity = '1';
+
+        const ctx   = canvas.getContext('2d');
+        const min   = Math.min(...closes);
+        const max   = Math.max(...closes);
+        const range = max - min || 1;
+        const pad   = 3;
+        const color = isPositive ? '#059669' : '#EF4444';
+
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, isPositive ? 'rgba(5,150,105,0.25)' : 'rgba(239,68,68,0.25)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+
+        const points = closes.map((c, i) => ({
+            x: (i / (closes.length - 1)) * (W - pad * 2) + pad,
+            y: H - pad - ((c - min) / range) * (H - pad * 2),
+        }));
+
+        // Filled area
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, H);
+        points.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.lineTo(points[points.length - 1].x, H);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        points.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.strokeStyle = color;
+        ctx.lineWidth   = 1.5;
+        ctx.lineJoin    = 'round';
+        ctx.stroke();
+    }
+
+    // ── Fetch then draw for one asset canvas ──────────────────────
+    async function fetchAndDraw(canvas) {
+        const symbol     = canvas.dataset.symbol;
+        const isPositive = canvas.dataset.positive === 'true';
+
+        if (assetInFlight.has(symbol)) return;
+
+        // Layer 1: in-memory
+        if (assetSparkCache[symbol]) {
+            drawSparkline(canvas, assetSparkCache[symbol], isPositive);
+            return;
+        }
+
+        // Layer 2: sessionStorage (shared with trending grid —
+        // if the user scrolled past this stock there it's already cached)
+        const cached = getCached(symbol);
+        if (cached) {
+            assetSparkCache[symbol] = cached;
+            drawSparkline(canvas, cached, isPositive);
+            return;
+        }
+
+        // Layer 3: network
+        assetInFlight.add(symbol);
+        try {
+            const res = await fetch(`/dashboard/markets/${symbol}/chart?interval=1day`);
+            if (!res.ok) throw new Error('fetch failed');
+            const data = await res.json();
+            if (!data.candles || data.candles.length === 0) return;
+
+            const closes = data.candles.slice(-30).map(c => c.c);
+            assetSparkCache[symbol] = closes;
+            setCached(symbol, closes);
+            drawSparkline(canvas, closes, isPositive);
+        } catch (e) {
+            // Shimmer stays — no crash
+        } finally {
+            assetInFlight.delete(symbol);
+        }
+    }
+
+    // ── IntersectionObserver: load when card scrolls into view ────
+    // Asset cards are in a horizontal scroll container, so we observe
+    // each canvas individually — they may not all be visible at once.
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            observer.unobserve(entry.target);
+            fetchAndDraw(entry.target);
+        });
+    }, {
+        rootMargin: '50px',
+        threshold: 0,
+    });
+
+    document.querySelectorAll('.asset-sparkline').forEach(canvas => {
+        observer.observe(canvas);
+    });
+
+})();
+</script>

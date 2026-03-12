@@ -1,0 +1,361 @@
+{% extends "landing/layouts/base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-div">
+    <div class="stocksco-hero-section rounded-4">
+        <div class="floating-icons">
+            <div class="icon-box icon-1">📈</div>
+            <div class="icon-box icon-2">📊</div>
+            <!-- <div class="icon-box icon-3">💸</div>
+                <div class="icon-box icon-4">💱</div>
+                <div class="icon-box icon-5">🏦</div>
+                <div class="icon-box icon-6">💲</div> -->
+        </div>
+
+        <div class="hero-content">
+            <div class="containter">
+                <div class="category-badge">
+                    Stocks, ETFs, and fractional assets →
+                </div>
+
+                <h1 class="hero-title">
+                    Invest in Global Stocks, <br />Build Wealth With Confidence
+                </h1>
+
+                <p class="hero-description">
+                    StocksCo is the modern platform that helps you buy, sell, and analyze digital assets seamlessly.
+                    Track
+                    market trends, manage your portfolio, and Trade with tools built for beginners and
+                    professionals.
+                </p>
+
+                <div class="cta-buttons">
+                    <a href="{{ url_for('auth.register') }}" class="btn-get-started text-decoration-none">Get Started</a>
+                    <a href="{{ url_for('main.features') }}" class="btn-explore text-decoration-none">Explore Markets</a>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="dashboard-container">
+            <div class="dashboard-placeholder">
+                <img src="../../static/images/dashboard.png" class="img-fluid text-center" alt="dashboard" max-width="40"
+                    height="20">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="logo-container brand-partners-div bg-white rounded-4">
+    <h2 class="trust-heading">Trusted by Great Companies</h2>
+    <div class="logo-scroll">
+        <!-- First set of logos -->
+        <img src="../../static/images/google.png" alt="Google">
+        <img src="../../static/images/creativemarket.png" alt="Creative Market">
+        <img src="../../static/images/airbnb.png" alt="Airbnb">
+        <img src="../../static/images/creativemarket.png" alt="Creative Market">
+        <img src="../../static/images/shopify.png" alt="Shopify">
+        <img src="../../static/images/amazon.png" alt="Amazon">
+
+        <!-- Duplicate set for seamless loop -->
+        <img src="../../static/images/google.png" alt="Google">
+        <img src="../../static/images/creativemarket.png" alt="Creative Market">
+        <img src="../../static/images/airbnb.png" alt="Airbnb">
+        <img src="../../static/images/creativemarket.png" alt="Creative Market">
+        <img src="../../static/images/shopify.png" alt="Shopify">
+        <img src="../../static/images/amazon.png" alt="Amazon">
+    </div>
+</div>
+
+<!-- Why Invest in StocksCo Section -->
+<section class="py-5 why-invest-div bg-white rounded-4">
+    <div class="container">
+        <div class="mb-4">
+            <div class="value-badge mb-3">
+                <i class="fas fa-cube"></i>
+                <span class="fw-medium">Value Proposition</span>
+            </div>
+            <h2 class="display-5 fw-bold section-title mb-3">Why Invest with StocksCo?</h2>
+            <p class="lead text-muted">Because investing should be simple, transparent, and designed around your
+                financial growth.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="feature-card border-0">
+                    <div class="mb-3">
+                        <img src="../../static/images/diversify-svg.png" alt="Diversified Investment Options" class="mb-3">
+                    </div>
+                    <div class="d-flex align-items-start gap-2 mb-2">
+                        <i class="fas fa-bolt fs-5 mt-1"></i>
+                        <h4 class="fw-bold mb-2">Diversified Investment Options</h4>
+                    </div>
+                    <p class="text-muted mb-0">Whether you're looking to invest in U.S. giants like Tesla and
+                        Apple, global brands, or curated thematic portfolios, StocksCo gives Traders easy
+                        access to assets that were once difficult to reach.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="feature-card border-0">
+                    <div class="mb-3">
+                        <img src="../../static/images/pricing-svg.png" alt="Low Fees & Transparent Pricing" class="mb-3">
+                    </div>
+                    <div class="d-flex align-items-start gap-2 mb-2">
+                        <i class="fas fa-chart-line fs-5 mt-1"></i>
+                        <h4 class="fw-bold mb-2">Low Fees & Transparent Pricing</h4>
+                    </div>
+                    <p class="text-muted mb-0">Say goodbye to confusing charges and surprise deductions.
+                        StocksCo keeps it simple with clear, affordable fees so you always know what you're
+                        paying for.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="feature-card border-0">
+                    <div class="mb-3">
+                        <img src="../../static/images/budget-svg.png" alt="Fractional Shares for Every Budget"
+                            class="mb-3">
+                    </div>
+                    <div class="d-flex align-items-start gap-2 mb-2">
+                        <i class="fas fa-calculator fs-5 mt-1"></i>
+                        <h4 class="fw-bold mb-2">Fractional Shares for Every Budget</h4>
+                    </div>
+                    <p class="text-muted mb-0">You don't need millions to start investing. With fractional
+                        ownership, you can buy small portions of premium stocks with as little as $1.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="feature-card border-0">
+                    <div class="mb-3">
+                        <img src="../../static/images/safety-and-compliance.png" alt="Safety, Security & Compliance"
+                            class="mb-3">
+                    </div>
+                    <div class="d-flex align-items-start gap-2 mb-2">
+                        <i class="fas fa-shield-alt fs-5 mt-1"></i>
+                        <h4 class="fw-bold mb-2">Safety, Security & Compliance</h4>
+                    </div>
+                    <p class="text-muted mb-0">Your money is safe with us. StocksCo uses bank-grade encryption,
+                        multi-layer authentication, and strong compliance standards to protect your funds,
+                        identity, and transactions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Live Market Section  -->
+<section class="py-5 market-overview-bg rounded-4">
+    <div class="container">
+        <div class="mb-5">
+            <div class="market-badge mb-3">
+                <i class="fas fa-chart-bar"></i>
+                <span class="fw-medium">Market Overview</span>
+            </div>
+            <h2 class="display-5 fw-bold section-title-market mb-3">Live Market Overview</h2>
+            <p class="lead text-muted">Monitor prices, volume, trends, and performance metrics across your favorite
+                digital assets.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card-market">
+                    <div class="icon-box-purple mb-3">
+                        <i class="fas fa-table"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Live Asset Table</h4>
+                    <p class="text-muted mb-0">View real-time prices, 24-hour changes, trading volume, and market
+                        cap for all listed assets in one dynamic table. Designed for clarity and speed, it updates
+                        automatically so you always see the most accurate market data.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card-market">
+                    <div class="icon-box-cyan mb-3">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Sparkline Charts</h4>
+                    <p class="text-muted mb-0">Each asset includes a mini trend chart that shows its recent
+                        performance at a glance. Quickly spot upward or downward movements without opening full
+                        charts.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card-market">
+                    <div class="icon-box-green mb-3">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Smart Filters</h4>
+                    <p class="text-muted mb-0">Easily find the assets that matter most to you.</p>
+                    <ul class="text-muted ps-3 mb-0 mt-2">
+                        <li>Top Gainers – Discover the biggest performers of the day.</li>
+                        <li>Top Losers – Track assets experiencing downward movement.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ai-trading-section ai-trading-section-div rounded-4">
+    <div class="container">
+        <div class="mb-5">
+            <div class="ai-badge">
+                <i class="fas fa-microchip"></i>
+                <span>AI-Powered Trading Intelligence</span>
+            </div>
+            <h2>Predict Smarter. Trade Confidently.</h2>
+            <p class="section-description">
+                Markets move in many possible directions. StocksCo uses AI powered by Monte Carlo price simulations to analyze thousands of potential outcomes before you invest, helping you make informed, confident decisions across stocks, ETFs, and fixed-income assets.
+            </p>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h5>Price Simulation Paths</h5>
+                    <p>Exploring thousands of potential market scenarios</p>
+                    <img src="../../static/images/price-simulation.png" alt="Price Simulation Paths">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <h5>Probability Distribution</h5>
+                    <p>Understanding risk and reward before you invest</p>
+                    <img src="../../static/images/probability-simulation.png" alt="Probability Distribution">
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Probability of profit or loss</h4>
+                    <p>See the likelihood of different outcomes before entering a trade, helping you assess risk with clarity.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="feature-card">
+                    <div class="feature-icon green">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h4>Best- and worst-case scenarios</h4>
+                    <p>Understand potential gains and losses under different market conditions to plan accordingly.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="feature-card">
+                    <div class="feature-icon cyan">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4>Smarter entry and exit points</h4>
+                    <p>Identify optimal timing for trades using risk-adjusted outcomes and probabilistic analysis.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="feature-card">
+                    <div class="feature-icon teal">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h4>Strategy performance under stress</h4>
+                    <p>Test how your strategies hold up during market volatility and unexpected downturns.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-cta-buttons">
+            <a href="{{ url_for('auth.register') }}" class="btn-ai-primary text-center">Get Started</a>
+            <!-- <a href="#" class="btn-ai-secondary">Explore AI-Powered Investing</a> -->
+        </div>
+    </div>
+</section>
+
+<!-- How StocksCo Work Section -->
+<section class="py-5 bg-white rounded-4 how-stocksco-work-div">
+    <div class="container">
+        <div class="mb-5">
+            <div class="process-badge mb-3">
+                <i class="fas fa-users"></i>
+                <span class="fw-medium">Our Process</span>
+            </div>
+            <h2 class="display-5 fw-bold section-title-process mb-3">How StocksCo Works</h2>
+            <p class="lead text-muted">Understand the process behind secure and seamless investing on StocksCo.</p>
+        </div>
+
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6">
+                <div class="process-illustration-card">
+                    <img src="../../static/images/how-stocks-co.png" alt="How StocksCo Works" class="img-fluid">
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-dot"></div>
+                        <div class="step-line"></div>
+                        <div>
+                            <h4 class="fw-bold mb-2">Create an Account</h4>
+                            <p class="text-muted mb-0">Sign up in minutes with secure KYC verification.</p>
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-dot"></div>
+                        <div class="step-line"></div>
+                        <div>
+                            <h4 class="fw-bold mb-2">Fund Your Wallet</h4>
+                            <p class="text-muted mb-0">Easily fund your account with bank transfer, card payments,
+                                or digital wallets</p>
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-dot"></div>
+                        <div>
+                            <h4 class="fw-bold mb-2">Start Trading</h4>
+                            <p class="text-muted mb-0">Buy stocks, ETFs, or fractional shares with as little as $1.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Users Experience Section -->
+<section class="py-5 testimonials-bg rounded-4 user-experience-div">
+    <div class="container">
+        <div class="mb-5">
+            <div class="social-proof-badge mb-3">
+                <i class="fas fa-user-check"></i>
+                <span class="fw-medium">Social Proof</span>
+            </div>
+            <h2 class="display-5 fw-bold section-title-testimonials mb-3">Experiences From Our Users</h2>
+            <p class="lead text-muted">Testimonials from Traders Worldwide</p>
+        </div>
+
+        <div class="testimonials-scroll-wrapper">
+            <div class="testimonials-scroll-container" id="testimonials-container">
+                <!-- Cards go here -->
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}

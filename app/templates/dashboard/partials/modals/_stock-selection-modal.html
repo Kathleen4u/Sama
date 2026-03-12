@@ -1,0 +1,39 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/stock-selection-modal.css">{% endblock %}
+
+<!-- Stock Selection Modal -->
+<div class="modal" id="stockSelectionModal">
+    <div class="modal-overlay" onclick="closeStockModal()"></div>
+    <div class="modal-container">
+        <div class="modal-content stock-modal">
+            <button class="modal-close" onclick="closeStockModal()">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <h2 class="modal-title" id="stockModalTitle">All Stocks</h2>
+
+            <!-- Tabs -->
+            <div style="display:flex; gap:8px; margin-bottom:16px;">
+                <button class="modal-tab-btn active" data-tab="all"
+                    onclick="switchModalTab('all', this)">All</button>
+                <button class="modal-tab-btn" data-tab="gainers"
+                    onclick="switchModalTab('gainers', this)">Gainers</button>
+                <button class="modal-tab-btn" data-tab="losers"
+                    onclick="switchModalTab('losers', this)">Losers</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="stock-search">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" placeholder="Search stocks..."
+                    id="stockSearchInput" oninput="filterStocks()">
+            </div>
+
+            <!-- Stock Grid -->
+            <div class="stocks-grid" id="stocksGrid">
+                <!-- Populated by stock-selection-modal.js -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}<script src="{{ url_for('static', filename='js/stock-selection-modal.js') }}"></script>{% endblock %}

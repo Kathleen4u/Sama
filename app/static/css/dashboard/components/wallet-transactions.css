@@ -1,0 +1,128 @@
+.transaction-section {
+    margin-top: 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 20px 0;
+}
+
+.transaction-table-wrapper {
+    overflow-x: auto;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.transaction-table thead {
+    background: #F9FAFB;
+}
+
+.transaction-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    color: #6B7280;
+    font-size: 13px;
+    border-bottom: 2px solid #E5E7EB;
+    white-space: nowrap;
+}
+
+.transaction-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #F3F4F6;
+    color: var(--text-dark);
+}
+
+.transaction-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.transaction-table tbody tr:hover {
+    background-color: #F9FAFB;
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.type-badge.deposit {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.type-badge.withdrawal {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.description-cell {
+    color: #6B7280;
+}
+
+.amount-cell {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-badge.pending {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.status-badge.completed {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.status-badge.failed {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.date-cell {
+    color: #6B7280;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .transaction-table {
+        font-size: 12px;
+    }
+
+    .transaction-table th,
+    .transaction-table td {
+        padding: 12px 10px;
+    }
+
+    .type-badge,
+    .status-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+
+    /* Hide description column on mobile */
+    .transaction-table th:nth-child(2),
+    .transaction-table td:nth-child(2) {
+        display: none;
+    }
+}

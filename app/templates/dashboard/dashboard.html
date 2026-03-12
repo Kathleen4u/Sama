@@ -1,0 +1,30 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Dashboard" %}
+{% set page_icon = "fa-th-large" %}
+
+{% block content %}
+    <!-- KYC Alert -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Wallet Balance Card -->
+    {% include "dashboard/partials/components/_wallet-balance.html" %}
+
+    {#{% include "dashboard/partials/components/_big-tech.html" %}#}
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Portfolio Overview -->
+        {% include "dashboard/partials/components/_portfolio-overview.html" %}
+
+        <!-- Watchlist -->
+        {% include "dashboard/partials/components/_watchlist.html" %}
+    </div>
+
+    <!-- My Assets -->
+    {% include "dashboard/partials/components/_my-assets.html" %}
+
+    <!-- Recent Activity -->
+    {% include "dashboard/partials/components/_recent-activity.html" %}
+
+{% endblock %}

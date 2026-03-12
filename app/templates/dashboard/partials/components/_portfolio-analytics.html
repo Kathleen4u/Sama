@@ -1,0 +1,236 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/portfolio-analytics.css">{% endblock %}
+
+<!-- Portfolio Overview - Stats + Analytics + Breakdown (All in One Grid) -->
+<div class="portfolio-overview-grid">
+    <!-- Stat Card 1: Total Portfolio Value -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon blue">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <span class="stat-label">Total Portfolio Value</span>
+        </div>
+        <div class="stat-value">${{ portfolio_value|default('0.00') }}</div>
+        <div class="stat-description">Current market value of all assets</div>
+    </div>
+
+    <!-- Stat Card 2: Total Invested -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon orange">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <span class="stat-label">Total Invested</span>
+        </div>
+        <div class="stat-value">${{ total_invested|default('0.00') }}</div>
+        <div class="stat-description">Amount deposited and invested over time</div>
+    </div>
+
+    <!-- Stat Card 3: Total Returns -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon green">
+                <i class="fas fa-arrow-trend-up"></i>
+            </div>
+            <span class="stat-label">Total Returns</span>
+        </div>
+        <div class="stat-value">${{ total_returns|default('0.00') }}</div>
+        <div class="stat-change positive">
+            +{{ returns_percentage|default('9.63') }}%
+        </div>
+    </div>
+
+    <!-- Stat Card 4: Portfolio Breakdown - SPANS DOWN -->
+    <div class="stat-card breakdown-card-tall">
+        <div class="stat-header">
+            <div class="stat-icon purple">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <span class="stat-label">Portfolio Breakdown</span>
+        </div>
+        <div class="stat-description">Last updated 10 mins ago</div>
+        
+        <!-- Pie Chart - Takes remaining space -->
+        <div class="breakdown-chart-wrapper">
+            <div class="breakdown-chart-container">
+                <canvas id="breakdownChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Legend -->
+        <div class="breakdown-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #FDD835;"></div>
+                <div class="legend-details">
+                    <span class="legend-label">Stock</span>
+                    <span class="legend-value">50%</span>
+                </div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #4FC3F7;"></div>
+                <div class="legend-details">
+                    <span class="legend-label">Finance</span>
+                    <span class="legend-value">20%</span>
+                </div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #BA68C8;"></div>
+                <div class="legend-details">
+                    <span class="legend-label">EFT</span>
+                    <span class="legend-value">30%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Analytics Chart - SPANS 3 COLUMNS -->
+    <div class="analytics-chart-card">
+        <div class="analytics-header">
+            <div class="analytics-title-group">
+                <h3 class="analytics-title">Portfolio Analytics</h3>
+                <div class="analytics-value">
+                    <span class="value-amount">${{ portfolio_value|default('0.00') }}</span>
+                    <span class="value-change positive">
+                        <i class="fas fa-caret-up"></i> {{ change_percentage|default('0.00') }}%
+                    </span>
+                </div>
+            </div>
+            <div class="chart-timeframe">
+                <button class="timeframe-btn active">1D</button>
+                <button class="timeframe-btn">5D</button>
+                <button class="timeframe-btn">1M</button>
+                <button class="timeframe-btn">6M</button>
+                <button class="timeframe-btn">1Y</button>
+                <button class="timeframe-btn">5Y</button>
+                <button class="timeframe-btn">Max</button>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="portfolioChart"></canvas>
+        </div>
+        
+        <div class="chart-timeline">
+            <span>10 am</span>
+            <span>11 am</span>
+            <span>12 pm</span>
+            <span>12 pm</span>
+            <span>12 pm</span>
+            <span>12 pm</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Portfolio Line Chart
+const ctx = document.getElementById('portfolioChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['10am', '10:30am', '11am', '11:30am', '12pm', '12:30pm', '1pm'],
+            datasets: [{
+                data: [8000, 9000, 8500, 10000, 11000, 13000, 14032.56],
+                borderColor: '#4FC3F7',
+                backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: '#4FC3F7',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: '#1976D2',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#1976D2',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            return '$' + context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2 });
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: false,
+                    grid: { display: false }
+                },
+                y: {
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        color: '#f0f0f0',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value / 1000) + 'k';
+                        },
+                        color: '#5f6368',
+                        font: { size: 11 }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+// Portfolio Breakdown Donut Chart
+const breakdownCtx = document.getElementById('breakdownChart');
+if (breakdownCtx) {
+    new Chart(breakdownCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Stock', 'Finance', 'EFT'],
+            datasets: [{
+                data: [50, 20, 30],
+                backgroundColor: ['#FDD835', '#4FC3F7', '#BA68C8'],
+                borderWidth: 0,
+                cutout: '70%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#202124',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>

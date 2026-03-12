@@ -1,0 +1,20 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Wallet" %}
+{% set page_icon = "fa-wallet" %}
+
+{% block content %}
+     <!-- KYC Alert Banner -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Wallet Balance & Stats -->
+    {% include "dashboard/partials/components/_wallet-balance.html" %}
+
+    <!-- Transaction History -->
+    {% include "dashboard/partials/components/_wallet-transactions.html" %}
+
+     <!-- Modals -->
+    {% include "dashboard/partials/modals/_deposit-modal.html" %}
+    {% include "dashboard/partials/modals/_withdraw-modal.html" %}
+
+{% endblock %}

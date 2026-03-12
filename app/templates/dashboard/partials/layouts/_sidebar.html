@@ -1,0 +1,86 @@
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/StocksCo-logo.png') }}" alt="StocksCo logo" max-width="=30px" height="40px">
+
+    </div>
+
+    <a href="{{ url_for('dashboard.invest') }}" class="new-investment-btn text-decoration-none">
+        <i class="fas fa-plus"></i>
+        New Investment
+    </a>
+
+    <div class="nav-section">
+        <a href="{{ url_for('dashboard.dashboard') }}" class="nav-item dashboard-tab {% if page_title == 'Dashboard' %}active{% endif %}">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Invest & Trade</div>
+        <a href="{{ url_for('dashboard.portfolio') }}" class="nav-item dashboard-tab {% if page_title == 'Portfolio' %}active{% endif %}">
+            <i class="fas fa-briefcase"></i>
+            <span>Portfolio</span>
+        </a>
+        <a href="{{ url_for('dashboard.invest') }}" class="nav-item dashboard-tab {% if page_title == 'Invest' %}active{% endif %}">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Invest</span>
+        </a>
+        <a href="{{ url_for('dashboard.markets') }}" class="nav-item dashboard-tab {% if page_title == 'Markets' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            <span>Markets</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Wallet & Payments</div>
+        <a href="{{ url_for('dashboard.wallet') }}" class="nav-item dashboard-tab {% if page_title == 'Wallet' %}active{% endif %}">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Insights & Activity</div>
+        <a href="{{ url_for('dashboard.insights') }}" class="nav-item dashboard-tab {% if page_title == 'Insights' %}active{% endif %}">
+            <i class="fas fa-bolt"></i>
+            <span>Insights</span>
+        </a>
+        <a href="{{ url_for('notifications.notifications_page') }}" class="nav-item dashboard-tab {% if page_title == 'Notifications' %}active{% endif %}">
+            <i class="fas fa-bell"></i>
+            <span>Notifications</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Rewards</div>
+        <a href="{{ url_for('dashboard.referrals') }}" class="nav-item dashboard-tab {% if page_title == 'Referrals' %}active{% endif %}">
+            <i class="fas fa-gift"></i>
+            <span>Referrals</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Support & Account</div>
+        <a href="{{ url_for('dashboard.support') }}" class="nav-item dashboard-tab {% if page_title == 'Support' %}active{% endif %}">
+            <i class="fas fa-headset"></i>
+            <span>Support</span>
+        </a>
+        <a href="{{ url_for('dashboard.settings') }}" class="nav-item dashboard-tab {% if page_title == 'Settings' %}active{% endif %}">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">Session</div>
+        <a href="{{ url_for('auth.logout') }}" class="nav-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Log Out</span>
+        </a>
+    </div>
+</div>

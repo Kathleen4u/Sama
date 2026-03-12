@@ -1,0 +1,78 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Markets" %}
+{% set page_icon = "fa-chart-line" %}
+
+{% block content %}
+    <!-- KYC Alert Banner -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Stock Ticker Bar -->
+    {% include "dashboard/partials/components/_stock-ticker.html" %}
+    <!-- Markets Header -->
+    <div class="markets-header">
+        <div>
+            <h2 class="markets-title">Explore Markets</h2>
+            <p class="markets-subtitle">Discover trending stocks, top movers and market opportunities in real time</p>
+        </div>
+    </div>
+
+     <!-- Search Bar -->
+    {% include "dashboard/partials/components/_markets-search.html" %}
+
+    <!-- Featured Stock Card -->
+    {% include "dashboard/partials/components/_featured-stock.html" %}
+
+    <!-- Price Chart and Details Grid -->
+    <div class="chart-details-grid">
+        <!-- Price Chart -->
+        {% include "dashboard/partials/components/_price-chart.html" %}
+
+        <!-- Stock Details -->
+        {% include "dashboard/partials/components/_stocks-details.html" %}
+    </div>
+
+    <!-- Trending Stocks -->
+    {% include "dashboard/partials/components/_trending-stocks.html" %}
+
+
+<style>
+/* Markets Header */
+.markets-header {
+    margin-bottom: 24px;
+}
+
+.markets-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.markets-subtitle {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+}
+
+/* Chart and Details Grid */
+.chart-details-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 968px) {
+    .chart-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .markets-title {
+        font-size: 22px;
+    }
+}
+</style>
+{% endblock %}

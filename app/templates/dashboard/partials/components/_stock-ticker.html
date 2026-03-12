@@ -1,0 +1,33 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/stock-ticker.css">{% endblock %}
+
+<!-- Stock Ticker Bar -->
+<div class="stock-ticker">
+    <div class="ticker-items">
+
+        {% for stock in all_quotes %}
+        {% set pct = stock.percent_change|float if stock.percent_change else 0 %}
+        <div class="ticker-item">
+            <span class="ticker-symbol">{{ stock.symbol }}</span>
+            <span class="ticker-price">${{ "%.2f"|format(stock.close|float) if stock.close else "—" }}</span>
+            <span class="ticker-change {{ 'positive' if pct >= 0 else 'negative' }}">
+                <i class="fas fa-caret-{{ 'up' if pct >= 0 else 'down' }}"></i>
+                {{ '+' if pct >= 0 else '' }}{{ "%.2f"|format(pct) }}%
+            </span>
+        </div>
+        {% endfor %}
+
+        <!-- Duplicate for seamless loop -->
+        {% for stock in all_quotes %}
+        {% set pct = stock.percent_change|float if stock.percent_change else 0 %}
+        <div class="ticker-item">
+            <span class="ticker-symbol">{{ stock.symbol }}</span>
+            <span class="ticker-price">${{ "%.2f"|format(stock.close|float) if stock.close else "—" }}</span>
+            <span class="ticker-change {{ 'positive' if pct >= 0 else 'negative' }}">
+                <i class="fas fa-caret-{{ 'up' if pct >= 0 else 'down' }}"></i>
+                {{ '+' if pct >= 0 else '' }}{{ "%.2f"|format(pct) }}%
+            </span>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>

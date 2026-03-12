@@ -1,0 +1,48 @@
+{% block extra_css %}<link
+  rel="stylesheet"
+  href="../../../../static/css/dashboard/components/transaction-history.css"
+/>{% endblock %}
+<!-- Transaction History -->
+<div class="section-header mt-4">
+  <h3 class="section-title">Transaction History</h3>
+</div>
+
+<div class="card">
+  <div class="transaction-table-wrapper">
+    <table class="transaction-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Action</th>
+          <!-- <th>Units</th> -->
+          <th>Status</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in transactions %}
+        <tr>
+          <!-- DATE -->
+          <td>{{ transaction.date.strftime('%d-%m-%Y') }}</td>
+
+          <!-- ACTION -->
+          <td>
+              {{ transaction.type }}
+            </span>
+          </td>
+
+          <!-- QUANTITY -->
+          <!-- <td>{{ transaction.order_id }}</td> -->
+
+          <td class="status-badge {{ transaction.status.lower() }}">{{ transaction.status }}</td>
+
+          <!-- TOTAL -->
+          <td>
+            ${{ "{:,.0f}".format(transaction.amount) }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

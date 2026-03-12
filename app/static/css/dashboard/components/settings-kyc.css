@@ -1,0 +1,486 @@
+/* ─── KYC Form Container ─────────────────────────────────────── */
+.kyc-form {
+    max-width: 1000px;
+}
+
+/* ─── Status Banner ──────────────────────────────────────────── */
+.kyc-status-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    border: 1px solid transparent;
+}
+
+.kyc-status-banner i {
+    font-size: 22px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.kyc-status-banner strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.kyc-status-banner p {
+    font-size: 13px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.kyc-status-banner.unverified {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #1E40AF;
+}
+.kyc-status-banner.unverified i { color: #3B82F6; }
+
+.kyc-status-banner.pending {
+    background: #FFFBEB;
+    border-color: #FDE68A;
+    color: #92400E;
+}
+.kyc-status-banner.pending i { color: #F59E0B; }
+
+.kyc-status-banner.verified {
+    background: #ECFDF5;
+    border-color: #A7F3D0;
+    color: #065F46;
+}
+.kyc-status-banner.verified i { color: #10B981; }
+
+.kyc-status-banner.rejected {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #991B1B;
+}
+.kyc-status-banner.rejected i { color: #EF4444; }
+
+/* ─── Section Block ──────────────────────────────────────────── */
+.kyc-section {
+    margin-bottom: 36px;
+}
+
+.kyc-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark, #111827);
+    margin-bottom: 20px;
+}
+
+.step-number {
+    width: 28px;
+    height: 28px;
+    background: #2563EB;
+    color: white;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.kyc-section-desc {
+    font-size: 13px;
+    color: #6B7280;
+    margin: -12px 0 20px;
+    line-height: 1.6;
+}
+
+/* ─── ID Type Card Grid ──────────────────────────────────────── */
+.id-type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.id-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 12px;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    background: #F9FAFB;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.id-type-card i {
+    font-size: 26px;
+    color: #9CA3AF;
+    transition: color 0.2s;
+}
+
+.id-type-card:hover {
+    border-color: #93C5FD;
+    background: #EFF6FF;
+    color: #1D4ED8;
+}
+
+.id-type-card:hover i {
+    color: #3B82F6;
+}
+
+.id-type-card.active {
+    border-color: #2563EB;
+    background: #EFF6FF;
+    color: #1D4ED8;
+}
+
+.id-type-card.active i {
+    color: #2563EB;
+}
+
+/* ─── Upload Slot ────────────────────────────────────────────── */
+.upload-slot {
+    margin-bottom: 20px;
+}
+
+.upload-slot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.slot-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.slot-status {
+    font-size: 12px;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.slot-status .fa-check-circle {
+    color: #10B981;
+}
+
+/* ─── Drop Zone ──────────────────────────────────────────────── */
+.file-drop-zone {
+    border: 2px dashed #D1D5DB;
+    border-radius: 12px;
+    background: #FAFAFA;
+    transition: all 0.25s ease;
+    overflow: hidden;
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-drop-zone:hover {
+    border-color: #2563EB;
+    background: #F0F9FF;
+}
+
+.file-drop-zone.dragover {
+    border-color: #2563EB;
+    background: #EFF6FF;
+    transform: scale(1.01);
+}
+
+.drop-zone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 20px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+}
+
+.drop-zone-content i {
+    font-size: 28px;
+    color: #9CA3AF;
+}
+
+.drop-zone-content p {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+    font-weight: 500;
+}
+
+.drop-zone-content span {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+/* ─── File Preview ───────────────────────────────────────────── */
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    width: 100%;
+}
+
+.file-preview img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    flex-shrink: 0;
+}
+
+.file-preview .fa-file-pdf {
+    font-size: 40px;
+    color: #EF4444;
+    flex-shrink: 0;
+}
+
+.file-preview span {
+    font-size: 13px;
+    color: #374151;
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-preview button {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6B7280;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.file-preview button:hover {
+    background: #FEE2E2;
+    border-color: #DC2626;
+    color: #DC2626;
+}
+
+/* ─── Checklist ──────────────────────────────────────────────── */
+.kyc-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: #9CA3AF;
+    background: #F3F4F6;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.checklist-item i {
+    font-size: 13px;
+}
+
+.checklist-item.done {
+    color: #065F46;
+    background: #ECFDF5;
+}
+
+.checklist-item.done i {
+    color: #10B981;
+}
+
+/* ─── Submit Button ──────────────────────────────────────────── */
+.submit-btn-container {
+    margin-top: 8px;
+}
+
+.submit-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 14px 32px;
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #1D4ED8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.submit-btn:disabled {
+    background: #93C5FD;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ─── Submitted Documents List ───────────────────────────────── */
+.submitted-docs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.submitted-doc-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    background: #FAFAFA;
+    gap: 12px;
+}
+
+.doc-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-info > i {
+    font-size: 22px;
+    color: #6B7280;
+    flex-shrink: 0;
+}
+
+.doc-info div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.doc-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.doc-type {
+    font-size: 12px;
+    color: #6B7280;
+}
+
+.doc-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.doc-date {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+.doc-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.status-pending  { background: #FFFBEB; color: #92400E; }
+.status-approved { background: #ECFDF5; color: #065F46; }
+.status-rejected { background: #FEF2F2; color: #991B1B; }
+
+.doc-remove-btn {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #9CA3AF;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.doc-remove-btn:hover {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .id-type-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .submitted-doc-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .doc-meta {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .id-type-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .kyc-status-banner {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

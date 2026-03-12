@@ -1,0 +1,31 @@
+{% extends "landing/layouts/base.html" %}
+{% block title %}404 - Page Not Found{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/css/errors/404.css">{% endblock %}
+{% block content %}
+<!-- 404 Error Section -->
+    <section class="error-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Left Column: Text Content -->
+                <div class="col-lg-5 col-md-6 mb-4 mb-md-0">
+                    <h1 class="error-title">Oops....</h1>
+                    <h2 class="error-subtitle">Page not found</h2>
+                    <p class="error-description">
+                        This Page doesn't exist or was removed!<br>
+                        We suggest you back to home.
+                    </p>
+                    <a href="/" class="btn-back-home">
+                        <i class="bi bi-arrow-left"></i>
+                        Back to home
+                    </a>
+                </div>
+
+                <!-- Right Column: Illustration -->
+                <div class="col-lg-7 col-md-6 text-center">
+                    <img src="../../static/images/404.png" alt="404 Error" class="error-illustration">
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

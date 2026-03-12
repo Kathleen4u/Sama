@@ -1,0 +1,63 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/featured-stock.css">{% endblock %}
+{% macro stock_logo(symbol) %}
+{% set domain = symbol | stock_domain %}
+{% if domain %}
+<img
+    src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64"
+    alt="{{ symbol }}"
+    class="stock-logo-img"
+    width="32" height="32"
+    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+<span class="stock-logo-fallback" style="display:none;">{{ symbol[:2] }}</span>
+{% else %}
+<span class="stock-logo-fallback">{{ symbol[:2] }}</span>
+{% endif %}
+{% endmacro %}
+
+<!-- Featured Stock Card — biggest mover today -->
+{% if featured %}
+{% set pct = featured.percent_change|float %}
+<div class="featured-stock-card">
+    <div class="featured-stock-left">
+        <div class="stock-logo-large">
+            {{ stock_logo(featured.symbol) }}
+        </div>
+        <div class="stock-info-large">
+            <h3 class="stock-name-large">{{ featured.company_name or featured.symbol }}</h3>
+            <span class="stock-symbol-large">{{ featured.symbol }}</span>
+        </div>
+    </div>
+
+    <div class="featured-stock-center">
+        <div class="stock-price-large">
+            ${{ "%.2f"|format(featured.close) if featured.close else "—" }}
+        </div>
+        <div class="stock-change-large {{ 'positive' if pct >= 0 else 'negative' }}">
+            <i class="fas fa-caret-{{ 'up' if pct >= 0 else 'down' }}"></i>
+            {{ '+' if pct >= 0 else '' }}{{ "%.2f"|format(featured.change|float) if featured.change else '0.00' }}
+            ({{ '+' if pct >= 0 else '' }}{{ "%.2f"|format(pct) }}%)
+        </div>
+    </div>
+
+    <div class="featured-stock-right">
+        <a href="{{ url_for('dashboard.stock_detail', symbol=featured.symbol) }}" class="buy-now-btn">
+            Proceed To Buy <i class="fas fa-arrow-right"></i>
+        </a>
+        <button class="watchlist-btn-outline" onclick="addToWatchlist('{{ featured.symbol }}')">
+            <i class="far fa-star"></i> Add to Watchlist
+        </button>
+    </div>
+</div>
+{% else %}
+<div class="featured-stock-card" style="justify-content:center; color:#9AA0A6;">
+    <i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>
+    Market data loading — check back shortly
+</div>
+{% endif %}
+
+<script>
+function addToWatchlist(symbol) {
+    console.log('Adding to watchlist:', symbol);
+    // TODO: wire up when watchlist feature is built
+}
+</script>

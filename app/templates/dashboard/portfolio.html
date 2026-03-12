@@ -1,0 +1,34 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Portfolio" %}
+{% set page_icon = "fa-briefcase" %}
+
+{% block extra_css %}
+<!-- Chart.js for charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    <!-- KYC Alert Banner -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Stats Cards/Portfolio Analytics & Breakdown -->
+    {% include "dashboard/partials/components/_portfolio-analytics.html" %}
+
+    <!-- My Assets -->
+    {% include "dashboard/partials/components/_my-assets.html" %}
+
+    <!-- Holdings Table -->
+    {% include "dashboard/partials/components/_holdings-table.html" %}
+
+    <!-- Transaction History -->
+    {% include "dashboard/partials/components/_transaction-history.html" %}
+    {% endblock %}
+
+    {% block extra_js %}
+    <script>
+        // Additional JavaScript if needed
+        console.log('Dashboard Home loaded');
+    </script>
+
+{% endblock %}
