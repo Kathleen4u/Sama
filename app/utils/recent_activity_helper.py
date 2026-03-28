@@ -1,3 +1,12 @@
+from datetime import timezone, datetime
+
+def _to_utc(dt):
+    if dt is None:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
 def get_recent_activity(user_id: int, limit: int = 20) -> list:
     """
     Merges transactions and trade/wallet notifications into a single
@@ -65,7 +74,7 @@ def get_recent_activity(user_id: int, limit: int = 20) -> list:
         })
 
     # ── Sort combined list by date desc ────────────────────────────
-    activity.sort(key=lambda x: x["date"], reverse=True)
+    activity.sort(key=lambda x: _to_utc(x["date"]), reverse=True)
 
     return activity[:limit]
 
