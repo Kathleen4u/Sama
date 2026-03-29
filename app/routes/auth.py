@@ -141,6 +141,16 @@ def register():
 
         try:
             db.session.add(new_user)
+            db.session.flush()
+            # ── Assign referral code to the new user ─────────────────────────
+            from app.utils.referral_service import ReferralService
+            new_user.referral_code = ReferralService.generate_code()
+
+            # ── Record referral if they arrived via a referral link ──────────
+            ref_code = session.pop("referral_code", None)
+            if ref_code:
+                ReferralService.record_signup(new_user, ref_code)
+
             db.session.commit()
 
             try:
@@ -376,6 +386,21 @@ def change_password():
     return redirect(url_for("dashboard.settings", tab="password"))
 
 
+# ── Referral redirect route ───────────────────────────────────────────────────
+# Handles stocksco.app/ref/ABC123 → captures code → redirects to register
+
+@auth_bp.route("/ref/<code>")
+def referral_redirect(code):
+    """
+    Short referral link handler.
+    Stores the code in session and redirects to the registration page.
+    If the user is already logged in, just send them to the dashboard.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard.dashboard"))
+
+    session["referral_code"] = code.upper()
+    return redirect(url_for("auth.register"))
 
 
 # ============================================

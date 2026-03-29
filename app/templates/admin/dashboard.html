@@ -1,0 +1,220 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Dashboard{% endblock %}
+
+{% set active_page = 'dashboard' %}
+
+{# ─── Page-specific styles ─── #}
+{% block extra_styles %}
+<link rel="stylesheet" href="../../static/css/admin/dashboard.css">
+{% endblock %}
+
+{# ─── Page title ─── #}
+{% block page_title %}Dashboard{% endblock %}
+
+{# ─── Page content ─── #}
+{% block content %}
+
+{# ── Stats Row ── #}
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Users</div>
+    <div class="stat-value">{{ stats.total_users }}</div>
+    <div class="stat-sub">Registered users</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">
+      Total&nbsp;Managed Assets
+    </div>
+    <div class="stat-value">—</div>
+    <div class="stat-sub">Combined value of all user portfolios</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">
+      Daily Trading Volume
+      <span class="stat-date">{{ now_date }}</span>
+    </div>
+    <div class="stat-value">—</div>
+    <div class="stat-sub">Total value of trades executed today</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Pending Requests</div>
+    <div class="stat-pending">
+      <div>
+        <div class="pending-num">{{ stats.pending_withdrawals }}</div>
+        <div class="pending-label">Withdrawals</div>
+      </div>
+      <div>
+        <div class="pending-num">{{ stats.pending_kyc }}</div>
+        <div class="pending-label">KYC reviews</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Chart ── #}
+<div class="chart-card">
+  <div class="chart-header">
+    <div>
+      <div class="chart-title">Platform Performance Overview</div>
+      <div class="chart-subtitle">Cumulative transaction volume over time</div>
+    </div>
+    <div class="timeframe-btns">
+      <button class="tf-btn"        onclick="setTf(this, 'today')">Today</button>
+      <button class="tf-btn"        onclick="setTf(this, '7d')">7 Days</button>
+      <button class="tf-btn active" onclick="setTf(this, '30d')">30 Days</button>
+      <button class="tf-btn"        onclick="setTf(this, '90d')">90 Days</button>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <canvas id="perfChart"></canvas>
+  </div>
+</div>
+
+{# ── Recent Activity ── #}
+<div class="activity-card">
+  <div class="activity-header">
+    <div class="activity-title">Recent User Activity</div>
+    <div class="activity-subtitle">Live feed of important user actions across the platform</div>
+  </div>
+
+  {% if activity %}
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Activity</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in activity %}
+      <tr>
+        <td class="td-time">{{ event.time_ago }}</td>
+        <td>
+          <div class="user-name">{{ event.name }}</div>
+          <div class="user-id">{{ event.uid }}</div>
+        </td>
+        <td><a class="activity-link">{{ event.activity }}</a></td>
+        <td class="td-details">{{ event.details }}</td>
+        <td>
+          {% set s = event.status %}
+          {% if s == 'completed' %}
+            <span class="badge tag status-completed">Completed</span>
+          {% elif s == 'pending' %}
+            <span class="badge tag status-pending">Pending</span>
+          {% elif s == 'review' %}
+            <span class="badge tag status-review">Under Review</span>
+          {% elif s == 'failed' %}
+            <span class="badge tag status-failed">Failed</span>
+          {% elif s == 'approved' %}
+            <span class="badge tag status-completed">Approved</span>
+          {% elif s == 'rejected' %}
+            <span class="badge tag status-failed">Rejected</span>
+          {% else %}
+            <span class="badge tag status-pending">{{ s | title }}</span>
+          {% endif %}
+        </td>
+        <td><button class="action-btn">⋮</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="activity-empty">No activity yet.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{# ─── Scripts ─── #}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Chart data injected from the server — safe JSON, no XSS risk via |tojson
+const datasets = {{ chart_json | safe }};
+
+// Fallback: if a timeframe has no data yet, show an empty state gracefully
+function ensureDataset(key) {
+  const d = datasets[key];
+  if (!d || !d.labels || d.labels.length === 0) {
+    return { labels: ['No data'], data: [0] };
+  }
+  return d;
+}
+
+const ctx = document.getElementById('perfChart').getContext('2d');
+const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+gradient.addColorStop(0, 'rgba(37,99,235,0.18)');
+gradient.addColorStop(1, 'rgba(37,99,235,0.01)');
+
+const initial = ensureDataset('30d');
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: initial.labels,
+    datasets: [{
+      data: initial.data,
+      borderColor: '#2563eb', borderWidth: 2,
+      pointRadius: 0, pointHoverRadius: 5,
+      pointHoverBackgroundColor: '#2563eb',
+      pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+      fill: true, backgroundColor: gradient, tension: 0.35,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a1d23', titleColor: '#9ca3af', bodyColor: '#fff',
+        titleFont: { family: 'DM Sans', size: 11 },
+        bodyFont: { family: 'DM Mono', size: 13, weight: '500' },
+        padding: 10, displayColors: false,
+        callbacks: {
+          title: items => items[0].label,
+          label: item => '$' + item.raw.toLocaleString('en-US', { minimumFractionDigits: 2 })
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false }, border: { display: false },
+        ticks: {
+          color: '#9ca3af',
+          font: { family: 'DM Sans', size: 11 },
+          maxTicksLimit: 10,
+          maxRotation: 0
+        }
+      },
+      y: {
+        grid: { color: '#f0f2f5' }, border: { display: false },
+        ticks: {
+          color: '#9ca3af',
+          font: { family: 'DM Sans', size: 11 },
+          callback: v => '$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v),
+          maxTicksLimit: 6,
+        }
+      }
+    }
+  }
+});
+
+function setTf(btn, key) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = ensureDataset(key);
+  chart.data.labels = d.labels;
+  chart.data.datasets[0].data = d.data;
+  chart.update('active');
+}
+</script>
+{% endblock %}

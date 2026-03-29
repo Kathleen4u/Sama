@@ -7,8 +7,9 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 def init_db():
-    db.create_all()
-    print("Database tables created!")
+    pass
+    # db.create_all()
+    # print("Database tables created!")
 
 """
 USAGE IN YOUR APP:

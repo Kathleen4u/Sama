@@ -1,15 +1,25 @@
+import os
 from decimal import Decimal
 from flask import render_template, Blueprint, abort, jsonify, request, current_app, flash, redirect, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import select, desc
 from app import db, limiter
-from app.models import Wallet, Holding, Notification
+from app.models import Wallet, Holding, Notification, User, Referral
 from app.utils.chart_service import get_chart_data
 from app.utils.transactions import TransactionService
 from app.models.market_data import StockQuote, MarketNews, MarketDataSync
 from app.utils.market_symbols import BIG_TECH_SYMBOLS
 from app.utils import notifications as notification_utils
 from sqlalchemy import or_, func
+from dotenv import load_dotenv
+import json
+from datetime import date, timedelta
+from decimal import Decimal
+from sqlalchemy import select
+from app.models.holding import Holding
+from app.models.market_data import StockQuote
+
+load_dotenv()
 
 # Create blueprint
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -162,6 +172,30 @@ def _get_my_assets(user_id: int, limit: int = 10) -> list:
     assets.sort(key=lambda x: x["current_value"] or 0, reverse=True)
     return assets[:limit]
 
+
+# Colour palette for donut chart slices (add more if you add more types)
+_TYPE_COLORS = {
+    "Stocks": "#4FC3F7",  # blue
+    "Big Tech": "#FDD835",  # yellow
+    "ETFs": "#BA68C8",  # purple
+}
+# ─── Known ETF symbols StocksCo tracks ────────────────────────────────────────
+# Extend this list as you add more ETFs to your tracked symbols.
+_ETF_SYMBOLS = {
+    "SPY", "QQQ", "IWM", "DIA", "VTI", "VOO", "GLD", "SLV",
+    "XLF", "XLE", "XLK", "XLV", "XLY", "XLP", "XLU", "XLI",
+    "ARKK", "ARKG", "ARKW", "VNQ", "AGG", "BND", "TLT", "HYG",
+}
+
+def _classify_asset(symbol: str, is_big_tech: bool) -> str:
+    """Return a display label for an asset based on symbol + big tech flag."""
+    if symbol.upper() in _ETF_SYMBOLS:
+        return "ETFs"
+    if is_big_tech:
+        return "Big Tech"
+    return "Stocks"
+
+
 @dashboard_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -183,6 +217,78 @@ def dashboard():
     recent_activity   = get_recent_activity(current_user.id, limit=20)
     my_assets = _get_my_assets(current_user.id, limit=10)
 
+    # ── Portfolio overview chart data ──────────────────────────────
+    raw_holdings = db.session.execute(
+        select(Holding)
+        .where(Holding.user_id == current_user.id)
+        .order_by(Holding.purchased_at.asc())
+    ).scalars().all()
+
+    symbols = list({h.symbol for h in raw_holdings})
+    quotes = {}
+    if symbols:
+        rows = db.session.execute(
+            select(StockQuote).where(StockQuote.symbol.in_(symbols))
+        ).scalars().all()
+        quotes = {q.symbol: q for q in rows}
+
+    if raw_holdings:
+        purchase_dates = sorted({h.purchased_at.date() for h in raw_holdings})
+        chart_labels, chart_values = [], []
+        for checkpoint in purchase_dates:
+            invested = sum(
+                float(h.cost_basis)
+                for h in raw_holdings
+                if h.purchased_at.date() <= checkpoint
+            )
+            chart_labels.append(checkpoint.strftime("%b %d"))
+            chart_values.append(round(invested, 2))
+
+        # Final point: today at live prices
+        total_curr = sum(
+            float(h.current_value(Decimal(str(quotes[h.symbol].close))))
+            for h in raw_holdings
+            if h.symbol in quotes and quotes[h.symbol].close
+        )
+        today_label = date.today().strftime("%b %d")
+        if not chart_labels or chart_labels[-1] != today_label:
+            chart_labels.append(today_label)
+            chart_values.append(round(total_curr, 2))
+        else:
+            chart_values[-1] = round(total_curr, 2)
+
+        if len(chart_labels) == 1:
+            chart_labels = [chart_labels[0], chart_labels[0]]
+            chart_values = [chart_values[0], chart_values[0]]
+
+        portfolio_value_f = total_curr
+        total_invested_f = sum(float(h.cost_basis) for h in raw_holdings)
+        change_pct = 0.0
+        for h in raw_holdings:
+            q = quotes.get(h.symbol)
+            if q and q.close and q.previous_close:
+                pass  # day_change already computed in portfolio route
+        # Simple day change across all holdings
+        day_change = sum(
+            float((Decimal(str(q.close)) - Decimal(str(q.previous_close))) * h.quantity)
+            for h in raw_holdings
+            for q in [quotes.get(h.symbol)]
+            if q and q.close and q.previous_close
+        )
+        change_pct = (day_change / total_curr * 100) if total_curr > 0 else 0.0
+
+    else:
+        today = date.today()
+        chart_labels = [(today - timedelta(days=6 - i)).strftime("%b %d") for i in range(7)]
+        chart_values = [0.0] * 7
+        portfolio_value_f = 0.0
+        change_pct = 0.0
+
+    portfolio_change_positive = change_pct >= 0
+
+    net_worth = float(wallet.balance) + portfolio_value_f
+    net_worth_change_pct = change_pct
+
     return render_template(
         "dashboard/dashboard.html",
         current_user      = current_user,
@@ -196,111 +302,14 @@ def dashboard():
         market_updated_at = market_updated_at,
         recent_activity   = recent_activity,
         my_assets         = my_assets,
-    )
+        chart_labels=json.dumps(chart_labels),
+        chart_values=json.dumps(chart_values),
+        portfolio_value=f"{net_worth:,.2f}",
+        change_percentage=f"{abs(net_worth_change_pct):.2f}",
+        portfolio_change_positive=net_worth_change_pct >= 0,
+        wallet_cash=f"{float(wallet.balance):,.2f}",
+        portfolio_holdings=f"{portfolio_value_f:,.2f}",
 
-@dashboard_bp.route("/dashboard/portfolio")
-@login_required
-def portfolio():
-    transactions = TransactionService.get_user_transactions(current_user.id)
-    wallet       = Wallet.get_or_create(current_user.id)
-
-    # ── Fetch all holdings for this user ───────────────────────────
-    raw_holdings = db.session.execute(
-        select(Holding)
-        .where(Holding.user_id == current_user.id)
-        .order_by(Holding.purchased_at.desc())
-    ).scalars().all()
-
-    # ── Fetch current prices for all symbols user holds ────────────
-    symbols = list({h.symbol for h in raw_holdings})
-    quotes  = {}
-    if symbols:
-        rows = db.session.execute(
-            select(StockQuote).where(StockQuote.symbol.in_(symbols))
-        ).scalars().all()
-        quotes = {q.symbol: q for q in rows}
-
-    # ── Build enriched holdings rows ───────────────────────────────
-    # Each row = one purchase, enriched with live price + P&L
-    total_invested    = Decimal("0")
-    total_curr_value  = Decimal("0")
-
-    holdings_rows = []
-    for h in raw_holdings:
-        quote         = quotes.get(h.symbol)
-        current_price = Decimal(str(quote.close)) if quote and quote.close else None
-        curr_value    = h.current_value(current_price) if current_price else None
-        pl_abs        = h.profit_loss(current_price)   if current_price else None
-        pl_pct        = h.profit_loss_percent(current_price) if current_price else None
-
-        total_invested   += h.cost_basis
-        if curr_value:
-            total_curr_value += curr_value
-
-        holdings_rows.append({
-            "holding":       h,
-            "current_price": current_price,
-            "curr_value":    curr_value,
-            "pl_abs":        pl_abs,
-            "pl_pct":        pl_pct,
-        })
-
-    # ── Allocation % per row (each row's curr_value / total) ───────
-    for row in holdings_rows:
-        if row["curr_value"] and total_curr_value > 0:
-            row["allocation_pct"] = float(row["curr_value"] / total_curr_value * 100)
-        else:
-            row["allocation_pct"] = 0.0
-
-    total_pl      = total_curr_value - total_invested
-    total_pl_pct  = (total_pl / total_invested * 100) if total_invested > 0 else Decimal("0")
-
-    # ── Build summary rows (aggregated by symbol) ──────────────────
-    from collections import defaultdict
-    symbol_groups = defaultdict(list)
-    for row in holdings_rows:
-        symbol_groups[row["holding"].symbol].append(row)
-
-    summary_rows = []
-    for symbol, rows in symbol_groups.items():
-        h           = rows[0]["holding"]
-        total_qty   = sum(r["holding"].quantity for r in rows)
-        total_cost  = sum(r["holding"].cost_basis for r in rows)
-        total_val   = sum(r["curr_value"] for r in rows if r["curr_value"])
-        avg_price   = total_cost / total_qty if total_qty else Decimal("0")
-        sym_pl      = (total_val - total_cost) if total_val else None
-        sym_pl_pct  = float(sym_pl / total_cost * 100) if sym_pl is not None and total_cost > 0 else None
-        sym_alloc   = float(total_val / total_curr_value * 100) if total_val and total_curr_value > 0 else 0.0
-        company     = h.company_name.split(" ")[0] if h.company_name else symbol
-
-        summary_rows.append({
-            "symbol":        symbol,
-            "company_name":  company,
-            "num_purchases": len(rows),
-            "total_qty":     total_qty,
-            "avg_price":     avg_price,
-            "total_cost":    total_cost,
-            "total_val":     total_val or None,
-            "sym_pl":        sym_pl,
-            "sym_pl_pct":    sym_pl_pct,
-            "sym_alloc":     sym_alloc,
-            "sample_holding": h,
-        })
-
-    my_assets = _get_my_assets(current_user.id, limit=10)
-
-    return render_template(
-        "dashboard/portfolio.html",
-        current_user=current_user,
-        transactions=transactions,
-        wallet=wallet,
-        holdings_rows=holdings_rows,
-        summary_rows=summary_rows,
-        total_invested=round(total_invested, 2),
-        total_curr_value=total_curr_value,
-        total_pl=total_pl,
-        total_pl_pct=total_pl_pct,
-        my_assets=my_assets,
     )
 
 @dashboard_bp.route("/dashboard/invest")
@@ -472,8 +481,277 @@ def support():
 @dashboard_bp.route("/dashboard/referrals")
 @login_required
 def referrals():
-    return render_template("dashboard/referrals.html")
+    # All referrals this user has sent out, newest first
+    referrals = db.session.scalars(
+        select(Referral)
+        .where(Referral.referrer_id == current_user.id)
+        .order_by(Referral.created_at.desc())
+    ).all()
 
+    total_invites = len(referrals)
+    successful_referrals = sum(1 for r in referrals if r.status == "completed")
+    total_rewards = sum(r.reward_amount for r in referrals if r.reward_amount is not None)
+
+    # Build table rows — resolve referred user's display name
+    referred_user_ids = [r.referred_id for r in referrals]
+    users_by_id: dict[int, User] = {}
+    if referred_user_ids:
+        users = db.session.scalars(
+            select(User).where(User.id.in_(referred_user_ids))
+        ).all()
+        users_by_id = {u.id: u for u in users}
+
+    table_rows = []
+    for referral in referrals:
+        referred = users_by_id.get(referral.referred_id)
+        display_name = (
+            f"{referred.first_name} {referred.last_name[0]}."
+            if referred else "Unknown"
+        )
+        table_rows.append({
+            "user": display_name,
+            "reward": f"${referral.reward_amount:.2f}" if referral.reward_amount else "Pending",
+            "status": referral.status.capitalize(),
+            "date": referral.created_at.strftime("%d-%m-%Y"),
+        })
+
+    referral_link = f"{os.environ.get("SITE_URL")}/ref/{current_user.referral_code or ''}"
+
+    return render_template(
+        "dashboard/referrals.html",
+        referral_code=current_user.referral_code or "",
+        referral_link=referral_link,
+        referrals=table_rows,
+        total_invites=total_invites,
+        successful_referrals=successful_referrals,
+        total_rewards=f"{total_rewards:.2f}",
+        rewards_balance=float(current_user.rewards_balance),
+    )
+
+
+@dashboard_bp.route("/dashboard/portfolio")
+@login_required
+def portfolio():
+    import json
+    from datetime import date, timedelta
+    from decimal import Decimal
+    from collections import defaultdict
+    from sqlalchemy import select
+    from app.models.holding import Holding
+    from app.models.market_data import StockQuote
+    from app.utils.transactions import TransactionService
+
+    wallet = Wallet.get_or_create(current_user.id)
+    transactions = TransactionService.get_user_transactions(current_user.id)
+
+    # ── 1. Load holdings + live quotes ────────────────────────────────────────
+    raw_holdings = db.session.execute(
+        select(Holding)
+        .where(Holding.user_id == current_user.id)
+        .order_by(Holding.purchased_at.asc())  # asc so history builds correctly
+    ).scalars().all()
+
+    symbols = list({h.symbol for h in raw_holdings})
+    quotes = {}
+    if symbols:
+        rows = db.session.execute(
+            select(StockQuote).where(StockQuote.symbol.in_(symbols))
+        ).scalars().all()
+        quotes = {q.symbol: q for q in rows}
+
+    # ── 2. Enrich holdings rows (for the holdings table) ──────────────────────
+    total_invested = Decimal("0")
+    total_curr_value = Decimal("0")
+
+    holdings_rows = []
+    for h in raw_holdings:
+        quote = quotes.get(h.symbol)
+        current_price = Decimal(str(quote.close)) if quote and quote.close else None
+        curr_value = h.current_value(current_price) if current_price else None
+        pl_abs = h.profit_loss(current_price) if current_price else None
+        pl_pct = h.profit_loss_percent(current_price) if current_price else None
+
+        total_invested += h.cost_basis
+        if curr_value:
+            total_curr_value += curr_value
+
+        holdings_rows.append({
+            "holding": h,
+            "current_price": current_price,
+            "curr_value": curr_value,
+            "pl_abs": pl_abs,
+            "pl_pct": pl_pct,
+        })
+
+    # Allocation % — only meaningful when total_curr_value > 0
+    if total_curr_value > 0:
+        for row in holdings_rows:
+            if row["curr_value"]:
+                row["allocation_pct"] = round(
+                    float(row["curr_value"] / total_curr_value * 100), 1
+                )
+            else:
+                row["allocation_pct"] = 0.0
+    else:
+        for row in holdings_rows:
+            row["allocation_pct"] = 0.0
+
+    # ── 3. Summary stat cards ──────────────────────────────────────────────────
+    total_returns = total_curr_value - total_invested
+    returns_pct = (
+        float(total_returns / total_invested * 100)
+        if total_invested > 0
+        else 0.0
+    )
+    portfolio_value = float(total_curr_value)
+    total_invested_f = float(total_invested)
+    total_returns_f = float(total_returns)
+
+    # Day change — sum (close - previous_close) * quantity for each holding
+    day_change = Decimal("0")
+    for h in raw_holdings:
+        quote = quotes.get(h.symbol)
+        if quote and quote.close and quote.previous_close:
+            day_change += (
+                    (Decimal(str(quote.close)) - Decimal(str(quote.previous_close)))
+                    * h.quantity
+            )
+    change_pct = (
+        float(day_change / total_curr_value * 100)
+        if total_curr_value > 0
+        else 0.0
+    )
+
+    # ── 4. Portfolio value history (line chart) ────────────────────────────────
+    #
+    # Strategy: build a timeline of "portfolio value at each date a purchase
+    # was made", then add today's current value as the last point.
+    #
+    # For each checkpoint date, value = sum over ALL holdings bought on or
+    # before that date of (quantity × cost_basis_price_at_buy).
+    # This gives the INVESTED value trajectory.
+    #
+    # Then the final point uses live prices for the real current value.
+    #
+    # If the user has no holdings, we show a flat zero line for the past 7 days.
+
+    if raw_holdings:
+        # Collect unique purchase dates (date only, not datetime)
+        purchase_dates = sorted({h.purchased_at.date() for h in raw_holdings})
+
+        chart_labels = []
+        chart_values = []
+
+        for checkpoint in purchase_dates:
+            # Sum cost_basis of everything bought on or before this date
+            invested_at_point = sum(
+                float(h.cost_basis)
+                for h in raw_holdings
+                if h.purchased_at.date() <= checkpoint
+            )
+            chart_labels.append(checkpoint.strftime("%b %d"))
+            chart_values.append(round(invested_at_point, 2))
+
+        # Final point: today at current market value
+        today_label = date.today().strftime("%b %d")
+        # Only add today if it's not already the last label (same-day purchase)
+        if not chart_labels or chart_labels[-1] != today_label:
+            chart_labels.append(today_label)
+            chart_values.append(round(portfolio_value, 2))
+        else:
+            # Replace the last point with live price instead of cost basis
+            chart_values[-1] = round(portfolio_value, 2)
+
+        # If only one data point, duplicate it so Chart.js draws a line
+        if len(chart_labels) == 1:
+            chart_labels = [chart_labels[0], chart_labels[0]]
+            chart_values = [chart_values[0], chart_values[0]]
+
+    else:
+        # No holdings — flat zero line for past 7 days
+        today = date.today()
+        chart_labels = [
+            (today - timedelta(days=6 - i)).strftime("%b %d")
+            for i in range(7)
+        ]
+        chart_values = [0.0] * 7
+
+    # ── 5. Portfolio breakdown (donut chart) ───────────────────────────────────
+    #
+    # Group current value by asset type: Stocks / Big Tech / ETFs
+    # Each holding's type is derived from symbol + is_big_tech flag on StockQuote.
+
+    type_values: dict = defaultdict(float)
+
+    for h in raw_holdings:
+        quote = quotes.get(h.symbol)
+        is_big_tech = bool(quote and quote.is_big_tech) if quote else False
+        asset_type = _classify_asset(h.symbol, is_big_tech)
+        curr_price = Decimal(str(quote.close)) if quote and quote.close else Decimal(str(h.purchase_price))
+        type_values[asset_type] += float(h.current_value(curr_price))
+
+    # Build ordered breakdown data — only include types with value > 0
+    breakdown_labels = []
+    breakdown_values = []
+    breakdown_colors = []
+
+    for label in ["Stocks", "Big Tech", "ETFs"]:
+        val = type_values.get(label, 0.0)
+        if val > 0:
+            breakdown_labels.append(label)
+            breakdown_values.append(round(val, 2))
+            breakdown_colors.append(_TYPE_COLORS[label])
+
+    # If portfolio is empty, show a neutral placeholder
+    if not breakdown_labels:
+        breakdown_labels = ["No holdings yet"]
+        breakdown_values = [1]
+        breakdown_colors = ["#E0E0E0"]
+
+    # Percentage strings for the legend
+    breakdown_total = sum(breakdown_values)
+    breakdown_pcts = [
+        round(v / breakdown_total * 100, 1) if breakdown_total > 0 else 0
+        for v in breakdown_values
+    ]
+
+    # ── 6. Render ──────────────────────────────────────────────────────────────
+    return render_template(
+        "dashboard/portfolio.html",
+        current_user=current_user,
+        wallet=wallet,
+        transactions=transactions,
+        holdings_rows=holdings_rows,
+
+        # Raw floats for the holdings table footer
+        total_invested_raw=total_invested_f,
+        total_curr_value=float(total_curr_value),
+        total_pl=total_returns_f,
+        total_pl_pct=returns_pct,
+
+        # Stat cards
+        portfolio_value=f"{portfolio_value:,.2f}",
+        total_invested=f"{total_invested_f:,.2f}",
+        total_returns=f"{total_returns_f:,.2f}",
+        returns_percentage=f"{returns_pct:.2f}",
+        change_percentage=f"{change_pct:.2f}",
+        portfolio_change_positive=total_returns_f >= 0,
+
+        # Line chart — passed as JSON strings for safe JS injection
+        chart_labels=json.dumps(chart_labels),
+        chart_values=json.dumps(chart_values),
+
+        # Donut chart
+        breakdown_labels=json.dumps(breakdown_labels),
+        breakdown_values=json.dumps(breakdown_values),
+        breakdown_colors=json.dumps(breakdown_colors),
+        breakdown_pcts=breakdown_pcts,  # list — used in Jinja legend loop
+        breakdown_data=list(zip(  # convenience zip for legend
+            breakdown_labels,
+            breakdown_pcts,
+            breakdown_colors,
+        )),
+    )
 
 @dashboard_bp.route("/api/market/quotes")
 @login_required
@@ -642,11 +920,3 @@ def _serialize(r):
         'percent_change': float(r.percent_change) if r.percent_change is not None else None,
         'exchange':       r.exchange or '',
     }
-
-# TODO: Remember to delete route in production
-@dashboard_bp.route("/dashboard/sync-market-data")
-@login_required
-def manual_market_sync():
-    from app.utils.twelve_data import run_full_market_sync
-    result = run_full_market_sync()
-    return jsonify(result)

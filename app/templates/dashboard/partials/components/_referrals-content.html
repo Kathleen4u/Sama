@@ -8,14 +8,14 @@
         <i class="fas fa-gift"></i>
         <div class="offer-content">
             <span class="offer-label">Special Offer</span>
-            <span class="offer-text">Earn up to 10% per successful referral</span>
+            <span class="offer-text">Earn 10% of your friend's first deposit</span>
         </div>
     </div>
 
     <!-- How Referral Works -->
     <div class="how-it-works-section">
         <h2 class="section-title">How Referral Works</h2>
-        
+
         <div class="steps-grid">
             <!-- Step 1 -->
             <div class="step-card">
@@ -36,8 +36,8 @@
                 </div>
                 <div class="step-content">
                     <div class="step-number">Step 2</div>
-                    <h3 class="step-title">Friend signs up and invests</h3>
-                    <p class="step-description">Your friend creates an account and makes their first investment of $100+</p>
+                    <h3 class="step-title">Friend signs up & deposits</h3>
+                    <p class="step-description">Your friend creates an account and makes their first deposit of $20+</p>
                 </div>
             </div>
 
@@ -49,7 +49,7 @@
                 <div class="step-content">
                     <div class="step-number">Step 3</div>
                     <h3 class="step-title">You earn rewards</h3>
-                    <p class="step-description">Get 10% credited to your account once your friend completes their first trade</p>
+                    <p class="step-description">Get 10% of their deposit credited to your rewards balance instantly</p>
                 </div>
             </div>
         </div>
@@ -64,19 +64,36 @@
             </div>
 
             <div class="link-input-group">
-                <input type="text" value="stocksco.app/ref/{{ referral_code|default('BILLY23') }}" class="link-input" id="referralLink" readonly>
-                <button class="copy-btn" onclick="copyReferralLink()">
+                <input
+                    type="text"
+                    value="https://stocksco.io/ref/{{ referral_code }}"
+                    class="link-input"
+                    id="referralLink"
+                    readonly
+                >
+                <button class="copy-btn" onclick="copyReferralLink(event)">
                     <i class="fas fa-copy"></i> Copy Link
                 </button>
             </div>
 
             <div class="share-buttons">
-                <button class="share-btn whatsapp">
-                    <i class="fab fa-whatsapp"></i> Share on Whatsapp
-                </button>
-                <button class="share-btn twitter">
+                <a
+                    class="share-btn whatsapp"
+                    id="whatsappShareBtn"
+                    href="https://wa.me/?text={{ ('Join me on StocksCo and start investing! Use my referral link: https://stocksco.io/ref/' + referral_code) | urlencode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                </a>
+                <a
+                    class="share-btn twitter"
+                    href="https://twitter.com/intent/tweet?text={{ ('Join me on StocksCo and start investing in global markets! Sign up with my link: https://stocksco.io/ref/' + referral_code) | urlencode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     <i class="fab fa-twitter"></i> Share on Twitter
-                </button>
+                </a>
             </div>
         </div>
 
@@ -84,11 +101,11 @@
         <div class="stats-cards">
             <div class="stat-card blue">
                 <div class="stat-icon">
-                    <i class="fas fa-dollar-sign"></i>
+                    <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Total Invites</div>
-                    <div class="stat-value">{{ total_invites|default(0) }}</div>
+                    <div class="stat-value">{{ total_invites }}</div>
                 </div>
             </div>
 
@@ -98,7 +115,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Successful Referrals</div>
-                    <div class="stat-value">{{ successful_referrals|default(0) }}</div>
+                    <div class="stat-value">{{ successful_referrals }}</div>
                 </div>
             </div>
 
@@ -108,7 +125,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-label">Total Rewards</div>
-                    <div class="stat-value">${{ total_rewards|default(0) }}</div>
+                    <div class="stat-value">${{ total_rewards }}</div>
                 </div>
             </div>
         </div>
@@ -119,6 +136,7 @@
         <h2 class="section-title">Referral History</h2>
 
         <div class="card">
+            {% if referrals %}
             <div class="history-table-wrapper">
                 <table class="history-table">
                     <thead>
@@ -130,15 +148,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {# {% set default_referrals = [
-                            {'user': 'Sarah Johnson', 'reward': '$10', 'status': 'Pending', 'date': '20-12-2025'},
-                            {'user': 'Mike Chen', 'reward': '$10', 'status': 'Completed', 'date': '20-12-2025'},
-                            {'user': 'Emily Davis', 'reward': '$10', 'status': 'Pending', 'date': '20-12-2025'},
-                            {'user': 'David Wilson', 'reward': '$10', 'status': 'Completed', 'date': '20-12-2025'},
-                            {'user': 'Lisa Anderson', 'reward': '$10', 'status': 'Pending', 'date': '20-12-2025'}
-                        ] %} #}
-
-                        {% for referral in referrals|default(default_referrals) %}
+                        {% for referral in referrals %}
                         <tr>
                             <td class="user-cell">{{ referral.user }}</td>
                             <td class="reward-cell">{{ referral.reward }}</td>
@@ -153,23 +163,44 @@
                     </tbody>
                 </table>
             </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h3 class="empty-title">No referrals yet</h3>
+                <p class="empty-description">
+                    Share your referral link above and start earning rewards when friends make their first deposit.
+                </p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-function copyReferralLink() {
+function copyReferralLink(event) {
     const input = document.getElementById('referralLink');
     input.select();
-    document.execCommand('copy');
-    
-    // Show success message
+    input.setSelectionRange(0, 99999); // Mobile support
+
+    try {
+        navigator.clipboard.writeText(input.value).catch(() => {
+            document.execCommand('copy');
+        });
+    } catch {
+        document.execCommand('copy');
+    }
+
     const btn = event.target.closest('.copy-btn');
-    const originalText = btn.innerHTML;
+    const originalHTML = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-    
+    btn.disabled = true;
+
     setTimeout(() => {
-        btn.innerHTML = originalText;
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
     }, 2000);
 }
 </script>

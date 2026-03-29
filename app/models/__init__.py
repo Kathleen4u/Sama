@@ -8,6 +8,7 @@ from app.models.market_data import StockQuote, MarketNews, MarketDataSync
 from app.models.holding import Holding
 from app.models.withdrawal import WithdrawalRequest
 from app.models.kyc_document import KYCDocument
+from app.models.referral import Referral
 # Import other models as you create them
 
 __all__ = [
@@ -25,5 +26,6 @@ __all__ = [
     "MarketDataSync",
     "Holding",
     "WithdrawalRequest",
-    "KYCDocument"
+    "KYCDocument",
+    "Referral",
 ]

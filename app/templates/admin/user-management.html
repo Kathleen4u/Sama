@@ -1,0 +1,176 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – User Management{% endblock %}
+
+{% set active_page = 'user-management' %}
+
+{# ─── Page-specific styles ─── #}
+{% block extra_styles %}
+<link rel="stylesheet" href="../../static/css/admin/user-management.css">
+{% endblock %}
+
+{# ─── Page title ─── #}
+{% block page_title %}User Management{% endblock %}
+
+{# ─── Page content ─── #}
+{% block content %}
+
+<div class="content-card">
+  <div class="card-header">
+    <div class="card-title">Users</div>
+    <div class="card-subtitle">View, verify, suspend, and manage user accounts and activity</div>
+  </div>
+
+  {# Filters #}
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="searchInput"
+             placeholder="Search by user name, email or ID"
+             oninput="filterTable()"/>
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="filterTable()">
+      <option value="">All Statuses</option>
+      <option value="active">Active</option>
+      <option value="suspended">Suspended</option>
+    </select>
+    <select class="filter-select" id="kycFilter" onchange="filterTable()">
+      <option value="">All KYC Statuses</option>
+      <option value="verified">Verified</option>
+      <option value="unverified">Unverified</option>
+      <option value="rejected">Rejected</option>
+    </select>
+    <select class="filter-select" id="timeFilter" onchange="filterTable()">
+      <option value="">All Time</option>
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+    </select>
+  </div>
+
+  {# Table #}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Full Name</th>
+          <th>Email Address</th>
+          <th>Account Status</th>
+          <th>KYC Status</th>
+          <th>Portfolio Value</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  {# Pagination #}
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">Showing 1–14 of 78</div>
+    <div class="page-btns">
+      <button class="page-btn" onclick="changePage(-1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+      <button class="page-btn page-btn-next" onclick="changePage(1)">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{# ─── Scripts ─── #}
+{% block extra_scripts %}
+<script>
+const USERS = [
+  { id:'USR-10234', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10235', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10236', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10237', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10238', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'rejected',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10239', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10240', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10241', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10242', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10243', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10244', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'rejected',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10245', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'rejected',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10246', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+  { id:'USR-10247', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
+];
+
+const PAGE_SIZE = 14;
+let currentPage = 1;
+let filtered = [...USERS];
+
+function acctBadge(s) {
+  return s === 'active'
+    ? `<span class="badge badge-green"><span class="dot dot-green"></span>Active</span>`
+    : `<span class="badge badge-red"><span class="dot dot-red"></span>Suspended</span>`;
+}
+
+function kycBadge(k) {
+  if (k === 'verified')   return `<span class="tag tag-blue">Verified</span>`;
+  if (k === 'unverified') return `<span class="tag tag-grey">Unverified</span>`;
+  return `<span class="tag tag-red-text">Rejected</span>`;
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableBody').innerHTML = page.map(u => `
+    <tr>
+      <td class="td-id">${u.id}</td>
+      <td class="td-name">${u.name}</td>
+      <td>${u.email}</td>
+      <td>${acctBadge(u.status)}</td>
+      <td>${kycBadge(u.kyc)}</td>
+      <td class="td-portfolio">${u.portfolio}</td>
+      <td class="td-login">${u.login}</td>
+      <td><button class="action-btn">⋮</button></td>
+    </tr>
+  `).join('');
+
+  const total = filtered.length;
+  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
+  document.getElementById('pageInfo').textContent = `Showing ${s}–${e} of ${total}`;
+
+  const maxPage = Math.ceil(total / PAGE_SIZE);
+  document.querySelectorAll('.page-btn')[0].disabled = currentPage === 1;
+  document.querySelector('.page-btn-next').disabled  = currentPage >= maxPage;
+}
+
+function filterTable() {
+  const q   = document.getElementById('searchInput').value.toLowerCase();
+  const st  = document.getElementById('statusFilter').value;
+  const kyc = document.getElementById('kycFilter').value;
+  filtered = USERS.filter(u =>
+    (!q   || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.id.toLowerCase().includes(q)) &&
+    (!st  || u.status === st) &&
+    (!kyc || u.kyc   === kyc)
+  );
+  currentPage = 1;
+  renderTable();
+}
+
+function changePage(dir) {
+  currentPage = Math.max(1, Math.min(Math.ceil(filtered.length / PAGE_SIZE), currentPage + dir));
+  renderTable();
+}
+
+renderTable();
+</script>
+{% endblock %}

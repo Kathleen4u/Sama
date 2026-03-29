@@ -61,6 +61,8 @@ def create_app():
                                                                 "True").lower() == "true"
     app.config["NOWPAYMENTS_FIXED_RATE"] = os.environ.get("NOWPAYMENTS_FIXED_RATE", "True").lower() == "true"
 
+    app.config["SITE_URL"] = os.environ.get("SITE_URL")
+
     # Initialize database
     db.init_app(app)
     migrate = Migrate(app, db)
@@ -97,6 +99,7 @@ def create_app():
     from app.routes.payments import payment_bp
     from app.routes.withdrawals import wallet_bp
     from app.routes.kyc import kyc_bp
+    from app.routes.admin.admin_dashboard import admin_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -105,6 +108,7 @@ def create_app():
     app.register_blueprint(payment_bp)
     app.register_blueprint(wallet_bp)
     app.register_blueprint(kyc_bp)
+    app.register_blueprint(admin_bp)
 
     # CREATE DATABASE TABLES
     with app.app_context():

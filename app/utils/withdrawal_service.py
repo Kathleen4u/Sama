@@ -6,6 +6,7 @@ from app import db
 from app.models.wallet import Wallet
 from app.models.withdrawal import WithdrawalRequest
 from app.models.transaction import Transaction
+from app.utils.notifications import notify_withdrawal_pending
 
 # Supported currencies users can withdraw to
 SUPPORTED_CURRENCIES = ["BTC", "ETH", "USDT", "USDC", "BNB", "SOL", "TRX"]
@@ -68,6 +69,13 @@ class WithdrawalService:
             )
             db.session.add(withdrawal)
             db.session.flush()  # Get withdrawal.id before commit
+
+            notify_withdrawal_pending(
+                user_id=user_id,
+                amount=amount,
+            )
+
+            # TODO: Send email notification to user about the transaction
 
             # --- Create a Transaction row so it shows in history ---
             tx = Transaction(

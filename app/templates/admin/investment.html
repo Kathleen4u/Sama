@@ -1,0 +1,193 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Investment & Trades{% endblock %}
+
+{% set active_page = 'investment-trades' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="../../static/css/admin/investment.css">
+{% endblock %}
+
+{% block page_title %}Investments &amp; Trades{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="card-title">Investments &amp; Trades</div>
+    <div class="card-subtitle">Monitor all buy and sell orders, investment positions, and trading performance across the platform</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="searchInput"
+             placeholder="Search by user, asset, or trade ID..."
+             oninput="applyFilters()"/>
+    </div>
+    <select class="filter-select" id="tradeTypeFilter" onchange="applyFilters()">
+      <option value="">Trade Type</option>
+      <option value="Buy">Buy</option>
+      <option value="Sell">Sell</option>
+    </select>
+    <select class="filter-select" id="assetTypeFilter" onchange="applyFilters()">
+      <option value="">Asset Type</option>
+      <option value="US Stocks">US Stocks</option>
+      <option value="NG Stocks">NG Stocks</option>
+      <option value="ETF">ETF</option>
+      <option value="Crypto">Crypto</option>
+    </select>
+    <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+      <option value="">Order Status</option>
+      <option value="executed">Executed</option>
+      <option value="open">Open</option>
+      <option value="cancelled">Cancelled</option>
+      <option value="failed">Failed</option>
+      <option value="pending">Pending</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Trade ID</th>
+          <th>User</th>
+          <th>Asset</th>
+          <th>Asset Type</th>
+          <th>Trade Type</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Total Value</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">Showing 1–14 of 78</div>
+    <div class="page-btns">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const TRADES = [
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'cancelled' },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'cancelled' },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'cancelled' },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'failed'    },
+  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'failed'    },
+];
+
+const PAGE_SIZE = 14;
+let currentPage = 1;
+let filtered    = [...TRADES];
+
+function statusBadge(s) {
+  const map = {
+    executed:  ['ob-executed',  'Executed'],
+    open:      ['ob-open',      'Open'],
+    cancelled: ['ob-cancelled', 'Cancelled'],
+    failed:    ['ob-failed',    'Failed'],
+    pending:   ['ob-pending',   'Pending'],
+  };
+  const [cls, label] = map[s] || ['ob-cancelled', s];
+  return `<span class="order-badge ${cls}">${label}</span>`;
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableBody').innerHTML = page.map(t => `
+    <tr>
+      <td class="td-id">${t.id}</td>
+      <td>
+        <div class="user-name">${t.name}</div>
+        <div class="user-email">${t.email}</div>
+      </td>
+      <td>
+        <div class="asset-name">${t.assetName}</div>
+        <div class="asset-ticker">${t.ticker}</div>
+      </td>
+      <td class="td-asset-type">${t.assetType}</td>
+      <td><span class="trade-${t.tradeType.toLowerCase()}">${t.tradeType}</span></td>
+      <td class="td-qty">${t.qty}</td>
+      <td class="td-price">${t.price}</td>
+      <td class="td-value">${t.value}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td><button class="action-btn">⋮</button></td>
+    </tr>
+  `).join('');
+
+  const total = filtered.length;
+  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
+  document.getElementById('pageInfo').textContent =
+    total === 0 ? 'No results' : `Showing ${s}–${e} of ${total}`;
+
+  const maxPage = Math.ceil(total / PAGE_SIZE) || 1;
+  document.getElementById('prevBtn').disabled = currentPage === 1;
+  document.getElementById('nextBtn').disabled = currentPage >= maxPage;
+}
+
+function applyFilters() {
+  const q         = document.getElementById('searchInput').value.toLowerCase();
+  const tradeType = document.getElementById('tradeTypeFilter').value;
+  const assetType = document.getElementById('assetTypeFilter').value;
+  const status    = document.getElementById('statusFilter').value;
+
+  filtered = TRADES.filter(t =>
+    (!q         || t.id.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.assetName.toLowerCase().includes(q) || t.ticker.toLowerCase().includes(q)) &&
+    (!tradeType || t.tradeType === tradeType) &&
+    (!assetType || t.assetType === assetType) &&
+    (!status    || t.status    === status)
+  );
+  currentPage = 1;
+  renderTable();
+}
+
+function changePage(dir) {
+  const max = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  currentPage = Math.max(1, Math.min(max, currentPage + dir));
+  renderTable();
+}
+
+renderTable();
+</script>
+{% endblock %}

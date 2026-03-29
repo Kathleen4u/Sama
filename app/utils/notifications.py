@@ -125,7 +125,10 @@ def notify_withdrawal_pending(user_id, amount, transaction_id=None):
         category=NotificationCategory.WALLET.value,
         title="Withdrawal in Progress",
         message=f"Your withdrawal request of ${amount:,.2f} is being processed. Funds will be credited within 24 hours.",
-        notification_metadata={"amount": amount, "transaction_id": transaction_id},
+        notification_metadata={
+            "amount": str(amount),
+            "transaction_id": transaction_id
+        },
         related_object_type="Transaction",
         related_object_id=transaction_id
     )

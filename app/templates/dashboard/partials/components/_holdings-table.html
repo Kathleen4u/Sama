@@ -1,11 +1,9 @@
 {% macro stock_logo(symbol) %}
 {% set domain = symbol | stock_domain %}
 {% if domain %}
-<img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64"
-     alt="{{ symbol }}"
-     class="stock-logo-img"
-     width="32" height="32"
-     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+<img src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64" alt="{{ symbol }}" class="stock-logo-img"
+    width="32" height="32"
+    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
 <span class="stock-logo-fallback" style="display:none;">{{ symbol[:2] }}</span>
 {% else %}
 <span class="stock-logo-fallback">{{ symbol[:2] }}</span>
@@ -49,8 +47,8 @@
             </thead>
             <tbody>
                 {% for row in holdings_rows %}
-                {% set h   = row.holding %}
-                {% set pl  = row.pl_abs %}
+                {% set h = row.holding %}
+                {% set pl = row.pl_abs %}
                 {% set pct = row.pl_pct %}
                 {% set pos = pl and pl >= 0 %}
                 <tr onclick="window.location='{{ url_for('dashboard.stock_detail', symbol=h.symbol) }}'"
@@ -77,24 +75,24 @@
                     <td>${{ "{:,.2f}".format(h.cost_basis) }}</td>
                     <td class="value-cell">
                         {% if row.curr_value %}
-                            ${{ "{:,.2f}".format(row.curr_value) }}
+                        ${{ "{:,.2f}".format(row.curr_value) }}
                         {% else %}
-                            <span style="color:#9AA0A6;">—</span>
+                        <span style="color:#9AA0A6;">—</span>
                         {% endif %}
                     </td>
                     <td class="profit-cell {{ 'positive' if pos else 'negative' }}">
                         {% if pl is not none %}
-                            {{ '+' if pos else '' }}${{ "{:,.2f}".format(pl|abs) }}
-                            ({{ '+' if pos else '' }}{{ "{:.1f}".format(pct) }}%)
+                        {{ '+' if pos else '' }}${{ "{:,.2f}".format(pl|abs) }}
+                        ({{ '+' if pos else '' }}{{ "{:.1f}".format(pct) }}%)
                         {% else %}
-                            <span style="color:#9AA0A6;">—</span>
+                        <span style="color:#9AA0A6;">—</span>
                         {% endif %}
                     </td>
                     <td>
                         <div class="allocation-cell">
                             <div class="allocation-bar">
-                                <div class="allocation-fill"
-                                     style="width: {{ "{:.0f}".format(row.allocation_pct) }}%;"></div>
+                                <div class="allocation-fill" style="width: {{ " {:.0f}".format(row.allocation_pct)
+                                    }}%;"></div>
                             </div>
                             <span>{{ "{:.0f}".format(row.allocation_pct) }}%</span>
                         </div>
@@ -106,13 +104,14 @@
             <tfoot>
                 <tr style="font-weight:600; background:#F8F9FA; border-top:2px solid #E8EAED;">
                     <td colspan="4" style="padding:14px 16px; color:#5f6368;">Total Portfolio</td>
-                    <td style="padding:14px 16px;">${{ "{:,.2f}".format(total_invested) }}</td>
+                    <td style="padding:14px 16px;">${{ "{:,.2f}".format(total_invested_raw) }}</td>
                     <td style="padding:14px 16px;" class="value-cell">${{ "{:,.2f}".format(total_curr_value) }}</td>
                     <td style="padding:14px 16px;"
                         class="profit-cell {{ 'positive' if total_pl >= 0 else 'negative' }}">
                         {{ '+' if total_pl >= 0 else '' }}${{ "{:,.2f}".format(total_pl|abs) }}
                         ({{ '+' if total_pl_pct >= 0 else '' }}{{ "{:.1f}".format(total_pl_pct) }}%)
                     </td>
+                    <td style="padding:14px 16px;">100%</td>
                     <td style="padding:14px 16px;">100%</td>
                 </tr>
             </tfoot>
@@ -156,24 +155,24 @@
                     <td>${{ "{:,.2f}".format(row.total_cost) }}</td>
                     <td class="value-cell">
                         {% if row.total_val %}
-                            ${{ "{:,.2f}".format(row.total_val) }}
+                        ${{ "{:,.2f}".format(row.total_val) }}
                         {% else %}
-                            <span style="color:#9AA0A6;">—</span>
+                        <span style="color:#9AA0A6;">—</span>
                         {% endif %}
                     </td>
                     <td class="profit-cell {{ 'positive' if is_pos else 'negative' }}">
                         {% if row.sym_pl is not none %}
-                            {{ '+' if is_pos else '' }}${{ "{:,.2f}".format(row.sym_pl|abs) }}
-                            ({{ '+' if is_pos else '' }}{{ "{:.1f}".format(row.sym_pl_pct) }}%)
+                        {{ '+' if is_pos else '' }}${{ "{:,.2f}".format(row.sym_pl|abs) }}
+                        ({{ '+' if is_pos else '' }}{{ "{:.1f}".format(row.sym_pl_pct) }}%)
                         {% else %}
-                            <span style="color:#9AA0A6;">—</span>
+                        <span style="color:#9AA0A6;">—</span>
                         {% endif %}
                     </td>
                     <td>
                         <div class="allocation-cell">
                             <div class="allocation-bar">
-                                <div class="allocation-fill"
-                                     style="width: {{ "{:.0f}".format(row.sym_alloc) }}%;"></div>
+                                <div class="allocation-fill" style="width: {{ " {:.0f}".format(row.sym_alloc) }}%;">
+                                </div>
                             </div>
                             <span>{{ "{:.0f}".format(row.sym_alloc) }}%</span>
                         </div>
@@ -184,8 +183,7 @@
 
             <tfoot>
                 <tr style="font-weight:600; background:#F8F9FA; border-top:2px solid #E8EAED;">
-                    <td colspan="4" style="padding:14px 16px; color:#5f6368;">Total Portfolio</td>
-                    <td style="padding:14px 16px;">${{ "{:,.2f}".format(total_invested) }}</td>
+                    <td style="padding:14px 16px;">${{ "{:,.2f}".format(total_invested_raw) }}</td>
                     <td style="padding:14px 16px;" class="value-cell">${{ "{:,.2f}".format(total_curr_value) }}</td>
                     <td style="padding:14px 16px;"
                         class="profit-cell {{ 'positive' if total_pl >= 0 else 'negative' }}">
@@ -193,18 +191,17 @@
                         ({{ '+' if total_pl_pct >= 0 else '' }}{{ "{:.1f}".format(total_pl_pct) }}%)
                     </td>
                     <td style="padding:14px 16px;">100%</td>
+                    <td style="padding:14px 16px;">100%</td>
                 </tr>
             </tfoot>
         </table>
 
         {% else %}
         <div style="text-align:center; padding:60px 24px; color:#9AA0A6;">
-            <i class="fas fa-briefcase"
-               style="font-size:40px; margin-bottom:16px; display:block; opacity:0.4;"></i>
+            <i class="fas fa-briefcase" style="font-size:40px; margin-bottom:16px; display:block; opacity:0.4;"></i>
             <p style="font-size:15px; font-weight:500; color:#5f6368; margin-bottom:8px;">No holdings yet</p>
             <p style="font-size:13px; margin-bottom:24px;">Start investing to see your portfolio here.</p>
-            <a href="{{ url_for('dashboard.markets') }}"
-               style="padding:10px 24px; background:#1976D2; color:#fff; border-radius:10px;
+            <a href="{{ url_for('dashboard.markets') }}" style="padding:10px 24px; background:#1976D2; color:#fff; border-radius:10px;
                       text-decoration:none; font-size:14px; font-weight:600;">
                 Browse Markets
             </a>
@@ -215,10 +212,10 @@
 </div>
 
 <script>
-function switchHoldingsView(view, btn) {
-    document.getElementById('view-history').style.display = view === 'history' ? 'table' : 'none';
-    document.getElementById('view-summary').style.display = view === 'summary' ? 'table' : 'none';
-    document.querySelectorAll('.section-header .timeframe-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-}
+    function switchHoldingsView(view, btn) {
+        document.getElementById('view-history').style.display = view === 'history' ? 'table' : 'none';
+        document.getElementById('view-summary').style.display = view === 'summary' ? 'table' : 'none';
+        document.querySelectorAll('.section-header .timeframe-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 </script>

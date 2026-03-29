@@ -1,90 +1,115 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/portfolio-overview.css">{% endblock %}
+
+
 <!-- Portfolio Overview Card -->
-<div class="card">
-    <div class="card-header">
-        <div>
-            <div class="card-title">Portfolio Overview</div>
-            <div class="portfolio-value">${{ portfolio_value|default('0.00') }}</div>
-            <div class="portfolio-change {{ 'positive' if portfolio_change_positive|default(true) else 'negative' }}">
-                <i class="fas fa-caret-{{ 'up' if portfolio_change_positive|default(true) else 'down' }}"></i> 
-                {{ portfolio_change|default('00.00') }}%
+<div class="overview-card">
+    <div class="overview-header">
+        <div class="overview-meta">
+            <div class="overview-title">Total Balance</div>
+            <div class="overview-value">${{ portfolio_value }}</div>
+            <div class="overview-change ...">
+                <i class="fas fa-caret-..."></i>
+                {{ '+' if portfolio_change_positive else '' }}{{ change_percentage }}% today
             </div>
         </div>
     </div>
-    <div class="chart-container">
-        <svg class="chart-line" viewBox="0 0 600 200" preserveAspectRatio="none">
-            <defs>
-                <linearGradient id="portfolioGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#1976d2;stop-opacity:0.3" />
-                    <stop offset="100%" style="stop-color:#1976d2;stop-opacity:0.05" />
-                </linearGradient>
-            </defs>
-            <path d="M 0 150 Q 50 130, 100 140 T 200 120 T 300 80 T 400 90 T 500 70 T 600 90" 
-                  stroke="#1976d2" 
-                  stroke-width="3" 
-                  fill="none" />
-            <path d="M 0 150 Q 50 130, 100 140 T 200 120 T 300 80 T 400 90 T 500 70 T 600 90 L 600 200 L 0 200 Z" 
-                  fill="url(#portfolioGradient)" />
-        </svg>
+  
+    <div class="overview-chart-wrap">
+        <canvas id="overviewChart"></canvas>
     </div>
 </div>
 
-<style>
-.card-header {
-    padding: 0 0 16px 0;
-    margin-bottom: 20px;
-}
+<script>
+    (function () {
+        const ctx = document.getElementById("overviewChart");
+        if (!ctx) return;
 
-.card-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-}
+        const labels = {{ chart_labels | default ('[]') | safe
+    }};
+    const values = {{ chart_values | default ('[]') | safe }};
 
-.portfolio-value {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 8px;
-}
+    const isPositive = {{ 'true' if portfolio_change_positive else 'false' }};
+    const lineColor = isPositive ? "#1976D2" : "#EF5350";
+    const fillColor = isPositive ? "rgba(25,118,210,0.10)" : "rgba(239,83,80,0.10)";
 
-.portfolio-change {
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.portfolio-change.positive {
-    color: #0f9d58;
-}
-
-.portfolio-change.negative {
-    color: #d93025;
-}
-
-.portfolio-change i {
-    font-size: 16px;
-}
-
-.chart-container {
-    height: 200px;
-    margin-top: 20px;
-}
-
-.chart-line {
-    width: 100%;
-    height: 100%;
-}
-
-@media (max-width: 768px) {
-    .portfolio-value {
-        font-size: 28px;
-    }
-    
-    .chart-container {
-        height: 150px;
-    }
-}
-</style>
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                borderColor: lineColor,
+                backgroundColor: fillColor,
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: lineColor,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: "#fff",
+                pointHoverBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "#1A237E",
+                    titleColor: "#fff",
+                    bodyColor: "#fff",
+                    borderColor: "#1A237E",
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        title: (ctx) => ctx[0].label,
+                        label: (ctx) =>
+                            "$" + ctx.parsed.y.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }),
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        color: "#9AA0A6",
+                        font: { size: 11 },
+                        maxRotation: 0,
+                        maxTicksLimit: 5,
+                    }
+                },
+                y: {
+                    display: true,
+                    position: "right",
+                    grid: {
+                        color: "#f0f0f0",
+                        drawBorder: false,
+                    },
+                    border: { display: false, dash: [4, 4] },
+                    ticks: {
+                        color: "#9AA0A6",
+                        font: { size: 11 },
+                        maxTicksLimit: 5,
+                        callback: (v) =>
+                            v >= 1000
+                                ? "$" + (v / 1000).toFixed(1) + "k"
+                                : "$" + v,
+                    }
+                }
+            },
+            interaction: { mode: "nearest", axis: "x", intersect: false },
+        }
+    });
+}) ();
+</script>

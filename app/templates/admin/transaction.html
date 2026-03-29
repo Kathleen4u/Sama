@@ -1,0 +1,185 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Transactions{% endblock %}
+
+{% set active_page = 'transactions' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="../../static/css/admin/transaction.css">
+{% endblock %}
+
+{% block page_title %}Transactions{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="card-title">Transactions Management</div>
+    <div class="card-subtitle">Review deposits, withdrawals, trades, and system-generated transactions.</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="searchInput"
+             placeholder="Search by transaction ID, user or amount"
+             oninput="applyFilters()"/>
+    </div>
+    <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+      <option value="">Transaction Type</option>
+      <option value="Deposit">Deposit</option>
+      <option value="Withdrawal">Withdrawal</option>
+      <option value="Buy">Buy</option>
+      <option value="Sell">Sell</option>
+    </select>
+    <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+      <option value="">Status</option>
+      <option value="completed">Completed</option>
+      <option value="pending">Pending</option>
+      <option value="failed">Failed</option>
+      <option value="reversed">Reversed</option>
+    </select>
+    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
+      <option value="">Date Range</option>
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>User</th>
+          <th>Type</th>
+          <th>Asset / Currency</th>
+          <th>Amount</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Date &amp; Time</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">Showing 1–14 of 78</div>
+    <div class="page-btns">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const TRANSACTIONS = [
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'pending',   date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'pending',   date:'Dec 25, 2025' },
+  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'AAPL', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'AAPL', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'failed',    date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'failed',    date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$15,420.50',  price:'-',       status:'reversed',  date:'Dec 25, 2025' },
+  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$15,420.50',  price:'-',       status:'reversed',  date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Deposit',    asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Deposit',    asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'NVDA', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
+  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'NVDA', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
+];
+
+const PAGE_SIZE = 14;
+let currentPage = 1;
+let filtered    = [...TRANSACTIONS];
+
+function statusBadge(s) {
+  const map = {
+    completed: 's-completed',
+    pending:   's-pending',
+    failed:    's-failed',
+    reversed:  's-reversed',
+  };
+  const label = s.charAt(0).toUpperCase() + s.slice(1);
+  return `<span class="status-badge ${map[s] || ''}">${label}</span>`;
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableBody').innerHTML = page.map(t => `
+    <tr>
+      <td class="td-id">${t.id}</td>
+      <td>
+        <div class="user-name">${t.name}</div>
+        <div class="user-email">${t.email}</div>
+      </td>
+      <td class="td-type">${t.type}</td>
+      <td class="td-asset">${t.asset}</td>
+      <td class="td-amount">${t.amount}</td>
+      <td class="td-price">${t.price}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td class="td-date">${t.date}</td>
+      <td><button class="action-btn">⋮</button></td>
+    </tr>
+  `).join('');
+
+  const total = filtered.length;
+  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
+  document.getElementById('pageInfo').textContent =
+    total === 0 ? 'No results' : `Showing ${s}–${e} of ${total}`;
+
+  const maxPage = Math.ceil(total / PAGE_SIZE) || 1;
+  document.getElementById('prevBtn').disabled = currentPage === 1;
+  document.getElementById('nextBtn').disabled = currentPage >= maxPage;
+}
+
+function applyFilters() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const type   = document.getElementById('typeFilter').value;
+  const status = document.getElementById('statusFilter').value;
+
+  filtered = TRANSACTIONS.filter(t =>
+    (!q      || t.id.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.amount.includes(q)) &&
+    (!type   || t.type   === type) &&
+    (!status || t.status === status)
+  );
+  currentPage = 1;
+  renderTable();
+}
+
+function changePage(dir) {
+  const max = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  currentPage = Math.max(1, Math.min(max, currentPage + dir));
+  renderTable();
+}
+
+renderTable();
+</script>
+{% endblock %}

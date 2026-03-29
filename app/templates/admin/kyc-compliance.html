@@ -1,0 +1,214 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – KYC & Compliance{% endblock %}
+
+{% set active_page = 'kyc-compliance' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="../../static/css/admin/kyc-compliance.css">
+{% endblock %}
+
+{% block page_title %}KYC &amp; Compliance{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+  <!-- Card header -->
+  <div class="card-header">
+    <div class="card-header-left">
+      <div class="card-title">KYC Verification</div>
+      <div class="card-subtitle">Review and verify user identity documents to meet regulatory compliance</div>
+    </div>
+    <button class="export-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="searchInput"
+             placeholder="Search by user name, email or ID"
+             oninput="applyFilters()"/>
+    </div>
+    <select class="filter-select" id="docTypeFilter" onchange="applyFilters()">
+      <option value="">Document Type</option>
+      <option value="Passport">Passport</option>
+      <option value="ID Card">ID Card</option>
+      <option value="Drivers License">Drivers License</option>
+    </select>
+    <select class="filter-select" id="countryFilter" onchange="applyFilters()">
+      <option value="">Country</option>
+      <option value="Nigeria">Nigeria</option>
+      <option value="United States">United States</option>
+      <option value="United Kingdom">United Kingdom</option>
+      <option value="Japan">Japan</option>
+    </select>
+    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
+      <option value="">Date Range</option>
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+    </select>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="setTab(this, &apos;all&apos;)">
+      All Submissions
+    </button>
+    <button class="tab-btn" onclick="setTab(this, &apos;approved&apos;)">
+      Approved <span class="tab-count" id="count-approved">6</span>
+    </button>
+    <button class="tab-btn" onclick="setTab(this, &apos;pending&apos;)">
+      Pending Review <span class="tab-count" id="count-pending">3</span>
+    </button>
+    <button class="tab-btn" onclick="setTab(this, &apos;rejected&apos;)">
+      Rejected <span class="tab-count" id="count-rejected">4</span>
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Submission ID</th>
+          <th>User Name</th>
+          <th>Email Address</th>
+          <th>Country</th>
+          <th>Document Type</th>
+          <th>Submission Date</th>
+          <th>KYC Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">Showing 1–13 of 13</div>
+    <div class="page-btns">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const ALL_SUBMISSIONS = [
+  { id:'KYC-2026-001', name:'Ogbodo Uchenna',  email:'ogbodouchenna@email.com',  country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'pending' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'rejected' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'rejected' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'rejected' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United Kingdom', docType:'Drivers License',  date:'Dec 25, 2025', status:'approved' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Japan',          docType:'ID Card',          date:'Dec 25, 2025', status:'pending' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Japan',          docType:'ID Card',          date:'Dec 25, 2025', status:'pending' },
+  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Japan',          docType:'ID Card',          date:'Dec 25, 2025', status:'pending' },
+];
+
+const PAGE_SIZE = 13;
+let currentPage = 1;
+let activeTab   = 'all';
+let filtered    = [...ALL_SUBMISSIONS];
+
+function statusBadge(s) {
+  if (s === 'approved') return `<span class="kyc-status kyc-approved">Approved</span>`;
+  if (s === 'pending')  return `<span class="kyc-status kyc-pending-review">Pending Review</span>`;
+  return                       `<span class="kyc-status kyc-rejected">Rejected</span>`;
+}
+
+function renderTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page  = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableBody').innerHTML = page.map(r => `
+    <tr>
+      <td class="td-id">${r.id}</td>
+      <td class="td-name">${r.name}</td>
+      <td>${r.email}</td>
+      <td class="td-country">${r.country}</td>
+      <td class="td-doctype">${r.docType}</td>
+      <td class="td-date">${r.date}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td><button class="action-btn">⋮</button></td>
+    </tr>
+  `).join('');
+
+  const total = filtered.length;
+  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
+  document.getElementById('pageInfo').textContent =
+    total === 0 ? 'No results' : `Showing ${s}–${e} of ${total}`;
+
+  const maxPage = Math.ceil(total / PAGE_SIZE) || 1;
+  document.getElementById('prevBtn').disabled = currentPage === 1;
+  document.getElementById('nextBtn').disabled = currentPage >= maxPage;
+
+  // update tab counts
+  document.getElementById('count-approved').textContent = ALL_SUBMISSIONS.filter(r => r.status === 'approved').length;
+  document.getElementById('count-pending').textContent  = ALL_SUBMISSIONS.filter(r => r.status === 'pending').length;
+  document.getElementById('count-rejected').textContent = ALL_SUBMISSIONS.filter(r => r.status === 'rejected').length;
+}
+
+function applyFilters() {
+  const q       = document.getElementById('searchInput').value.toLowerCase();
+  const docType = document.getElementById('docTypeFilter').value;
+  const country = document.getElementById('countryFilter').value;
+
+  filtered = ALL_SUBMISSIONS.filter(r => {
+    const matchTab     = activeTab === 'all' || r.status === activeTab;
+    const matchSearch  = !q || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q) || r.id.toLowerCase().includes(q);
+    const matchDoc     = !docType  || r.docType === docType;
+    const matchCountry = !country  || r.country === country;
+    return matchTab && matchSearch && matchDoc && matchCountry;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
+function setTab(btn, tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeTab = tab;
+  applyFilters();
+}
+
+function changePage(dir) {
+  const max = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  currentPage = Math.max(1, Math.min(max, currentPage + dir));
+  renderTable();
+}
+
+renderTable();
+</script>
+{% endblock %}

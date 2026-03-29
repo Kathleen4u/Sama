@@ -1,0 +1,219 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Settings{% endblock %}
+
+{% set active_page = 'settings' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="../../static/css/admin/settings.css">
+{% endblock %}
+
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="card-title">Settings &amp; Notifications</div>
+    <div class="card-subtitle">Manage your account, supported markets, asset listings, trading hours, and market data sources</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="setTab(this, &apos;account&apos;)">Account Setting</button>
+    <button class="tab-btn"        onclick="setTab(this, &apos;platform&apos;)">Platform Setting</button>
+  </div>
+
+  <!-- ── Account Settings Panel ── -->
+  <div class="tab-panel active" id="panel-account">
+    <div class="settings-grid">
+
+      <!-- Avatar -->
+      <div class="col-profile">
+        <div class="avatar-wrap">
+          <div class="avatar-lg">AD</div>
+          <div class="avatar-edit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="profile-text">
+          <div class="profile-label">Profile photo</div>
+          <div class="profile-hint">This will be displayed on your profile.</div>
+        </div>
+      </div>
+
+      <!-- Password section header -->
+      <div class="col-password">
+        <div class="pw-section-title">Change Password</div>
+        <div class="pw-section-sub">To keep your account secure,<br>please update your password below.</div>
+
+        <div class="field-group">
+          <label class="field-label">Current password</label>
+          <input class="field-input" type="password" placeholder="Current password" autocomplete="current-password"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">New password</label>
+          <input class="field-input" type="password" placeholder="New password" id="newPwInput" oninput="checkRules()" autocomplete="new-password"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Confirm password</label>
+          <input class="field-input" type="password" placeholder="Confirm password" autocomplete="new-password"/>
+        </div>
+
+        <!-- Rules box -->
+        <div class="pw-rules">
+          <div class="pw-rules-title">Rules for password</div>
+          <div class="pw-rules-sub">To create a new password, you have to meet all of the following requirements.</div>
+          <ul>
+            <li id="rule-len">Minimum 8 character</li>
+            <li id="rule-special">At least one special character</li>
+            <li id="rule-num">At least one number</li>
+            <li id="rule-prev">Can't be the same as a previous</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Profile fields: first name + last name -->
+      <div class="field-row" style="grid-column:1/3; margin-bottom:0;">
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">First name</label>
+          <input class="field-input" type="text" value="Admin" name="first_name"/>
+        </div>
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">Last name</label>
+          <input class="field-input" type="text" value="" placeholder="l" name="last_name"/>
+        </div>
+      </div>
+
+      <!-- gap row -->
+      <div style="grid-column:1/3; height:4px;"></div>
+
+      <!-- Email + DOB -->
+      <div class="field-row" style="grid-column:1/3; margin-bottom:0;">
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">Email Address</label>
+          <input class="field-input" type="email" value="admin@stocksco.com" name="email"/>
+        </div>
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">Date of Birth</label>
+          <input class="field-input" type="text" value="25/01/1990" name="dob"/>
+        </div>
+      </div>
+
+      <div style="grid-column:1/3; height:4px;"></div>
+
+      <!-- City + Postal code -->
+      <div class="field-row" style="grid-column:1/3; margin-bottom:0;">
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">City</label>
+          <input class="field-input" type="text" value="Berlin, Germany" name="city"/>
+        </div>
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">Postal code</label>
+          <input class="field-input" type="text" value="87532" name="postal_code"/>
+        </div>
+      </div>
+
+      <!-- Update button -->
+      <div class="update-btn-wrap">
+        <button class="update-btn" type="button">Update</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Platform Settings Panel ── -->
+  <div class="tab-panel" id="panel-platform">
+    <div class="platform-section">
+      <div class="platform-section-title">Trading Settings</div>
+      <div class="platform-section-sub">Configure trading hours, order types, and execution rules for the platform.</div>
+      <div class="platform-grid">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Extended Trading Hours</div>
+            <div class="toggle-sub">Allow pre-market and after-hours trading</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Fractional Shares</div>
+            <div class="toggle-sub">Enable buying partial share quantities</div>
+          </div>
+          <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Stop-Loss Orders</div>
+            <div class="toggle-sub">Allow automatic stop-loss triggers</div>
+          </div>
+          <label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Margin Trading</div>
+            <div class="toggle-sub">Enable leveraged trading for eligible users</div>
+          </div>
+          <label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="platform-section">
+      <div class="platform-section-title">Market Data Sources</div>
+      <div class="platform-section-sub">Select which data providers power pricing and market information.</div>
+      <div class="platform-grid">
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">Primary Data Provider</label>
+          <select class="field-input" style="cursor:pointer;">
+            <option>Twelve Data</option>
+            <option>Alpha Vantage</option>
+            <option>Polygon.io</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom:0;">
+          <label class="field-label">News Provider</label>
+          <select class="field-input" style="cursor:pointer;">
+            <option>Marketaux</option>
+            <option>NewsAPI</option>
+            <option>Benzinga</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <button class="update-btn" type="button" style="max-width:520px;">Save Platform Settings</button>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function setTab(btn, panel) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + panel).classList.add('active');
+}
+
+function checkRules() {
+  const v = document.getElementById('newPwInput').value;
+  toggle('rule-len',     v.length >= 8);
+  toggle('rule-special', /[^A-Za-z0-9]/.test(v));
+  toggle('rule-num',     /[0-9]/.test(v));
+}
+
+function toggle(id, met) {
+  document.getElementById(id).classList.toggle('met', met);
+}
+</script>
+{% endblock %}

@@ -82,6 +82,22 @@ class TransactionService:
                     f"Wallet balance updated: user_id={tx.user_id} "
                     f"+{tx.amount} → new balance={wallet.balance}"
                 )
+            # ── Referral reward hook ─────────────────────────────────────────
+            # Runs after wallet credit. Import here to avoid circular imports.
+            try:
+                from app.utils.referral_service import ReferralService
+                ReferralService.maybe_complete_referral(
+                    user_id=tx.user_id,
+                    deposit_amount=tx.amount
+                )
+            except Exception as referral_error:
+                # Never let referral logic break a payment confirmation
+                current_app.logger.error(
+                    f"TransactionService: referral reward check failed for "
+                    f"user_id={tx.user_id}, order_id='{order_id}': {referral_error}",
+                    exc_info=True
+                )
+            # ────────────────────────────────────────────────────────────────
 
         db.session.commit()
 

@@ -1,6 +1,8 @@
 from datetime import datetime, timezone, date
+from decimal import Decimal
+
 from flask_login import UserMixin
-from sqlalchemy import String, Boolean, DateTime, Integer, Enum, Date, Text
+from sqlalchemy import String, Boolean, DateTime, Integer, Enum, Date, Text, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 from app.database import db
@@ -25,6 +27,7 @@ class User(UserMixin, db.Model):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     phone_number: Mapped[str] = mapped_column(String(20))
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Account status
     account_status: Mapped[str] = mapped_column(Enum(AccountStatus), default=AccountStatus.PENDING_VERIFICATION, index=True)
@@ -37,6 +40,16 @@ class User(UserMixin, db.Model):
     kyc_submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     kyc_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     kyc_rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ── Referral ────────────────────────────────────────────────────────────
+    # Unique 8-char code generated at registration, used in share links
+    referral_code: Mapped[str | None] = mapped_column(
+        String(20), unique=True, nullable=True, index=True
+    )
+    # Reward balance — display only for now, not spendable
+    rewards_balance: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2), nullable=False, default=Decimal("0.00")
+    )
 
     # Email verification fields - ALL with timezone=True
     verification_token: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
@@ -108,6 +121,24 @@ class User(UserMixin, db.Model):
         "KYCDocument",
         foreign_keys="KYCDocument.user_id",
         back_populates="user"
+    )
+
+    # ── Referral relationships ───────────────────────────────────────────────
+    # Referrals this user has sent out (they were the referrer)
+    referrals_given: Mapped[list["Referral"]] = relationship(
+        "Referral",
+        foreign_keys="Referral.referrer_id",
+        back_populates="referrer",
+        cascade="all, delete-orphan"
+    )
+
+    # The single referral record for this user (they were referred by someone)
+    referral_received: Mapped["Referral | None"] = relationship(
+        "Referral",
+        foreign_keys="Referral.referred_id",
+        back_populates="referred_user",
+        uselist=False,
+        cascade="all, delete-orphan"
     )
 
     # account = relationship("UserAccount", back_populates="user", uselist=False)

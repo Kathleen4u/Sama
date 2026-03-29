@@ -1,78 +1,136 @@
-/* Price Chart */
+/* ─── Price Chart Container ─────────────────────────────────────────────── */
 .price-chart-container {
-    background: white;
-    border: 1px solid #E5E7EB;
+    background: #ffffff;
     border-radius: 16px;
-    padding: 24px;
-}
-
-.chart-header {
+    border: 1px solid #F3F4F6;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    padding: 20px 24px 24px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 16px;
 }
 
-.chart-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin: 0;
+/* ─── Header ────────────────────────────────────────────────────────────── */
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
-.chart-timeframes {
+.chart-header-left {
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
-.timeframe-btn {
-    padding: 6px 14px;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
+.chart-title {
+    font-size: 15px;
     font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.chart-symbol-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1976D2;
+    background: #E3F2FD;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+/* ─── Price Change Badge ─────────────────────────────────────────────────── */
+.chart-price-change {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.chart-price-change.positive {
+    color: #16A34A;
+    background: #DCFCE7;
+}
+
+.chart-price-change.negative {
+    color: #DC2626;
+    background: #FEE2E2;
+}
+
+/* ─── Timeframe Buttons ──────────────────────────────────────────────────── */
+.chart-timeframes {
+    display: flex;
+    gap: 4px;
+}
+
+.timeframe-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
     color: #6B7280;
+    background: transparent;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s ease;
 }
 
 .timeframe-btn:hover {
-    background: #F3F4F6;
+    background: #F9FAFB;
+    color: #374151;
+    border-color: #D1D5DB;
 }
 
 .timeframe-btn.active {
-    background: #2563EB;
-    color: white;
+    background: #1976D2;
+    color: #ffffff;
+    border-color: #1976D2;
 }
 
-.chart-canvas {
-    height: 300px;
+/* ─── Canvas Wrapper ─────────────────────────────────────────────────────── */
+.chart-canvas-wrapper {
     position: relative;
-}
-
-.chart-canvas canvas {
+    height: 280px;
     width: 100%;
-    height: 100%;
 }
 
-@media (max-width: 768px) {
-    .chart-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+#priceChart {
+    width: 100% !important;
+    height: 100% !important;
+}
 
-    .chart-timeframes {
-        width: 100%;
-        justify-content: space-between;
-    }
+/* ─── Loading State ──────────────────────────────────────────────────────── */
+.chart-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #6B7280;
+    font-size: 13px;
+    background: #ffffff;
+    border-radius: 8px;
+}
 
-    .timeframe-btn {
-        flex: 1;
-        padding: 8px 10px;
-        font-size: 12px;
-    }
+/* ─── Empty State ────────────────────────────────────────────────────────── */
+.chart-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #9CA3AF;
+    font-size: 13px;
+}
+
+.chart-empty i {
+    font-size: 28px;
+    color: #D1D5DB;
 }
