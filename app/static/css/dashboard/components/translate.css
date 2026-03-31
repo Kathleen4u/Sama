@@ -1,0 +1,304 @@
+/* =============================================================
+   translate.css  —  StocksCo language selector
+   Hides Google's injected toolbar and styles the custom widget
+   ============================================================= */
+
+
+/* ------------------------------------------------------------------
+   1. SUPPRESS GOOGLE'S DEFAULT INJECTED ELEMENTS
+   Google Translate injects a top banner and an iframe — we hide
+   all of those and only keep the <select> it puts inside our div.
+   ------------------------------------------------------------------ */
+
+/* The animated top banner Google adds */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+/* Prevents the page from jumping down when the banner is removed */
+body {
+    top: 0 !important;
+}
+
+/* The floating gadget Google sometimes injects */
+#goog-gt-tt,
+.goog-te-balloon-frame {
+    display: none !important;
+}
+
+/* Google's own combo-box styling — we will restyle the select ourselves */
+.goog-te-gadget {
+    font-size: 0 !important;   /* hides any stray text Google adds */
+    color: transparent !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+    /* Reset Google's inline styles so our CSS takes over */
+    all: unset;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}
+
+
+/* ------------------------------------------------------------------
+   2. WRAPPER  —  positions the button + dropdown together
+   ------------------------------------------------------------------ */
+
+.translate-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+
+/* ------------------------------------------------------------------
+   3. TRIGGER BUTTON
+   ------------------------------------------------------------------ */
+
+.translate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.translate-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.translate-btn:focus-visible {
+    outline: 2px solid var(--primary-color, #4f8ef7);
+    outline-offset: 2px;
+}
+
+/* Hide the text label on very small screens */
+@media (max-width: 480px) {
+    .translate-label {
+        display: none;
+    }
+}
+
+.translate-chevron {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+.translate-wrapper.open .translate-chevron {
+    transform: rotate(180deg);
+}
+
+
+/* ------------------------------------------------------------------
+   4. DROPDOWN PANEL
+   ------------------------------------------------------------------ */
+
+.translate-dropdown {
+    display: none;           /* shown via JS toggle */
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: var(--card-bg, #1e2330);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    z-index: 9999;
+    overflow: hidden;
+    animation: translateFadeIn 0.15s ease;
+}
+
+.translate-wrapper.open .translate-dropdown {
+    display: block;
+}
+
+@keyframes translateFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.translate-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted, #8a94a6);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+
+/* ------------------------------------------------------------------
+   5. THE <select> GOOGLE INJECTS  —  styled to match StocksCo
+   ------------------------------------------------------------------ */
+
+#google_translate_element {
+    padding: 8px;
+}
+
+/* The select Google drops into #google_translate_element */
+#google_translate_element select,
+.goog-te-combo {
+    width: 100% !important;
+    padding: 8px 10px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 7px !important;
+    color: var(--text-color, #e0e6f0) !important;
+    font-size: 0.88rem !important;
+    font-family: inherit !important;
+    cursor: pointer !important;
+    appearance: auto;          /* keep browser's native arrow for accessibility */
+    transition: border-color 0.2s ease;
+}
+
+#google_translate_element select:focus,
+.goog-te-combo:focus {
+    outline: none !important;
+    border-color: var(--primary-color, #4f8ef7) !important;
+}
+
+/* Options inherit background so they're readable */
+#google_translate_element select option {
+    background: var(--card-bg, #1e2330);
+    color: var(--text-color, #e0e6f0);
+}
+
+
+/* ------------------------------------------------------------------
+   6. LIGHT-THEME OVERRIDES
+   If your landing / auth pages use a light background, add the
+   class "translate-light" to the wrapper in those templates.
+   ------------------------------------------------------------------ */
+
+.translate-wrapper.translate-light .translate-btn {
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #333;
+}
+
+.translate-wrapper.translate-light .translate-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.translate-wrapper.translate-light .translate-dropdown {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.translate-wrapper.translate-light .translate-dropdown-header {
+    color: #888;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.translate-wrapper.translate-light #google_translate_element select,
+.translate-wrapper.translate-light .goog-te-combo {
+    background: #f5f6fa !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #333 !important;
+}
+
+/* Force Google to only show the select, hide everything else it renders */
+.goog-te-gadget > span,
+.goog-te-gadget > a,
+.goog-te-gadget img,
+.goog-logo-link,
+.goog-te-gadget-simple {
+    display: none !important;
+}
+
+/* Ensure the select itself is visible */
+.goog-te-gadget .goog-te-combo {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Hide the expanded language table Google sometimes renders */
+.goog-te-menu-frame,
+.goog-te-menu2,
+.goog-te-menu2-item {
+    /* Don't hide these — they're the dropdown options */
+}
+
+/* This is the culprit — the inline expanded list */
+#google_translate_element .goog-te-gadget-simple {
+    display: none !important;
+}
+
+/* Kill the expanded table layout entirely */
+#google_translate_element table,
+#google_translate_element .goog-te-gadget-simple,
+#google_translate_element span:not(.goog-te-combo),
+#google_translate_element a {
+    display: none !important;
+}
+
+/* Make sure only the select is visible */
+#google_translate_element select {
+    display: block !important;
+}
+
+
+/* ------------------------------------------------------------------
+   7. MOBILE — widget sits beside the hamburger in the navbar bar
+   The widget is placed OUTSIDE .navbar-collapse in the HTML, so it
+   is always visible. No group wrapper needed; auth buttons stay
+   inside the collapse as normal.
+   ------------------------------------------------------------------ */
+
+@media (max-width: 991.98px) {
+
+    /* Compact button — just the globe icon, no label, no border */
+    .translate-btn {
+        padding: 6px 8px;
+        border-color: transparent;
+        color: #333;
+    }
+
+    .translate-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* Hide the text label to save space next to the hamburger */
+    .translate-label {
+        display: none;
+    }
+
+    /* Dropdown opens to the right of the button (anchored right edge) */
+    .translate-dropdown {
+        right: 0;
+        left: auto;
+        min-width: 190px;
+        background: #fff;
+        border-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .translate-dropdown-header {
+        color: #666;
+        border-color: rgba(0, 0, 0, 0.06);
+    }
+
+    #google_translate_element select,
+    .goog-te-combo {
+        background: #f5f6fa !important;
+        border-color: rgba(0, 0, 0, 0.1) !important;
+        color: #333 !important;
+    }
+}

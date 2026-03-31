@@ -1,0 +1,26 @@
+<div class="translate-wrapper" id="translateWrapper">
+ 
+    {# --- Trigger button --- #}
+    <button
+        class="translate-btn"
+        id="translateToggle"
+        aria-label="Change language"
+        title="Translate page"
+        type="button">
+        <i class="fas fa-globe"></i>
+        <span class="translate-label">Language</span>
+        <i class="fas fa-chevron-down translate-chevron" id="translateChevron"></i>
+    </button>
+ 
+    {# --- Dropdown shell — Google injects the <select> inside #id=google_translate_element --- #}
+    <div class="translate-dropdown" id="translateDropdown" role="listbox" aria-hidden="true">
+        <div class="translate-dropdown-header">
+            <i class="fas fa-globe"></i>
+            <span>Select Language</span>
+        </div>
+        {# Google Translate mounts its <select> here #}
+        <div id="google_translate_element"></div>
+    </div>
+ 
+</div>
+ 
