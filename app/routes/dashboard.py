@@ -520,7 +520,7 @@ def referrals():
             "date": referral.created_at.strftime("%d-%m-%Y"),
         })
 
-    referral_link = f"{os.environ.get("SITE_URL")}/ref/{current_user.referral_code or ''}"
+    referral_link = "stocksco.io/ref/{current_user.referral_code or ''}"
 
     return render_template(
         "dashboard/referrals.html",
