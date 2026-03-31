@@ -196,6 +196,11 @@ def _classify_asset(symbol: str, is_big_tech: bool) -> str:
     return "Stocks"
 
 
+@dashboard_bp.before_request
+def redirect_admin():
+    if current_user.is_authenticated and current_user.is_admin:
+        return redirect(url_for("admin.dashboard"))
+
 @dashboard_bp.route("/dashboard")
 @login_required
 def dashboard():

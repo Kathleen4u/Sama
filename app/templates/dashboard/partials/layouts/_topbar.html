@@ -20,6 +20,7 @@
     {% endif %}
     {% endwith %}
     <div class="top-bar-right">
+        {% include "dashboard/partials/components/_translate-widget.html" %}
         <button class="icon-btn text-decoration-none">
             <a href="{{ url_for('dashboard.settings') }}" class="text-secondary"><i class="fas fa-cog"></i></a> 
         </button>

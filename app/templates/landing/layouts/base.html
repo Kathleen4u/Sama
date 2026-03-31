@@ -25,6 +25,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard/components/translate.css') }}">
+
 </head>
 
 <body class="bg-light">
@@ -36,6 +38,10 @@
                 <img src="../../../static/images/StocksCo-logo.png" alt="Logo" max-width="30" height="24"
                     class="d-inline-block align-text-top">
             </a>
+            
+            <!-- Translate widget — always visible, sits beside the hamburger on mobile -->
+            {% include "dashboard/partials/components/_translate-widget.html" %}
+
 
             <!-- Mobile Toggle Button -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
@@ -60,12 +66,11 @@
                         <a class="nav-link" href="{{ url_for('main.contact_us') }}">Contact</a>
                     </li>
                 </ul>
-
-                <!-- Auth Buttons -->
-                <div class="auth-buttons">
-                    <a href="{{ url_for('auth.login') }}" class="btn-sign-in text-decoration-none">Sign in</a>
-                    <a href="{{ url_for('auth.register') }}" class="btn-get-started text-decoration-none">Get Started</a>
-                </div>
+                    <!-- Auth Buttons -->
+                    <div class="auth-buttons">
+                        <a href="{{ url_for('auth.login') }}" class="btn-sign-in text-decoration-none">Sign in</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn-get-started text-decoration-none">Get Started</a>
+                    </div>
             </div>
         </div>
     </nav>
@@ -216,6 +221,8 @@
             });
         });
     </script>
+    <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 </body>
 
 </html>

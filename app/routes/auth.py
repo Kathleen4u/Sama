@@ -18,40 +18,38 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/login", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def login():
-    # If user is already logged in, redirect to dashboard
     if current_user.is_authenticated:
+        if current_user.is_admin:
+            return redirect(url_for("admin.dashboard"))
         return redirect(url_for("dashboard.dashboard"))
 
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        remember = request.form.get("remember", False)  # "Remember me" checkbox
+        remember = request.form.get("remember", False)
 
-        # Validate input
         if not email or not password:
             flash("Please provide email and password.", "error")
             return render_template("auth/login.html")
 
-        # Find user
         stmt = select(User).where(User.email == email)
         user = db.session.execute(stmt).scalar_one_or_none()
 
-        # Check user exists and password is correct
         if not user or not check_password_hash(user.password_hash, password):
             flash("Invalid email or password.", "error")
             return render_template("auth/login.html")
 
-        # Check if account is active
         if not user.is_active:
             flash("Your account is inactive. Please contact support.", "error")
             return render_template("auth/login.html")
 
-        # Log user in
+        # Log user in first, then redirect
         login_user(user, remember=remember)
-
         flash(f"Welcome back, {user.first_name}!", "success")
 
-        # Redirect to next page or dashboard
+        if user.is_admin:
+            return redirect(url_for("admin.dashboard"))
+
         next_page = request.args.get("next")
         if next_page:
             return redirect(next_page)
