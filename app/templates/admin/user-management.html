@@ -4,15 +4,13 @@
 
 {% set active_page = 'user-management' %}
 
-{# ─── Page-specific styles ─── #}
 {% block extra_styles %}
-<link rel="stylesheet" href="../../static/css/admin/user-management.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/user-management.css') }}">
+
 {% endblock %}
 
-{# ─── Page title ─── #}
 {% block page_title %}User Management{% endblock %}
 
-{# ─── Page content ─── #}
 {% block content %}
 
 <div class="content-card">
@@ -21,36 +19,37 @@
     <div class="card-subtitle">View, verify, suspend, and manage user accounts and activity</div>
   </div>
 
-  {# Filters #}
   <div class="filters">
     <div class="search-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <input class="search-input" type="text" id="searchInput"
              placeholder="Search by user name, email or ID"
-             oninput="filterTable()"/>
+             oninput="debouncedFetch()"/>
     </div>
-    <select class="filter-select" id="statusFilter" onchange="filterTable()">
+    <select class="filter-select" id="statusFilter" onchange="fetchUsers(1)">
       <option value="">All Statuses</option>
       <option value="active">Active</option>
       <option value="suspended">Suspended</option>
     </select>
-    <select class="filter-select" id="kycFilter" onchange="filterTable()">
+    <select class="filter-select" id="kycFilter" onchange="fetchUsers(1)">
       <option value="">All KYC Statuses</option>
       <option value="verified">Verified</option>
       <option value="unverified">Unverified</option>
+      <option value="pending">Pending</option>
       <option value="rejected">Rejected</option>
     </select>
-    <select class="filter-select" id="timeFilter" onchange="filterTable()">
+    <select class="filter-select" id="timeFilter" onchange="fetchUsers(1)">
       <option value="">All Time</option>
-      <option value="today">Today</option>
-      <option value="week">This Week</option>
-      <option value="month">This Month</option>
+      <option value="7d">Last 7 days</option>
+      <option value="30d">Last 30 days</option>
+      <option value="90d">Last 90 days</option>
+      <option value="365d">Last year</option>
     </select>
   </div>
 
-  {# Table #}
   <div class="table-wrap">
     <table>
       <thead>
@@ -60,28 +59,33 @@
           <th>Email Address</th>
           <th>Account Status</th>
           <th>KYC Status</th>
-          <th>Portfolio Value</th>
+          <th>Wallet Balance</th>
+          <th>Holdings Value</th>
+          <th>Net Worth</th>
           <th>Last Login</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="tableBody"></tbody>
+      <tbody id="tableBody">
+        <tr><td colspan="10" class="table-loading">Loading users…</td></tr>
+      </tbody>
     </table>
   </div>
 
-  {# Pagination #}
   <div class="pagination">
-    <div class="page-info" id="pageInfo">Showing 1–14 of 78</div>
+    <div class="page-info" id="pageInfo">–</div>
     <div class="page-btns">
-      <button class="page-btn" onclick="changePage(-1)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
         Previous
       </button>
-      <button class="page-btn page-btn-next" onclick="changePage(1)">
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)" disabled>
         Next
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </button>
@@ -89,88 +93,427 @@
   </div>
 </div>
 
+<!-- Action dropdown -->
+<div class="action-menu" id="actionMenu">
+  <button class="action-menu-item" onclick="menuAction('profile')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    View profile
+  </button>
+  <button class="action-menu-item" onclick="menuAction('reset-password')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21.5 2v6h-6"/><path d="M2.5 12a10 10 0 0 1 17.5-7l1.5 1.4"/>
+      <path d="M2.5 22v-6h6"/><path d="M21.5 12a10 10 0 0 1-17.5 7l-1.5-1.4"/>
+    </svg>
+    Reset Login Password
+  </button>
+  <div class="action-menu-divider"></div>
+  <button class="action-menu-item danger" id="suspendBtn" onclick="menuAction('suspend')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+    </svg>
+    Suspend Account
+  </button>
+</div>
+
+<!-- ── Profile Drawer ─────────────────────────────────────────────────────── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<div class="profile-drawer" id="profileDrawer">
+
+  <!-- Header -->
+  <div class="drawer-header">
+    <span class="drawer-title">User Profile</span>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  <div class="drawer-loading" id="drawerLoading">
+    <div class="drawer-spinner"></div>
+    <span>Loading profile…</span>
+  </div>
+
+  <!-- Content (hidden until loaded) -->
+  <div class="drawer-content" id="drawerContent" style="display:none">
+
+    <!-- Avatar + name -->
+    <div class="drawer-profile-head">
+      <div class="drawer-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="drawer-name" id="dName"></div>
+        <div class="drawer-uid"  id="dUid"></div>
+      </div>
+    </div>
+
+    <!-- Contact info -->
+    <div class="drawer-section">
+      <div class="drawer-info-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <div>
+          <div class="drawer-info-label">Email Address</div>
+          <div class="drawer-info-value" id="dEmail"></div>
+        </div>
+      </div>
+      <div class="drawer-info-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <div>
+          <div class="drawer-info-label">Phone Number</div>
+          <div class="drawer-info-value" id="dPhone"></div>
+        </div>
+      </div>
+      <div class="drawer-info-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <div>
+          <div class="drawer-info-label">Address</div>
+          <div class="drawer-info-value" id="dAddress"></div>
+        </div>
+      </div>
+      <div class="drawer-info-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <div>
+          <div class="drawer-info-label">Date Joined</div>
+          <div class="drawer-info-value" id="dJoined"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account & KYC status -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">Account &amp; KYC Status</div>
+      <div class="drawer-status-grid">
+        <div class="drawer-status-card">
+          <div class="drawer-status-label">Account Status</div>
+          <div id="dAcctStatus"></div>
+        </div>
+        <div class="drawer-status-card">
+          <div class="drawer-status-label">KYC Status</div>
+          <div id="dKycStatus"></div>
+        </div>
+        <div class="drawer-status-card">
+          <div class="drawer-status-label">User Type</div>
+          <div class="drawer-status-value">Regular</div>
+        </div>
+        <div class="drawer-status-card">
+          <div class="drawer-status-label">Last Login</div>
+          <div class="drawer-status-value" id="dLastLogin"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portfolio summary -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">Portfolio Summary</div>
+      <div class="drawer-portfolio-card">
+        <div class="drawer-portfolio-row">
+          <span class="drawer-portfolio-label">Wallet Balance</span>
+          <span class="drawer-portfolio-val" id="dWallet"></span>
+        </div>
+        <div class="drawer-portfolio-row">
+          <span class="drawer-portfolio-label">Holdings Value</span>
+          <span class="drawer-portfolio-val" id="dHoldings"></span>
+        </div>
+        <div class="drawer-portfolio-divider"></div>
+        <div class="drawer-portfolio-row drawer-portfolio-total">
+          <span class="drawer-portfolio-label">Total Net Worth</span>
+          <span class="drawer-portfolio-val" id="dNetWorth"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">Recent Transactions</div>
+      <div id="dTransactions" class="drawer-tx-list"></div>
+    </div>
+
+  </div><!-- /drawer-content -->
+
+  <!-- Suspend button fixed at bottom -->
+  <div class="drawer-footer">
+    <button class="drawer-suspend-btn" id="drawerSuspendBtn" onclick="drawerToggleSuspend()">
+      Suspend Account
+    </button>
+  </div>
+
+</div><!-- /profile-drawer -->
+
 {% endblock %}
 
-{# ─── Scripts ─── #}
 {% block extra_scripts %}
 <script>
-const USERS = [
-  { id:'USR-10234', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10235', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10236', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10237', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10238', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'rejected',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10239', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10240', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10241', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10242', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10243', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'unverified', portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10244', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'rejected',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10245', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'active',    kyc:'rejected',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10246', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-  { id:'USR-10247', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', status:'suspended', kyc:'verified',   portfolio:'$245,000', login:'2h ago' },
-];
-
-const PAGE_SIZE = 14;
+// ── State ─────────────────────────────────────────────────────────────────────
 let currentPage = 1;
-let filtered = [...USERS];
+let totalPages  = 1;
+let activeUser  = null;
+let drawerUser  = null;   // profile currently shown in drawer
 
+// ── Badges ────────────────────────────────────────────────────────────────────
 function acctBadge(s) {
-  return s === 'active'
+  return s === "active"
     ? `<span class="badge badge-green"><span class="dot dot-green"></span>Active</span>`
     : `<span class="badge badge-red"><span class="dot dot-red"></span>Suspended</span>`;
 }
-
 function kycBadge(k) {
-  if (k === 'verified')   return `<span class="tag tag-blue">Verified</span>`;
-  if (k === 'unverified') return `<span class="tag tag-grey">Unverified</span>`;
+  if (k === "verified")   return `<span class="tag tag-blue">Verified</span>`;
+  if (k === "pending")    return `<span class="tag tag-yellow">Pending</span>`;
+  if (k === "unverified") return `<span class="tag tag-grey">Unverified</span>`;
   return `<span class="tag tag-red-text">Rejected</span>`;
 }
 
-function renderTable() {
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const page  = filtered.slice(start, start + PAGE_SIZE);
+// ── Table fetch ───────────────────────────────────────────────────────────────
+async function fetchUsers(page) {
+  currentPage = page || currentPage;
+  const q      = document.getElementById("searchInput").value.trim();
+  const status = document.getElementById("statusFilter").value;
+  const kyc    = document.getElementById("kycFilter").value;
+  const period = document.getElementById("timeFilter").value;
 
-  document.getElementById('tableBody').innerHTML = page.map(u => `
+  const params = new URLSearchParams({ page: currentPage, per_page: 14 });
+  if (q)      params.set("q",      q);
+  if (status) params.set("status", status);
+  if (kyc)    params.set("kyc",    kyc);
+  if (period) params.set("period", period);
+
+  document.getElementById("tableBody").innerHTML =
+    `<tr><td colspan="10" class="table-loading">Loading…</td></tr>`;
+
+  try {
+    const res  = await fetch(`/admin/api/users?${params}`);
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const data = await res.json();
+    renderTable(data);
+  } catch (err) {
+    document.getElementById("tableBody").innerHTML =
+      `<tr><td colspan="10" class="table-error">Failed to load users. Please refresh.</td></tr>`;
+    console.error("fetchUsers error:", err);
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById("tableBody");
+  if (!data.users.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="table-empty">No users match your filters.</td></tr>`;
+    document.getElementById("pageInfo").textContent = "No results";
+    document.getElementById("prevBtn").disabled = true;
+    document.getElementById("nextBtn").disabled = true;
+    return;
+  }
+  tbody.innerHTML = data.users.map(u => `
     <tr>
       <td class="td-id">${u.id}</td>
       <td class="td-name">${u.name}</td>
-      <td>${u.email}</td>
+      <td class="td-email">${u.email}</td>
       <td>${acctBadge(u.status)}</td>
       <td>${kycBadge(u.kyc)}</td>
-      <td class="td-portfolio">${u.portfolio}</td>
+      <td class="td-money">${u.wallet_balance}</td>
+      <td class="td-money">${u.holdings_value}</td>
+      <td class="td-money td-networth">${u.net_worth}</td>
       <td class="td-login">${u.login}</td>
-      <td><button class="action-btn">⋮</button></td>
+      <td class="td-action">
+        <button class="action-btn"
+          onclick='openMenu(event, ${JSON.stringify(u)})'>⋮</button>
+      </td>
     </tr>
-  `).join('');
+  `).join("");
 
-  const total = filtered.length;
-  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
-  document.getElementById('pageInfo').textContent = `Showing ${s}–${e} of ${total}`;
-
-  const maxPage = Math.ceil(total / PAGE_SIZE);
-  document.querySelectorAll('.page-btn')[0].disabled = currentPage === 1;
-  document.querySelector('.page-btn-next').disabled  = currentPage >= maxPage;
-}
-
-function filterTable() {
-  const q   = document.getElementById('searchInput').value.toLowerCase();
-  const st  = document.getElementById('statusFilter').value;
-  const kyc = document.getElementById('kycFilter').value;
-  filtered = USERS.filter(u =>
-    (!q   || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.id.toLowerCase().includes(q)) &&
-    (!st  || u.status === st) &&
-    (!kyc || u.kyc   === kyc)
-  );
-  currentPage = 1;
-  renderTable();
+  totalPages = data.total_pages;
+  const start = (data.page - 1) * data.per_page + 1;
+  const end   = Math.min(data.page * data.per_page, data.total);
+  document.getElementById("pageInfo").textContent = `Showing ${start}–${end} of ${data.total}`;
+  document.getElementById("prevBtn").disabled = currentPage <= 1;
+  document.getElementById("nextBtn").disabled = currentPage >= totalPages;
 }
 
 function changePage(dir) {
-  currentPage = Math.max(1, Math.min(Math.ceil(filtered.length / PAGE_SIZE), currentPage + dir));
-  renderTable();
+  const next = currentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  fetchUsers(next);
 }
 
-renderTable();
+let _searchTimer;
+function debouncedFetch() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => fetchUsers(1), 350);
+}
+
+// ── Action dropdown ───────────────────────────────────────────────────────────
+const menu       = document.getElementById("actionMenu");
+const suspendBtn = document.getElementById("suspendBtn");
+
+function openMenu(e, user) {
+  e.stopPropagation();
+  activeUser = user;
+  suspendBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+    </svg>
+    ${user.status === "suspended" ? "Unsuspend Account" : "Suspend Account"}
+  `;
+  const MENU_W = 190, MENU_H = 130;
+  const rect   = e.currentTarget.getBoundingClientRect();
+  let top  = rect.bottom + 6;
+  let left = rect.right - MENU_W;
+  if (top + MENU_H > window.innerHeight - 16) top = rect.top - MENU_H - 6;
+  if (left < 8) left = 8;
+  menu.style.top  = top  + "px";
+  menu.style.left = left + "px";
+  menu.classList.add("open");
+}
+
+function closeMenu() { menu.classList.remove("open"); }
+
+async function menuAction(action) {
+  closeMenu();
+  if (!activeUser) return;
+
+  if (action === "profile") {
+    openDrawer(activeUser.raw_id);
+  } else if (action === "reset-password") {
+    window.location.href = `/admin/users/${activeUser.raw_id}/reset-password/`;
+  } else if (action === "suspend") {
+    await toggleSuspend(activeUser.raw_id);
+  }
+}
+
+document.addEventListener("click",  closeMenu);
+document.addEventListener("scroll", closeMenu, true);
+
+// ── Suspend helpers ───────────────────────────────────────────────────────────
+async function toggleSuspend(userId) {
+  try {
+    const res = await fetch(`/admin/api/users/${userId}/toggle-suspend`, { method: "POST" });
+    if (!res.ok) throw new Error("Request failed");
+    fetchUsers(currentPage);
+    return await res.json();
+  } catch (err) {
+    alert("Could not update account status. Please try again.");
+    console.error(err);
+  }
+}
+
+async function drawerToggleSuspend() {
+  if (!drawerUser) return;
+  const result = await toggleSuspend(drawerUser.raw_id);
+  if (result) {
+    // Update drawer button label + badge
+    drawerUser.account_status = result.status;
+    _updateDrawerSuspendBtn(result.status);
+    document.getElementById("dAcctStatus").innerHTML = acctBadge(result.status);
+  }
+}
+
+function _updateDrawerSuspendBtn(status) {
+  const btn = document.getElementById("drawerSuspendBtn");
+  if (status === "suspended") {
+    btn.textContent = "Unsuspend Account";
+    btn.classList.add("unsuspend");
+  } else {
+    btn.textContent = "Suspend Account";
+    btn.classList.remove("unsuspend");
+  }
+}
+
+// ── Profile Drawer ────────────────────────────────────────────────────────────
+function openDrawer(userId) {
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("profileDrawer").classList.add("open");
+  document.getElementById("drawerLoading").style.display = "flex";
+  document.getElementById("drawerContent").style.display = "none";
+  document.body.style.overflow = "hidden";
+  loadProfile(userId);
+}
+
+function closeDrawer() {
+  document.getElementById("drawerOverlay").classList.remove("open");
+  document.getElementById("profileDrawer").classList.remove("open");
+  document.body.style.overflow = "";
+  drawerUser = null;
+}
+
+async function loadProfile(userId) {
+  try {
+    const res  = await fetch(`/admin/api/users/${userId}/profile`);
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const d = await res.json();
+    drawerUser = d;
+
+    document.getElementById("dName").textContent    = d.name;
+    document.getElementById("dUid").textContent     = d.id;
+    document.getElementById("dEmail").textContent   = d.email;
+    document.getElementById("dPhone").textContent   = d.phone;
+    document.getElementById("dAddress").textContent = d.address;
+    document.getElementById("dJoined").textContent  = d.joined;
+    document.getElementById("dAcctStatus").innerHTML = acctBadge(d.account_status);
+    document.getElementById("dKycStatus").innerHTML  = kycBadge(d.kyc_status);
+    document.getElementById("dLastLogin").textContent = d.last_login || "—";
+    document.getElementById("dWallet").textContent   = d.wallet_balance;
+    document.getElementById("dHoldings").textContent = d.holdings_value;
+    document.getElementById("dNetWorth").textContent  = d.net_worth;
+
+    // Transactions
+    const txList = document.getElementById("dTransactions");
+    if (d.transactions.length) {
+      txList.innerHTML = d.transactions.map(tx => `
+        <div class="drawer-tx-item">
+          <div>
+            <div class="drawer-tx-label">${tx.label}</div>
+            <div class="drawer-tx-date">${tx.date}</div>
+          </div>
+          <div class="drawer-tx-amount ${tx.positive ? "positive" : "negative"}">${tx.amount}</div>
+        </div>
+      `).join("");
+    } else {
+      txList.innerHTML = `<div class="drawer-tx-empty">No transactions yet.</div>`;
+    }
+
+    _updateDrawerSuspendBtn(d.account_status);
+
+    document.getElementById("drawerLoading").style.display = "none";
+    document.getElementById("drawerContent").style.display = "block";
+
+  } catch (err) {
+    document.getElementById("drawerLoading").innerHTML =
+      `<span style="color:var(--danger)">Failed to load profile.</span>`;
+    console.error("loadProfile error:", err);
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+fetchUsers(1);
 </script>
 {% endblock %}

@@ -1,0 +1,148 @@
+/* ============================================================
+   Market Indices Row
+   static/css/dashboard/components/market-indices.css
+   ============================================================ */
+
+.market-indices-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* ── Card ── */
+.index-card {
+    background: #ffffff;
+    border: 1px solid #E8EAED;
+    border-radius: 16px;
+    padding: 18px 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: default;
+}
+
+.index-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+/* Subtle left-border accent */
+.index-card.up    { border-left: 3px solid #34A853; }
+.index-card.down  { border-left: 3px solid #EA4335; }
+.index-card.neutral { border-left: 3px solid #E8EAED; }
+
+/* ── Top row: icon + status dot ── */
+.index-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.index-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #F1F3F4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #5F6368;
+}
+
+.index-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9AA0A6;
+}
+
+.index-card.up   .index-status-dot { background: #34A853; box-shadow: 0 0 0 3px rgba(52,168,83,0.15); }
+.index-card.down .index-status-dot { background: #EA4335; box-shadow: 0 0 0 3px rgba(234,67,53,0.15); }
+
+/* ── Label ── */
+.index-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #9AA0A6;
+    margin-bottom: 2px;
+}
+
+/* ── Value ── */
+.index-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #202124;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+
+.index-no-data {
+    color: #BDBDBD;
+    font-weight: 400;
+}
+
+/* ── Change ── */
+.index-change {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.index-card.up   .index-change { color: #34A853; }
+.index-card.down .index-change { color: #EA4335; }
+.index-card.neutral .index-change { color: #9AA0A6; }
+
+.index-change-abs {
+    font-weight: 400;
+    color: #9AA0A6;
+    font-size: 11px;
+}
+
+/* ── Sparkline ── */
+.index-sparkline {
+    height: 36px;
+    width: 100%;
+    margin-top: auto;
+}
+
+.sparkline-canvas {
+    width: 100%;
+    height: 36px;
+    display: block;
+}
+
+.index-sparkline-empty .sparkline-placeholder {
+    height: 2px;
+    background: #F1F3F4;
+    border-radius: 2px;
+    margin-top: 17px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .market-indices-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .market-indices-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .index-value {
+        font-size: 18px;
+    }
+}

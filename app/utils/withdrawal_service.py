@@ -89,6 +89,8 @@ class WithdrawalService:
                 date=datetime.now(timezone.utc)
             )
             db.session.add(tx)
+            db.session.flush()
+            withdrawal.transaction_id = tx.id
             db.session.commit()
 
             current_app.logger.info(

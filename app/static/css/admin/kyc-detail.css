@@ -1,0 +1,347 @@
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-decoration: none;
+  margin-bottom: 1.25rem;
+  transition: color 0.15s;
+}
+.back-link:hover { color: var(--text-dark); }
+.back-link svg { width: 16px; height: 16px; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Document viewer ─────────────────────────────────────────────────────── */
+
+.doc-card .card-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.doc-viewer {
+  position: relative;
+  background: var(--bg-secondary, #f8f9fa);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-img {
+  width: 100%;
+  height: auto;
+  max-height: 640px;
+  object-fit: contain;
+  display: block;
+}
+
+.doc-iframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+  display: block;
+}
+
+.doc-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  padding: 2rem;
+  text-align: center;
+}
+.doc-error svg { width: 40px; height: 40px; opacity: 0.4; }
+.doc-error p { margin: 0; font-size: 0.9rem; }
+.doc-error small { font-size: 0.75rem; opacity: 0.7; }
+
+.open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0.75rem auto 0;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card, #fff);
+  transition: border-color 0.15s, color 0.15s;
+}
+.open-btn:hover { border-color: var(--primary); color: var(--primary); }
+.open-btn svg { width: 13px; height: 13px; }
+
+/* ── Doc meta ────────────────────────────────────────────────────────────── */
+
+.doc-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* ── User details ────────────────────────────────────────────────────────── */
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.meta-value {
+  font-size: 0.875rem;
+  color: var(--text-dark);
+  word-break: break-word;
+}
+
+.rejection-reason {
+  color: var(--danger, #dc3545);
+  font-style: italic;
+}
+
+/* ── Action card ─────────────────────────────────────────────────────────── */
+
+.action-card { }
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.action-approve-btn,
+.action-reject-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.action-approve-btn:active,
+.action-reject-btn:active { transform: scale(0.98); }
+
+.action-approve-btn {
+  background: var(--success, #198754);
+  color: #fff;
+}
+.action-approve-btn:hover { opacity: 0.88; }
+
+.action-reject-btn {
+  background: transparent;
+  color: var(--danger, #dc3545);
+  border: 1px solid var(--danger, #dc3545);
+}
+.action-reject-btn:hover { background: rgba(220, 53, 69, 0.06); }
+
+.action-approve-btn svg,
+.action-reject-btn svg { width: 16px; height: 16px; }
+
+/* Decided states */
+.action-card--approved,
+.action-card--rejected {
+  text-align: center;
+}
+
+.decision-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+.decision-badge svg { width: 16px; height: 16px; }
+
+.decision-badge--approved {
+  background: rgba(25, 135, 84, 0.1);
+  color: var(--success, #198754);
+}
+.decision-badge--rejected {
+  background: rgba(220, 53, 69, 0.08);
+  color: var(--danger, #dc3545);
+}
+
+.decision-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── KYC status badges (shared with kyc-compliance.css) ─────────────────── */
+
+.kyc-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.kyc-approved      { background: rgba(25,135,84,0.1);   color: #198754; }
+.kyc-pending-review{ background: rgba(255,193,7,0.15);  color: #a07800; }
+.kyc-rejected      { background: rgba(220,53,69,0.1);   color: #dc3545; }
+
+/* ── Reject modal ────────────────────────────────────────────────────────── */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--bg-card, #fff);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  display: flex;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--bg-secondary, #f5f5f5); }
+.modal-close svg { width: 18px; height: 18px; }
+
+.modal-body { padding: 1.25rem 1.5rem; }
+
+.modal-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+.optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.modal-textarea {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  color: var(--text-dark);
+  background: var(--bg-secondary, #f8f9fa);
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.modal-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-card, #fff);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.modal-cancel-btn {
+  padding: 9px 18px;
+  border-radius: 7px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.modal-cancel-btn:hover { border-color: var(--text-muted); }
+
+.modal-reject-btn {
+  padding: 9px 18px;
+  border-radius: 7px;
+  border: none;
+  background: var(--danger, #dc3545);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.modal-reject-btn:hover { opacity: 0.88; }

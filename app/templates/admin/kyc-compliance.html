@@ -5,7 +5,8 @@
 {% set active_page = 'kyc-compliance' %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="../../static/css/admin/kyc-compliance.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/kyc-compliance.css') }}">
+
 {% endblock %}
 
 {% block page_title %}KYC &amp; Compliance{% endblock %}
@@ -30,50 +31,56 @@
     </button>
   </div>
 
-  <!-- Filters -->
-  <div class="filters">
-    <div class="search-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input class="search-input" type="text" id="searchInput"
-             placeholder="Search by user name, email or ID"
-             oninput="applyFilters()"/>
+  <!-- Filters (GET form — no JS needed for filtering) -->
+  <form id="filterForm" method="GET" action="{{ url_for('admin.kyc_compliance') }}">
+    <!-- Preserve active tab across filter changes -->
+    <input type="hidden" name="status" id="activeStatusInput" value="{{ active_status }}">
+
+    <div class="filters">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" type="text" name="search"
+               placeholder="Search by user name, email or ID"
+               value="{{ active_search }}"
+               oninput="debounceSubmit()"/>
+      </div>
+
+      <select class="filter-select" name="doc_type" onchange="this.form.submit()">
+        <option value="">Document Type</option>
+        <option value="Passport"         {% if active_doc_type == 'Passport' %}selected{% endif %}>Passport</option>
+        <option value="ID Card"          {% if active_doc_type == 'ID Card' %}selected{% endif %}>ID Card</option>
+        <option value="Drivers License"  {% if active_doc_type == 'Drivers License' %}selected{% endif %}>Drivers License</option>
+        <option value="Proof of Address" {% if active_doc_type == 'Proof of Address' %}selected{% endif %}>Proof of Address</option>
+      </select>
+
+      <select class="filter-select" name="date_range" onchange="this.form.submit()">
+        <option value="">Date Range</option>
+        <option value="today" {% if active_date_range == 'today' %}selected{% endif %}>Today</option>
+        <option value="week"  {% if active_date_range == 'week' %}selected{% endif %}>This Week</option>
+        <option value="month" {% if active_date_range == 'month' %}selected{% endif %}>This Month</option>
+      </select>
     </div>
-    <select class="filter-select" id="docTypeFilter" onchange="applyFilters()">
-      <option value="">Document Type</option>
-      <option value="Passport">Passport</option>
-      <option value="ID Card">ID Card</option>
-      <option value="Drivers License">Drivers License</option>
-    </select>
-    <select class="filter-select" id="countryFilter" onchange="applyFilters()">
-      <option value="">Country</option>
-      <option value="Nigeria">Nigeria</option>
-      <option value="United States">United States</option>
-      <option value="United Kingdom">United Kingdom</option>
-      <option value="Japan">Japan</option>
-    </select>
-    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
-      <option value="">Date Range</option>
-      <option value="today">Today</option>
-      <option value="week">This Week</option>
-      <option value="month">This Month</option>
-    </select>
-  </div>
+  </form>
 
   <!-- Tab bar -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="setTab(this, &apos;all&apos;)">
+    <button class="tab-btn {% if active_status == 'all' %}active{% endif %}"
+            onclick="setTab('all')">
       All Submissions
     </button>
-    <button class="tab-btn" onclick="setTab(this, &apos;approved&apos;)">
-      Approved <span class="tab-count" id="count-approved">6</span>
+    <button class="tab-btn {% if active_status == 'approved' %}active{% endif %}"
+            onclick="setTab('approved')">
+      Approved <span class="tab-count">{{ counts.approved }}</span>
     </button>
-    <button class="tab-btn" onclick="setTab(this, &apos;pending&apos;)">
-      Pending Review <span class="tab-count" id="count-pending">3</span>
+    <button class="tab-btn {% if active_status == 'pending' %}active{% endif %}"
+            onclick="setTab('pending')">
+      Pending Review <span class="tab-count">{{ counts.pending }}</span>
     </button>
-    <button class="tab-btn" onclick="setTab(this, &apos;rejected&apos;)">
-      Rejected <span class="tab-count" id="count-rejected">4</span>
+    <button class="tab-btn {% if active_status == 'rejected' %}active{% endif %}"
+            onclick="setTab('rejected')">
+      Rejected <span class="tab-count">{{ counts.rejected }}</span>
     </button>
   </div>
 
@@ -85,130 +92,554 @@
           <th>Submission ID</th>
           <th>User Name</th>
           <th>Email Address</th>
-          <th>Country</th>
           <th>Document Type</th>
           <th>Submission Date</th>
           <th>KYC Status</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="tableBody"></tbody>
+      <tbody>
+        {% if submissions %}
+          {% for sub in submissions %}
+          <tr data-doc-id="{{ sub.id }}" data-status="{{ sub.status }}">
+            <td class="td-id">KYC-{{ "%05d"|format(sub.id) }}</td>
+            <td class="td-name">{{ sub.name }}</td>
+            <td>{{ sub.email }}</td>
+            <td class="td-doctype">{{ sub.doc_type }}</td>
+            <td class="td-date">{{ sub.date }}</td>
+            <td>
+              {% if sub.status == 'approved' %}
+                <span class="kyc-status kyc-approved">Approved</span>
+              {% elif sub.status == 'pending' %}
+                <span class="kyc-status kyc-pending-review">Pending Review</span>
+              {% else %}
+                <span class="kyc-status kyc-rejected">Rejected</span>
+              {% endif %}
+            </td>
+            <td class="td-action">
+              <button class="action-btn" onclick="openMenu(event, {{ sub.id }}, '{{ sub.status }}')">⋮</button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-muted);">
+              No submissions found.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
     </table>
   </div>
 
   <!-- Pagination -->
   <div class="pagination">
-    <div class="page-info" id="pageInfo">Showing 1–13 of 13</div>
+    {% set start = (page - 1) * page_size + 1 %}
+    {% set end   = [page * page_size, total] | min %}
+    <div class="page-info">
+      {% if total == 0 %}
+        No results
+      {% else %}
+        Showing {{ start }}–{{ end }} of {{ total }}
+      {% endif %}
+    </div>
     <div class="page-btns">
-      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+      <a href="{{ url_for('admin.kyc_compliance', page=page-1, status=active_status, search=active_search, doc_type=active_doc_type, date_range=active_date_range) }}"
+         class="page-btn {% if page <= 1 %}disabled{% endif %}"
+         {% if page <= 1 %}aria-disabled="true" tabindex="-1"{% endif %}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
         Previous
-      </button>
-      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)">
+      </a>
+      <a href="{{ url_for('admin.kyc_compliance', page=page+1, status=active_status, search=active_search, doc_type=active_doc_type, date_range=active_date_range) }}"
+         class="page-btn page-btn-next {% if page >= total_pages %}disabled{% endif %}"
+         {% if page >= total_pages %}aria-disabled="true" tabindex="-1"{% endif %}>
         Next
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
-      </button>
+      </a>
     </div>
   </div>
 
+</div>
+
+<!-- KYC Action dropdown -->
+<div class="action-menu" id="actionMenu">
+  <button class="action-menu-item" id="menuView" onclick="kycAction('view')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+    View
+  </button>
+  <button class="action-menu-item approve" id="menuApprove" onclick="kycAction('approve')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 11 12 14 22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+    Approve
+  </button>
+  <button class="action-menu-item danger" id="menuReject" onclick="kycAction('reject')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    Reject
+  </button>
+</div>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ════════════════════════════════
+     KYC Review Drawer
+════════════════════════════════ -->
+<div class="kyc-drawer" id="kycDrawer">
+
+  <div class="drawer-header">
+    <div>
+      <div class="drawer-title">KYC Document Review</div>
+      <div class="drawer-subtitle" id="dSubId">—</div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="drawer-loading" id="drawerLoading">
+    <div class="drawer-spinner"></div>
+    <span>Loading KYC details…</span>
+  </div>
+
+  <div class="drawer-content" id="drawerContent" style="display:none;">
+
+    <div class="drawer-section drawer-section--shaded">
+      <div class="drawer-section-title">User Information</div>
+      <div class="drawer-info-grid">
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Full name</span>
+          <span class="drawer-info-value drawer-info-value--bold" id="dName">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Email Address</span>
+          <span class="drawer-info-value" id="dEmail">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Submission Date</span>
+          <span class="drawer-info-value drawer-info-value--bold" id="dDate">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Country</span>
+          <span class="drawer-info-value drawer-info-value--bold" id="dCountry">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Document Images</div>
+      <div class="doc-tabs">
+        <button class="doc-tab active" onclick="switchDocTab(this, 'Front')">Document Front</button>
+        <button class="doc-tab"        onclick="switchDocTab(this, 'Back')">Document Back</button>
+      </div>
+      <div id="docPanelFront" class="doc-panel active">
+        <img id="dImgFront" src="" alt="Document front" class="doc-img" style="display:none;"/>
+        <div id="dPhFront" class="doc-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Loading image…</span>
+        </div>
+      </div>
+      <div id="docPanelBack" class="doc-panel">
+        <img id="dImgBack" src="" alt="Document back" class="doc-img" style="display:none;"/>
+        <div id="dPhBack" class="doc-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span>Loading image…</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Personal Information Summary</div>
+      <div class="drawer-info-grid">
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Full Name</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dDupName">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Date of Birth</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dDob">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Nationality</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dNationality">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Document Number</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dDocNum">—</span>
+        </div>
+        <div class="drawer-info-item" style="grid-column:1/-1;">
+          <span class="drawer-info-label">Address</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dAddress">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Document Metadata</div>
+      <div class="drawer-info-grid">
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Document Type</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dDocType">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Issuing Country</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dIssuing">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Expiry Date</span>
+          <span class="drawer-info-value drawer-info-value--accent" id="dExpiry">—</span>
+        </div>
+        <div class="drawer-info-item">
+          <span class="drawer-info-label">Current Status</span>
+          <span id="dStatusBadge">—</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /drawer-content -->
+
+  <!-- Always-visible link to full detail page -->
+  <div class="drawer-detail-link-wrap" id="drawerDetailLinkWrap" style="display:none;">
+    <a id="drawerDetailLink" href="#" target="_blank" class="drawer-detail-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      View full document page
+    </a>
+  </div>
+
+  <!-- Footer — only shown for pending -->
+  <div class="drawer-footer" id="drawerFooter" style="display:none;">
+    <button class="drawer-reject-btn" onclick="openRejectModal(activeDocId)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      Reject KYC
+    </button>
+    <button class="drawer-approve-btn" onclick="openApproveModal(activeDocId)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Approve KYC
+    </button>
+  </div>
+
+</div><!-- /kyc-drawer -->
+
+<!-- ════════════════════════════════
+     MODAL — Approve Confirmation
+════════════════════════════════ -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal confirm-modal">
+    <div class="confirm-header confirm-header--approve">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Approve KYC Submission
+    </div>
+    <div class="confirm-body">
+      <p class="confirm-message">Are you sure you want to approve the KYC submission for <strong id="approveUserName">—</strong>?</p>
+      <div class="modal-field">
+        <label class="modal-label">Approval Notes <span class="optional">(Optional)</span></label>
+        <textarea id="approveNotes" class="modal-textarea" rows="3" placeholder="Add any notes about this approval..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn"  onclick="closeModal('approveModal')">Cancel</button>
+      <button class="modal-approve-btn" onclick="submitDecision('approve')">Confirm Approval</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL — Reject Confirmation
+════════════════════════════════ -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal confirm-modal">
+    <div class="confirm-header confirm-header--reject">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Reject KYC Submission
+    </div>
+    <div class="confirm-body">
+      <p class="confirm-message">Please provide a reason for rejecting <strong id="rejectUserName">—</strong>'s KYC submission.</p>
+      <div class="modal-field">
+        <label class="modal-label">Reason for Rejection <span class="required">*</span></label>
+        <textarea id="rejectReason" class="modal-textarea" rows="4" placeholder="Please provide a detailed reason for rejection..."></textarea>
+        <span class="field-error" id="rejectReasonError" style="display:none;">This field is required.</span>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="resubmitCheck" checked/>
+        <span class="checkbox-box"></span>
+        Request user to resubmit with corrected documents
+      </label>
+      <div class="reject-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><strong>Note:</strong> The user will be notified via email with the rejection reason. Please ensure your feedback is clear and actionable.</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('rejectModal')">Cancel</button>
+      <button class="modal-reject-btn" onclick="submitDecision('reject')">Confirm Rejection</button>
+    </div>
+  </div>
 </div>
 
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-const ALL_SUBMISSIONS = [
-  { id:'KYC-2026-001', name:'Ogbodo Uchenna',  email:'ogbodouchenna@email.com',  country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'pending' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'rejected' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'rejected' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Nigeria',        docType:'Passport',         date:'Dec 25, 2025', status:'rejected' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United States',  docType:'ID Card',          date:'Dec 25, 2025', status:'approved' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'United Kingdom', docType:'Drivers License',  date:'Dec 25, 2025', status:'approved' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Japan',          docType:'ID Card',          date:'Dec 25, 2025', status:'pending' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Japan',          docType:'ID Card',          date:'Dec 25, 2025', status:'pending' },
-  { id:'KYC-2026-001', name:'Sarah Mitchell',  email:'sarah.mitchell@email.com', country:'Japan',          docType:'ID Card',          date:'Dec 25, 2025', status:'pending' },
-];
+// ── State ──────────────────────────────────────────────────────────────────
+let activeDocId  = null;
+let activeStatus = null;
+const menu       = document.getElementById('actionMenu');
 
-const PAGE_SIZE = 13;
-let currentPage = 1;
-let activeTab   = 'all';
-let filtered    = [...ALL_SUBMISSIONS];
-
-function statusBadge(s) {
-  if (s === 'approved') return `<span class="kyc-status kyc-approved">Approved</span>`;
-  if (s === 'pending')  return `<span class="kyc-status kyc-pending-review">Pending Review</span>`;
-  return                       `<span class="kyc-status kyc-rejected">Rejected</span>`;
+// ── Tab switching ──────────────────────────────────────────────────────────
+function setTab(status) {
+  document.getElementById('activeStatusInput').value = status;
+  document.getElementById('filterForm').submit();
 }
 
-function renderTable() {
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const page  = filtered.slice(start, start + PAGE_SIZE);
-
-  document.getElementById('tableBody').innerHTML = page.map(r => `
-    <tr>
-      <td class="td-id">${r.id}</td>
-      <td class="td-name">${r.name}</td>
-      <td>${r.email}</td>
-      <td class="td-country">${r.country}</td>
-      <td class="td-doctype">${r.docType}</td>
-      <td class="td-date">${r.date}</td>
-      <td>${statusBadge(r.status)}</td>
-      <td><button class="action-btn">⋮</button></td>
-    </tr>
-  `).join('');
-
-  const total = filtered.length;
-  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
-  document.getElementById('pageInfo').textContent =
-    total === 0 ? 'No results' : `Showing ${s}–${e} of ${total}`;
-
-  const maxPage = Math.ceil(total / PAGE_SIZE) || 1;
-  document.getElementById('prevBtn').disabled = currentPage === 1;
-  document.getElementById('nextBtn').disabled = currentPage >= maxPage;
-
-  // update tab counts
-  document.getElementById('count-approved').textContent = ALL_SUBMISSIONS.filter(r => r.status === 'approved').length;
-  document.getElementById('count-pending').textContent  = ALL_SUBMISSIONS.filter(r => r.status === 'pending').length;
-  document.getElementById('count-rejected').textContent = ALL_SUBMISSIONS.filter(r => r.status === 'rejected').length;
+// ── Search debounce ────────────────────────────────────────────────────────
+let _searchTimer = null;
+function debounceSubmit() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => document.getElementById('filterForm').submit(), 400);
 }
 
-function applyFilters() {
-  const q       = document.getElementById('searchInput').value.toLowerCase();
-  const docType = document.getElementById('docTypeFilter').value;
-  const country = document.getElementById('countryFilter').value;
+// ── Action dropdown ────────────────────────────────────────────────────────
+function openMenu(e, docId, status) {
+  e.stopPropagation();
+  activeDocId  = docId;
+  activeStatus = status;
 
-  filtered = ALL_SUBMISSIONS.filter(r => {
-    const matchTab     = activeTab === 'all' || r.status === activeTab;
-    const matchSearch  = !q || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q) || r.id.toLowerCase().includes(q);
-    const matchDoc     = !docType  || r.docType === docType;
-    const matchCountry = !country  || r.country === country;
-    return matchTab && matchSearch && matchDoc && matchCountry;
-  });
-  currentPage = 1;
-  renderTable();
+  document.getElementById('menuApprove').style.display = status === 'approved' ? 'none' : 'flex';
+  document.getElementById('menuReject').style.display  = status === 'rejected'  ? 'none' : 'flex';
+
+  const MENU_W = 180, MENU_H = 130;
+  const rect   = e.currentTarget.getBoundingClientRect();
+  let top  = rect.bottom + 6;
+  let left = rect.right - MENU_W;
+  if (top + MENU_H > window.innerHeight - 16) top = rect.top - MENU_H - 6;
+  if (left < 8) left = 8;
+
+  menu.style.top  = top  + 'px';
+  menu.style.left = left + 'px';
+  menu.classList.add('open');
 }
 
-function setTab(btn, tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function closeMenu() {
+  menu.classList.remove('open');
+}
+
+document.addEventListener('click',  closeMenu);
+document.addEventListener('scroll', closeMenu, true);
+
+// ── Actions ────────────────────────────────────────────────────────────────
+function kycAction(action) {
+  closeMenu();
+  if (!activeDocId) return;
+
+  if (action === 'view')    { openDrawer(activeDocId);        return; }
+  if (action === 'approve') { openApproveModal(activeDocId);  return; }
+  if (action === 'reject')  { openRejectModal(activeDocId);   return; }
+}
+
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute('content') : '';
+}
+
+// ── KYC Review Drawer ──────────────────────────────────────────────────────
+function openDrawer(docId) {
+  activeDocId = docId;
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('kycDrawer').classList.add('open');
+  document.getElementById('drawerLoading').style.display = 'flex';
+  document.getElementById('drawerContent').style.display = 'none';
+  document.getElementById('drawerFooter').style.display  = 'none';
+  document.getElementById('drawerDetailLinkWrap').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+  loadKycDetail(docId);
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('kycDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadKycDetail(docId) {
+  try {
+    const res = await fetch(`/admin/kyc/${docId}/detail-json`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCsrfToken() }
+    });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    const d = await res.json();
+
+    // Header
+    document.getElementById('dSubId').textContent   = `KYC-${String(docId).padStart(5,'0')}`;
+    document.getElementById('dDocType').textContent = d.doc_type || '—';
+
+    // User info
+    document.getElementById('dName').textContent        = d.name        || '—';
+    document.getElementById('dEmail').textContent       = d.email       || '—';
+    document.getElementById('dDate').textContent        = d.date        || '—';
+    document.getElementById('dCountry').textContent     = d.country     || '—';
+    document.getElementById('dNationality').textContent = d.nationality || '—';
+    document.getElementById('dDob').textContent         = d.dob         || '—';
+    document.getElementById('dDocNum').textContent      = d.doc_number  || '—';
+    document.getElementById('dAddress').textContent     = d.address     || '—';
+    document.getElementById('dExpiry').textContent      = d.expiry_date || '—';
+    document.getElementById('dIssuing').textContent     = d.issuing_country || '—';
+
+    // Status badge
+    document.getElementById('dStatusBadge').innerHTML = kycStatusBadge(d.status);
+
+    // Full document page link — always shown once loaded
+    document.getElementById('drawerDetailLink').href        = `/admin/kyc/${docId}/`;
+    document.getElementById('drawerDetailLinkWrap').style.display = 'block';
+
+    // Document images
+    setDocImage('dImgFront', 'dPhFront', d.front_url);
+    setDocImage('dImgBack',  'dPhBack',  d.back_url);
+
+    // Show/hide approve+reject footer only for pending
+    document.getElementById('drawerFooter').style.display = d.status === 'pending' ? 'flex' : 'none';
+
+    document.getElementById('drawerLoading').style.display = 'none';
+    document.getElementById('drawerContent').style.display = 'block';
+
+  } catch (err) {
+    document.getElementById('drawerLoading').innerHTML =
+      '<span style="color:var(--red)">Failed to load KYC details. Please try again.</span>';
+    console.error('loadKycDetail error:', err);
+  }
+}
+
+function setDocImage(imgId, phId, url) {
+  const img = document.getElementById(imgId);
+  const ph  = document.getElementById(phId);
+  if (!url) { ph.style.display = 'flex'; img.style.display = 'none'; return; }
+  img.src     = url;
+  img.onload  = () => { img.style.display = 'block'; ph.style.display = 'none'; };
+  img.onerror = () => { ph.querySelector('span').textContent = 'Could not load image.'; };
+}
+
+function kycStatusBadge(status) {
+  const map = {
+    approved: '<span class="kyc-status kyc-approved">Approved</span>',
+    pending:  '<span class="kyc-status kyc-pending-review">Pending Review</span>',
+    rejected: '<span class="kyc-status kyc-rejected">Rejected</span>',
+  };
+  return map[status] || '—';
+}
+
+function switchDocTab(btn, side) {
+  document.querySelectorAll('.doc-tab').forEach(b  => b.classList.remove('active'));
+  document.querySelectorAll('.doc-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  activeTab = tab;
-  applyFilters();
+  document.getElementById('docPanel' + side).classList.add('active');
 }
 
-function changePage(dir) {
-  const max = Math.ceil(filtered.length / PAGE_SIZE) || 1;
-  currentPage = Math.max(1, Math.min(max, currentPage + dir));
-  renderTable();
+// ── Approve Modal ──────────────────────────────────────────────────────────
+function openApproveModal(docId) {
+  activeDocId = docId;
+  // Pull name from the table row
+  const row  = document.querySelector(`tr[data-doc-id="${docId}"]`);
+  const name = row ? row.querySelector('.td-name').textContent.trim() : '—';
+  document.getElementById('approveUserName').textContent = name;
+  document.getElementById('approveNotes').value = '';
+  closeDrawer();
+  document.getElementById('approveModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
-renderTable();
+// ── Reject Modal ───────────────────────────────────────────────────────────
+function openRejectModal(docId) {
+  activeDocId = docId;
+  const row  = document.querySelector(`tr[data-doc-id="${docId}"]`);
+  const name = row ? row.querySelector('.td-name').textContent.trim() : '—';
+  document.getElementById('rejectUserName').textContent = name;
+  document.getElementById('rejectReason').value = '';
+  document.getElementById('rejectReason').classList.remove('error');
+  document.getElementById('rejectReasonError').style.display = 'none';
+  closeDrawer();
+  document.getElementById('rejectModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+// ── Submit decision ────────────────────────────────────────────────────────
+async function submitDecision(action) {
+  if (!activeDocId) return;
+  const body = {};
+
+  if (action === 'approve') {
+    body.notes = document.getElementById('approveNotes').value.trim();
+    closeModal('approveModal');
+  }
+
+  if (action === 'reject') {
+    const reason = document.getElementById('rejectReason').value.trim();
+    if (!reason) {
+      document.getElementById('rejectReasonError').style.display = 'block';
+      document.getElementById('rejectReason').classList.add('error');
+      return;
+    }
+    body.reason   = reason;
+    body.resubmit = document.getElementById('resubmitCheck').checked;
+    closeModal('rejectModal');
+  }
+
+  try {
+    const res  = await fetch(`/admin/kyc/${activeDocId}/${action}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      const newStatus = data.new_status;
+      const row = document.querySelector(`tr[data-doc-id="${activeDocId}"]`);
+      if (row) {
+        row.dataset.status = newStatus;
+        const badge = row.querySelector('.kyc-status');
+        if (badge) {
+          badge.className   = 'kyc-status ' + (newStatus === 'approved' ? 'kyc-approved' : newStatus === 'pending' ? 'kyc-pending-review' : 'kyc-rejected');
+          badge.textContent =  newStatus === 'approved' ? 'Approved' : newStatus === 'pending' ? 'Pending Review' : 'Rejected';
+        }
+      }
+      setTimeout(() => location.reload(), 800);
+    } else {
+      alert('Action failed: ' + (data.message || 'Please try again.'));
+    }
+  } catch {
+    alert('Network error. Please try again.');
+  }
+}
 </script>
 {% endblock %}

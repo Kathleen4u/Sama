@@ -1,7 +1,7 @@
-
-<style>
+/* Notifications Container - Full Width */
 .notifications-container {
-    max-width: 900px;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* Notifications List */
@@ -29,24 +29,16 @@
 
 .notification-card.unread {
     background: #F9FAFB;
-    border-color: #2563EB;
-    border-left-width: 4px;
+    border-left: 4px solid #2563EB;
 }
 
-/* Unread Indicator */
+/* Remove Unread Indicator Dot - HIDDEN */
 .notification-indicator {
-    position: absolute;
-    top: 24px;
-    left: -8px;
-    width: 16px;
+    display: none;
 }
 
 .unread-dot {
-    width: 10px;
-    height: 10px;
-    background: #2563EB;
-    border-radius: 50%;
-    border: 2px solid white;
+    display: none;
 }
 
 /* Notification Icon */
@@ -171,4 +163,3 @@
         gap: 4px;
     }
 }
-</style>

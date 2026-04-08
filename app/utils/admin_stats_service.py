@@ -4,14 +4,12 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from itertools import accumulate
 
-from sqlalchemy import func, case, select, text
-from sqlalchemy.engine import Engine
+from sqlalchemy import func, select
 
 from app import db
 from app.models.kyc_document import KYCDocument
 from app.models.transaction import Transaction
 from app.models.user import User
-from app.models.wallet import Wallet
 from app.models.withdrawal import WithdrawalRequest
 
 
@@ -173,14 +171,14 @@ def get_chart_data() -> dict:
 
 def get_recent_activity(limit: int = 20) -> list[dict]:
     """
-    Returns a unified, time-sorted activity feed combining:
-      - Transactions  (deposits, trades, etc.)
-      - WithdrawalRequests
+    Unified, time-sorted activity feed combining:
+      - Transactions  (deposits and stock trades only — NOT withdrawals)
+      - WithdrawalRequests  (owns the withdrawal representation)
       - KYCDocument submissions
     """
     now = _now_utc()
 
-    # ── Transactions ──
+    # ── Transactions — exclude withdrawal types to avoid duplicates ──
     tx_rows = db.session.execute(
         select(
             Transaction.date.label("ts"),
@@ -193,6 +191,7 @@ def get_recent_activity(limit: int = 20) -> list[dict]:
             Transaction.status,
         )
         .join(User, Transaction.user_id == User.id)
+        .where(func.lower(Transaction.type) != "withdrawal")  # ← dedup fix
         .order_by(Transaction.date.desc())
         .limit(limit)
     ).fetchall()
@@ -234,41 +233,41 @@ def get_recent_activity(limit: int = 20) -> list[dict]:
 
     for r in tx_rows:
         events.append({
-            "ts":       r.ts,
-            "name":     f"{r.first_name} {r.last_name}",
-            "uid":      f"USR-{r.user_id}",
-            "activity": r.activity,           # e.g. "Deposit", "Buy", "Sell"
-            "details":  f"${r.amount:,.2f} — {r.details}",
-            "status":   r.status.lower(),
+            "ts": r.ts,
+            "name": f"{r.first_name} {r.last_name}",
+            "uid": f"USR-{r.user_id}",
+            "activity": r.activity,
+            "details": f"${r.amount:,.2f} — {r.details}",
+            "status": r.status.lower(),
         })
 
     for r in wr_rows:
-        address_masked = r.crypto_address[-6:] if r.crypto_address else "—"
+        address_masked = f"...{r.crypto_address[-6:]}" if r.crypto_address else "—"
         events.append({
-            "ts":       r.ts,
-            "name":     f"{r.first_name} {r.last_name}",
-            "uid":      f"USR-{r.user_id}",
+            "ts": r.ts,
+            "name": f"{r.first_name} {r.last_name}",
+            "uid": f"USR-{r.user_id}",
             "activity": "Withdrawal Request",
-            "details":  f"${r.amount:,.2f} → {r.crypto_currency} ...{address_masked}",
-            "status":   r.status.lower(),
+            "details": f"${r.amount:,.2f} → {r.crypto_currency} {address_masked}",
+            "status": r.status.lower(),
         })
 
     for r in kyc_rows:
         doc_label = r.document_type.replace("_", " ").title()
         events.append({
-            "ts":       r.ts,
-            "name":     f"{r.first_name} {r.last_name}",
-            "uid":      f"USR-{r.user_id}",
+            "ts": r.ts,
+            "name": f"{r.first_name} {r.last_name}",
+            "uid": f"USR-{r.user_id}",
             "activity": "KYC Submission",
-            "details":  f"{doc_label} uploaded",
-            "status":   "review" if r.status == "pending" else r.status.lower(),
+            "details": f"{doc_label} uploaded",
+            "status": "review" if r.status == "pending" else r.status.lower(),
         })
 
-    # Sort all events together, most recent first, then trim
+    # Merge, sort, trim
     events.sort(key=lambda e: e["ts"], reverse=True)
     events = events[:limit]
 
-    # Convert ts → human-readable relative time
+    # Replace ts with human-readable string
     for e in events:
         e["time_ago"] = _time_ago(e["ts"], now)
         del e["ts"]

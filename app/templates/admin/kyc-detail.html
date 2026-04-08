@@ -1,0 +1,314 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – KYC Review{% endblock %}
+
+{% set active_page = 'kyc-compliance' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/kyc-detail.css') }}">
+{% endblock %}
+
+{% block page_title %}KYC Review{% endblock %}
+
+{% block content %}
+
+<!-- Back link -->
+<a href="{{ url_for('admin.kyc_compliance') }}" class="back-link">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+  Back to KYC List
+</a>
+
+<div class="detail-grid">
+
+  <!-- Left: Document viewer -->
+  <div class="content-card doc-card">
+    <div class="card-header">
+      <div class="card-title">{{ doc_type_label }}</div>
+      <div class="card-subtitle">Submission ID: KYC-{{ "%05d"|format(doc.id) }}</div>
+    </div>
+
+    <div class="doc-viewer">
+      {% if url_error %}
+        <!-- R2 error -->
+        <div class="doc-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p>Could not load document from storage.</p>
+          <small>{{ url_error }}</small>
+        </div>
+
+      {% elif doc.mime_type and doc.mime_type == 'application/pdf' %}
+        <!-- PDF viewer -->
+        <iframe
+          src="{{ doc_url }}"
+          class="doc-iframe"
+          title="{{ doc_type_label }}"
+        ></iframe>
+        <a href="{{ doc_url }}" target="_blank" class="open-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Open in new tab
+        </a>
+
+      {% elif doc_url %}
+        <!-- Image viewer -->
+        <img src="{{ doc_url }}" alt="{{ doc_type_label }}" class="doc-img" />
+        <a href="{{ doc_url }}" target="_blank" class="open-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Open in new tab
+        </a>
+
+      {% else %}
+        <div class="doc-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <p>No document URL available.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="doc-meta">
+      <div class="meta-item">
+        <span class="meta-label">File name</span>
+        <span class="meta-value">{{ doc.file_name }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">File type</span>
+        <span class="meta-value">{{ doc.mime_type or '—' }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">File size</span>
+        <span class="meta-value">
+          {% if doc.file_size %}
+            {% if doc.file_size >= 1048576 %}
+              {{ "%.1f"|format(doc.file_size / 1048576) }} MB
+            {% else %}
+              {{ "%.0f"|format(doc.file_size / 1024) }} KB
+            {% endif %}
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">URL expires</span>
+        <span class="meta-value">in 1 hour</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: User info + actions -->
+  <div class="side-col">
+
+    <!-- User card -->
+    <div class="content-card">
+      <div class="card-header">
+        <div class="card-title">User Details</div>
+      </div>
+      <div class="user-details">
+        <div class="meta-item">
+          <span class="meta-label">Full name</span>
+          <span class="meta-value">{{ user.first_name }} {{ user.last_name }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Email</span>
+          <span class="meta-value">{{ user.email }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">User ID</span>
+          <span class="meta-value">#{{ user.id }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Document type</span>
+          <span class="meta-value">{{ user.id_document_type or '—' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Document number</span>
+          <span class="meta-value">{{ user.id_document_number or '—' }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">KYC status</span>
+          <span class="meta-value">
+            {% if user.kyc_status == 'verified' %}
+              <span class="kyc-status kyc-approved">Verified</span>
+            {% elif user.kyc_status == 'pending' %}
+              <span class="kyc-status kyc-pending-review">Pending</span>
+            {% elif user.kyc_status == 'rejected' %}
+              <span class="kyc-status kyc-rejected">Rejected</span>
+            {% else %}
+              <span class="kyc-status">Unverified</span>
+            {% endif %}
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Submitted</span>
+          <span class="meta-value">
+            {{ doc.uploaded_at.strftime("%b %d, %Y at %H:%M UTC") if doc.uploaded_at else '—' }}
+          </span>
+        </div>
+        {% if doc.reviewed_at %}
+        <div class="meta-item">
+          <span class="meta-label">Reviewed</span>
+          <span class="meta-value">{{ doc.reviewed_at.strftime("%b %d, %Y at %H:%M UTC") }}</span>
+        </div>
+        {% endif %}
+        {% if doc.rejection_reason %}
+        <div class="meta-item">
+          <span class="meta-label">Rejection reason</span>
+          <span class="meta-value rejection-reason">{{ doc.rejection_reason }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Action card -->
+    {% if doc.status == 'pending' %}
+    <div class="content-card action-card">
+      <div class="card-header">
+        <div class="card-title">Review Decision</div>
+        <div class="card-subtitle">This action will update the user's KYC status immediately.</div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-approve-btn" onclick="submitDecision('approve')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Approve Document
+        </button>
+
+        <button class="action-reject-btn" onclick="openRejectModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          Reject Document
+        </button>
+      </div>
+    </div>
+
+    {% elif doc.status == 'approved' %}
+    <div class="content-card action-card action-card--approved">
+      <div class="decision-badge decision-badge--approved">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Approved
+      </div>
+      <p class="decision-note">This document has been approved. No further action needed.</p>
+    </div>
+
+    {% elif doc.status == 'rejected' %}
+    <div class="content-card action-card action-card--rejected">
+      <div class="decision-badge decision-badge--rejected">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Rejected
+      </div>
+      <p class="decision-note">This document was rejected.
+        {% if doc.rejection_reason %}Reason: <em>{{ doc.rejection_reason }}</em>{% endif %}
+      </p>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Reject modal -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Reject Document</div>
+      <button class="modal-close" onclick="closeRejectModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <label class="modal-label" for="rejectReason">
+        Reason for rejection <span class="optional">(optional — shown to user)</span>
+      </label>
+      <textarea id="rejectReason" class="modal-textarea"
+                placeholder="e.g. Document is blurry, expired, or does not match the required type."
+                rows="4"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeRejectModal()">Cancel</button>
+      <button class="modal-reject-btn" onclick="submitDecision('reject')">Confirm Rejection</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const DOC_ID = {{ doc.id }};
+
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute('content') : '';
+}
+
+// ── Reject modal ──────────────────────────────────────────────────────────
+function openRejectModal() {
+  document.getElementById('rejectModal').classList.add('open');
+}
+
+function closeRejectModal() {
+  document.getElementById('rejectModal').classList.remove('open');
+}
+
+document.getElementById('rejectModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRejectModal();
+});
+
+// ── Submit approve / reject ───────────────────────────────────────────────
+function submitDecision(action) {
+  const body = {};
+
+  if (action === 'reject') {
+    body.reason = document.getElementById('rejectReason').value.trim();
+    closeRejectModal();
+  }
+
+  fetch(`/admin/kyc/${DOC_ID}/${action}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCsrfToken(),
+    },
+    body: JSON.stringify(body),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      // Reload the page so the action card updates to show final state
+      location.reload();
+    } else {
+      alert('Action failed. Please try again.');
+    }
+  })
+  .catch(() => alert('Network error. Please try again.'));
+}
+</script>
+{% endblock %}

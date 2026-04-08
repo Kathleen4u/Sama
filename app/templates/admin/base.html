@@ -8,7 +8,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
-  <link rel="stylesheet" href="../../static/css/admin/base.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
+  <link rel="shortcut icon" href="../../../static/images/favicon.png" type="image/x-icon">
+
 
   {% block extra_styles %}{% endblock %}
 </head>
@@ -18,8 +20,7 @@
   <!-- ═══════════════ SIDEBAR ═══════════════ -->
   <aside class="sidebar">
     <a class="sidebar-logo" href="#">
-      <div class="logo-icon">S</div>
-      <span class="logo-text"><span>Stocks</span>Co</span>
+        <img src="{{ url_for('static', filename='images/StocksCo-logo.png') }}" alt="StocksCo logo" max-width="=30px" height="40px">
     </a>
 
     <nav>
@@ -29,7 +30,6 @@
       ('kyc-compliance', 'KYC & Compliance', '/admin/kyc-compliance', 'clipboard'),
       ('transactions', 'Transactions', '/admin/transactions', 'credit-card'),
       ('investment-trades','Investment & Trades', '/admin/investments', 'trending-up'),
-      ('market-management','Market Management', '/admin/market', 'bar-chart'),
       ('settings', 'Settings', '/admin/settings', 'settings'),
       ] %}
 

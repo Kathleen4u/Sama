@@ -132,7 +132,40 @@ def notify_withdrawal_pending(user_id, amount, transaction_id=None):
         related_object_type="Transaction",
         related_object_id=transaction_id
     )
+def notify_withdrawal_completed(user_id, amount, transaction_id=None):
+    """Create notification for successful withdrawal"""
+    return create_notification(
+        user_id=user_id,
+        notification_type=NotificationType.SUCCESS.value,
+        category=NotificationCategory.WALLET.value,
+        title="Withdrawal Successful",
+        message=f"Your withdrawal of ${amount:,.2f} was successful. Funds have been credited to your provided wallet address.",
+        notification_metadata={
+            "amount": str(amount),
+            "transaction_id": transaction_id
+        },
+        related_object_type="Transaction",
+        related_object_id=transaction_id
+    )
 
+def notify_withdrawal_failed(user_id, amount, transaction_id=None):
+    """Create notification for a failed withdrawal"""
+    return create_notification(
+        user_id=user_id,
+        notification_type=NotificationType.DANGER.value,
+        category=NotificationCategory.WALLET.value,
+        priority=NotificationPriority.HIGH.value,
+        title="Withdrawal Failed",
+        message=f"Your withdrawal of ${amount:,.2f} could not be completed. Please try again or contact support.",
+        action_text="Try Again",
+        action_url="/dashboard/wallet",
+        notification_metadata={
+            "amount": str(amount),
+            "transaction_id": transaction_id
+        },
+        related_object_type="Transaction",
+        related_object_id=transaction_id
+    )
 
 def notify_security_alert(user_id, alert_type, location=None, ip_address=None, device=None):
     """
@@ -234,7 +267,7 @@ def get_user_notifications(user_id, unread_only=False, category=None, limit=50):
     notifications = db.session.execute(stmt).scalars().all()
     return [n.to_dict() for n in notifications]
     #This is a test notification to test dB, please find out why above isn't working when in full operation
-    return notifications
+    # return notifications
 
 
 def get_unread_count(user_id):

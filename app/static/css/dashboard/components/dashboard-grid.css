@@ -1,0 +1,53 @@
+/* Dashboard Overview Grid - 12 columns, 2 rows */
+.dashboard-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: auto auto;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Wallet Section - Row 1, Columns 1-8 (8/12 = 66.67%) */
+.wallet-section {
+    grid-column: 1 / 9;  /* Spans 8 columns */
+    grid-row: 1;
+}
+
+/* Watchlist Section - SPANS ROWS 1-2, Columns 9-12 (4/12 = 33.33%) */
+.watchlist-section {
+    grid-column: 9 / 13;  /* Spans 4 columns */
+    grid-row: 1 / 3;  /* Spans 2 rows */
+}
+
+/* Portfolio Section - Row 2, Columns 1-8 (8/12 = 66.67%) */
+.portfolio-section {
+    grid-column: 1 / 9;  /* Spans 8 columns */
+    grid-row: 2;
+}
+
+/* Make sure card takes full height in watchlist section */
+.watchlist-section .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Make watchlist content scrollable if needed */
+.watchlist-section .card {
+    overflow: hidden;
+}
+
+/* Responsive - Stack on tablet/mobile */
+@media (max-width: 968px) {
+    .dashboard-overview-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    
+    .wallet-section,
+    .watchlist-section,
+    .portfolio-section {
+        grid-column: 1;
+        grid-row: auto;
+    }
+}

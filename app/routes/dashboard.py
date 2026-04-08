@@ -1,14 +1,11 @@
-import os
-from decimal import Decimal
 from flask import render_template, Blueprint, abort, jsonify, request, current_app, flash, redirect, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import select, desc
+from sqlalchemy import desc
 from app import db, limiter
-from app.models import Wallet, Holding, Notification, User, Referral
+from app.models import Wallet, Holding, User, Referral
 from app.utils.chart_service import get_chart_data
 from app.utils.transactions import TransactionService
 from app.models.market_data import StockQuote, MarketNews, MarketDataSync
-from app.utils.market_symbols import BIG_TECH_SYMBOLS
 from app.utils import notifications as notification_utils
 from sqlalchemy import or_, func
 from dotenv import load_dotenv
@@ -16,8 +13,7 @@ import json
 from datetime import date, timedelta
 from decimal import Decimal
 from sqlalchemy import select
-from app.models.holding import Holding
-from app.models.market_data import StockQuote
+# from app.models.holding import Holding
 
 load_dotenv()
 
@@ -520,7 +516,7 @@ def referrals():
             "date": referral.created_at.strftime("%d-%m-%Y"),
         })
 
-    referral_link = "stocksco.io/ref/{current_user.referral_code or ''}"
+    referral_link = f"{current_app.config['SITE_URL']}/ref/{current_user.referral_code or ''}"
 
     return render_template(
         "dashboard/referrals.html",
@@ -538,13 +534,7 @@ def referrals():
 @login_required
 def portfolio():
     import json
-    from datetime import date, timedelta
-    from decimal import Decimal
     from collections import defaultdict
-    from sqlalchemy import select
-    from app.models.holding import Holding
-    from app.models.market_data import StockQuote
-    from app.utils.transactions import TransactionService
 
     wallet = Wallet.get_or_create(current_user.id)
     transactions = TransactionService.get_user_transactions(current_user.id)

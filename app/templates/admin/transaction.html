@@ -5,7 +5,8 @@
 {% set active_page = 'transactions' %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="../../static/css/admin/transaction.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/transaction.css') }}">
+
 {% endblock %}
 
 {% block page_title %}Transactions{% endblock %}
@@ -28,23 +29,23 @@
       </svg>
       <input class="search-input" type="text" id="searchInput"
              placeholder="Search by transaction ID, user or amount"
-             oninput="applyFilters()"/>
+             oninput="debouncedFetch()"/>
     </div>
-    <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+    <select class="filter-select" id="typeFilter" onchange="fetchTransactions()">
       <option value="">Transaction Type</option>
       <option value="Deposit">Deposit</option>
       <option value="Withdrawal">Withdrawal</option>
       <option value="Buy">Buy</option>
       <option value="Sell">Sell</option>
     </select>
-    <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+    <select class="filter-select" id="statusFilter" onchange="fetchTransactions()">
       <option value="">Status</option>
       <option value="completed">Completed</option>
       <option value="pending">Pending</option>
       <option value="failed">Failed</option>
       <option value="reversed">Reversed</option>
     </select>
-    <select class="filter-select" id="dateFilter" onchange="applyFilters()">
+    <select class="filter-select" id="dateFilter" onchange="fetchTransactions()">
       <option value="">Date Range</option>
       <option value="today">Today</option>
       <option value="week">This Week</option>
@@ -68,13 +69,15 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="tableBody"></tbody>
+      <tbody id="tableBody">
+        <tr><td colspan="9" class="td-loading">Loading…</td></tr>
+      </tbody>
     </table>
   </div>
 
   <!-- Pagination -->
   <div class="pagination">
-    <div class="page-info" id="pageInfo">Showing 1–14 of 78</div>
+    <div class="page-info" id="pageInfo">Loading…</div>
     <div class="page-btns">
       <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -82,7 +85,7 @@
         </svg>
         Previous
       </button>
-      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)">
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)" disabled>
         Next
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
@@ -93,47 +96,280 @@
 
 </div>
 
+<!-- ── Transaction Action Dropdown ── -->
+<div class="action-menu" id="actionMenu">
+  <button class="action-menu-item" id="menuView" onclick="txAction('view')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+    View transaction details
+  </button>
+  <button class="action-menu-item approve" id="menuApprove" onclick="txAction('approve')" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2"/>
+      <polyline points="2 10 12 16 22 10"/>
+    </svg>
+    Approve withdrawal
+  </button>
+  <button class="action-menu-item danger" id="menuReject" onclick="txAction('reject')" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    Reject withdrawal
+  </button>
+  <div class="action-menu-divider"></div>
+  <button class="action-menu-item flag" id="menuFlag" onclick="txAction('flag')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+      <line x1="4" y1="22" x2="4" y2="15"/>
+    </svg>
+    Flag as suspicious
+  </button>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL 1 — Transaction Detail
+════════════════════════════════ -->
+<div class="modal-overlay" id="txDetailModal">
+  <div class="modal tx-detail-modal">
+
+    <div class="tx-modal-header">
+      <div>
+        <div class="tx-modal-title">Transaction Details</div>
+        <div class="tx-modal-subtitle" id="tdTxId">—</div>
+      </div>
+      <button class="tx-modal-close" onclick="closeModal('txDetailModal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="tx-modal-body">
+
+      <!-- Amount summary card -->
+      <div class="tx-summary-card">
+        <div class="tx-summary-top">
+          <div>
+            <div class="tx-summary-label">Transaction Amount</div>
+            <div class="tx-summary-amount" id="tdAmount">—</div>
+          </div>
+          <span id="tdStatusBadge"></span>
+        </div>
+        <div class="tx-summary-grid">
+          <div class="tx-summary-item">
+            <span class="tx-summary-item-label">Type</span>
+            <span class="tx-summary-item-value" id="tdType">—</span>
+          </div>
+          <div class="tx-summary-item">
+            <span class="tx-summary-item-label">Asset/Currency</span>
+            <span class="tx-summary-item-value" id="tdAsset">—</span>
+          </div>
+          <div class="tx-summary-item">
+            <span class="tx-summary-item-label">Fees</span>
+            <span class="tx-summary-item-value" id="tdFees">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Information -->
+      <div class="tx-section-title">User Information</div>
+      <div class="tx-info-card">
+        <div class="tx-info-row">
+          <span class="tx-info-label">User ID</span>
+          <span class="tx-info-value" id="tdUserId">—</span>
+        </div>
+        <div class="tx-info-row">
+          <span class="tx-info-label">Name</span>
+          <span class="tx-info-value" id="tdName">—</span>
+        </div>
+        <div class="tx-info-row">
+          <span class="tx-info-label">Email Address</span>
+          <span class="tx-info-value" id="tdEmail">—</span>
+        </div>
+      </div>
+
+      <!-- References -->
+      <div class="tx-section-title">References</div>
+      <div class="tx-info-card">
+        <div class="tx-info-row">
+          <span class="tx-info-label">Payment Reference</span>
+          <span class="tx-info-value tx-info-value--mono" id="tdRef">—</span>
+        </div>
+      </div>
+
+      <!-- ↓ NEW: Withdrawal Payout Details — hidden for non-withdrawal types -->
+      <div id="tdWithdrawalSection" style="display:none;">
+        <div class="tx-section-title">Payout Destination</div>
+        <div class="tx-info-card">
+          <div class="tx-info-row">
+            <span class="tx-info-label">Currency to Send</span>
+            <span class="tx-info-value" id="tdCryptoCurrency">—</span>
+          </div>
+          <div class="tx-info-row" style="align-items:flex-start;">
+            <span class="tx-info-label" style="padding-top:2px;">Wallet Address</span>
+            <span class="tx-info-value tx-info-value--mono" id="tdCryptoAddress"
+                  style="word-break:break-all; flex:1;">—</span>
+            <button
+              id="tdCopyAddressBtn"
+              onclick="copyTxAddress()"
+              style="
+                margin-left:10px; flex-shrink:0;
+                background:none; border:1px solid #d1d5db; border-radius:6px;
+                padding:4px 10px; font-size:.75rem; cursor:pointer; color:#6b7280;
+                transition:background .15s, color .15s;
+              ">Copy</button>
+          </div>
+          <div class="tx-info-row" id="tdUserNoteRow">
+            <span class="tx-info-label">User Note</span>
+            <span class="tx-info-value" id="tdUserNote" style="color:#9ca3af; font-style:italic;">None</span>
+          </div>
+        </div>
+      </div>
+      <!-- ↑ END NEW -->
+
+      <!-- Timeline -->
+      <div class="tx-section-title">Transaction Timeline</div>
+      <div class="tx-info-card">
+        <div id="tdTimeline"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer — only shown for pending withdrawals -->
+    <div class="tx-modal-footer" id="tdFooter" style="display:none;">
+      <button class="tx-footer-reject"  onclick="closeModal('txDetailModal'); openRejectModal(activeTx)">Reject</button>
+      <button class="tx-footer-approve" onclick="closeModal('txDetailModal'); openApproveModal(activeTx)">Approve</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL 2 — Approve Transaction
+════════════════════════════════ -->
+<div class="modal-overlay" id="approveModal">
+  <div class="modal confirm-modal">
+    <div class="confirm-header confirm-header--approve">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      Approve Transaction
+    </div>
+    <div class="confirm-body">
+      <p class="confirm-message" id="approveMsg"></p>
+    </div>
+    <div class="confirm-footer">
+      <button class="cf-cancel"  onclick="closeModal('approveModal')">Cancel</button>
+      <button class="cf-approve" onclick="confirmAction('approve')">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL 3 — Reject Transaction
+════════════════════════════════ -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal confirm-modal">
+    <div class="confirm-header confirm-header--reject">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      Reject Transaction
+    </div>
+    <div class="confirm-body">
+      <p class="confirm-message" id="rejectMsg"></p>
+    </div>
+    <div class="confirm-footer">
+      <button class="cf-cancel" onclick="closeModal('rejectModal')">Cancel</button>
+      <button class="cf-reject" onclick="confirmAction('reject')">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     MODAL 4 — Flag as Suspicious
+════════════════════════════════ -->
+<div class="modal-overlay" id="flagModal">
+  <div class="modal confirm-modal">
+    <div class="confirm-header confirm-header--flag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      Flag as Suspicious
+    </div>
+    <div class="confirm-body">
+      <p class="confirm-message" id="flagMsg"></p>
+    </div>
+    <div class="confirm-footer">
+      <button class="cf-cancel" onclick="closeModal('flagModal')">Cancel</button>
+      <button class="cf-flag"   onclick="confirmAction('flag')">Confirm</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-const TRANSACTIONS = [
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'pending',   date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'pending',   date:'Dec 25, 2025' },
-  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'AAPL', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'AAPL', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'failed',    date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'failed',    date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$15,420.50',  price:'-',       status:'reversed',  date:'Dec 25, 2025' },
-  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Withdrawal', asset:'USD',  amount:'$15,420.50',  price:'-',       status:'reversed',  date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Deposit',    asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2025-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Deposit',    asset:'USD',  amount:'$125,000.00', price:'-',       status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'NVDA', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
-  { id:'TXN-2026-001847', name:'Michael Chen', email:'michael.chen@email.com', type:'Buy',        asset:'NVDA', amount:'$15,420.50',  price:'$178.50', status:'completed', date:'Dec 25, 2025' },
-];
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentPage  = 1;
+let totalPages   = 1;
+let activeTx     = null;
 
-const PAGE_SIZE = 14;
-let currentPage = 1;
-let filtered    = [...TRANSACTIONS];
+// ── Fetch from API ────────────────────────────────────────────────────────────
+async function fetchTransactions() {
+  const q      = document.getElementById('searchInput').value.trim();
+  const type   = document.getElementById('typeFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  const date   = document.getElementById('dateFilter').value;
 
-function statusBadge(s) {
-  const map = {
-    completed: 's-completed',
-    pending:   's-pending',
-    failed:    's-failed',
-    reversed:  's-reversed',
-  };
-  const label = s.charAt(0).toUpperCase() + s.slice(1);
-  return `<span class="status-badge ${map[s] || ''}">${label}</span>`;
+  const params = new URLSearchParams({ page: currentPage });
+  if (q)      params.set('q',      q);
+  if (type)   params.set('type',   type);
+  if (status) params.set('status', status);
+  if (date)   params.set('date',   date);
+
+  setLoading(true);
+  try {
+    const res  = await fetch(`/admin/api/transactions?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    totalPages = data.total_pages || 1;
+    renderTable(data.transactions, data.total, data.page, data.per_page);
+  } catch (err) {
+    document.getElementById('tableBody').innerHTML =
+      `<tr><td colspan="9" class="td-loading td-error">Failed to load transactions. Please refresh.</td></tr>`;
+    console.error('fetchTransactions:', err);
+  } finally {
+    setLoading(false);
+  }
 }
 
-function renderTable() {
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const page  = filtered.slice(start, start + PAGE_SIZE);
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderTable(transactions, total, page, perPage) {
+  const tbody = document.getElementById('tableBody');
 
-  document.getElementById('tableBody').innerHTML = page.map(t => `
+  if (!transactions || transactions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="td-loading">No transactions found.</td></tr>`;
+    document.getElementById('pageInfo').textContent = 'No results';
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    return;
+  }
+
+  tbody.innerHTML = transactions.map(t => `
     <tr>
       <td class="td-id">${t.id}</td>
       <td>
@@ -146,40 +382,274 @@ function renderTable() {
       <td class="td-price">${t.price}</td>
       <td>${statusBadge(t.status)}</td>
       <td class="td-date">${t.date}</td>
-      <td><button class="action-btn">⋮</button></td>
+      <td><button class="action-btn" onclick='openMenu(event, ${JSON.stringify(t)})'>⋮</button></td>
     </tr>
   `).join('');
 
-  const total = filtered.length;
-  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
-  document.getElementById('pageInfo').textContent =
-    total === 0 ? 'No results' : `Showing ${s}–${e} of ${total}`;
+  const start = (page - 1) * perPage + 1;
+  const end   = Math.min(page * perPage, total);
+  document.getElementById('pageInfo').textContent = `Showing ${start}–${end} of ${total}`;
 
-  const maxPage = Math.ceil(total / PAGE_SIZE) || 1;
-  document.getElementById('prevBtn').disabled = currentPage === 1;
-  document.getElementById('nextBtn').disabled = currentPage >= maxPage;
+  document.getElementById('prevBtn').disabled = page <= 1;
+  document.getElementById('nextBtn').disabled = page >= totalPages;
 }
 
-function applyFilters() {
-  const q      = document.getElementById('searchInput').value.toLowerCase();
-  const type   = document.getElementById('typeFilter').value;
-  const status = document.getElementById('statusFilter').value;
-
-  filtered = TRANSACTIONS.filter(t =>
-    (!q      || t.id.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.amount.includes(q)) &&
-    (!type   || t.type   === type) &&
-    (!status || t.status === status)
-  );
-  currentPage = 1;
-  renderTable();
+function statusBadge(s) {
+  const map = {
+    completed: 's-completed',
+    pending:   's-pending',
+    failed:    's-failed',
+    reversed:  's-reversed',
+  };
+  const label = s.charAt(0).toUpperCase() + s.slice(1);
+  return `<span class="status-badge ${map[s] || ''}">${label}</span>`;
 }
 
+function setLoading(on) {
+  if (on) {
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+  }
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
 function changePage(dir) {
-  const max = Math.ceil(filtered.length / PAGE_SIZE) || 1;
-  currentPage = Math.max(1, Math.min(max, currentPage + dir));
-  renderTable();
+  const next = currentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  currentPage = next;
+  fetchTransactions();
 }
 
-renderTable();
+// ── Debounce for search input ─────────────────────────────────────────────────
+let _searchTimer;
+function debouncedFetch() {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => {
+    currentPage = 1;
+    fetchTransactions();
+  }, 350);
+}
+
+// Reset to page 1 when any filter changes (except search which debounces)
+['typeFilter', 'statusFilter', 'dateFilter'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    currentPage = 1;
+  });
+});
+
+// ── Action dropdown ───────────────────────────────────────────────────────────
+const menu = document.getElementById('actionMenu');
+
+function openMenu(e, tx) {
+  e.stopPropagation();
+  activeTx = tx;
+
+  // Show approve + reject only for pending withdrawals
+  const isWithdrawal = tx.type === 'Withdrawal';
+  const isPending    = tx.status === 'pending';
+  document.getElementById('menuApprove').style.display = (isWithdrawal && isPending) ? 'flex' : 'none';
+  document.getElementById('menuReject').style.display  = (isWithdrawal && isPending) ? 'flex' : 'none';
+
+  // Position — flip up if near bottom of viewport
+  const MENU_W = 210, MENU_H = 160;
+  const rect   = e.currentTarget.getBoundingClientRect();
+  let top  = rect.bottom + 6;
+  let left = rect.right - MENU_W;
+  if (top + MENU_H > window.innerHeight - 16) top = rect.top - MENU_H - 6;
+  if (left < 8) left = 8;
+
+  menu.style.top  = top  + 'px';
+  menu.style.left = left + 'px';
+  menu.classList.add('open');
+}
+
+function closeMenu() { menu.classList.remove('open'); }
+
+document.addEventListener('click',  closeMenu);
+document.addEventListener('scroll', closeMenu, true);
+
+function txAction(action) {
+  closeMenu();
+  if (!activeTx) return;
+
+  if (action === 'view')    { openTxDetailModal(activeTx);  return; }
+  if (action === 'approve') { openApproveModal(activeTx);   return; }
+  if (action === 'reject')  { openRejectModal(activeTx);    return; }
+  if (action === 'flag')    { openFlagModal(activeTx);      return; }
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+  });
+});
+
+// ── MODAL 1: Transaction Detail ───────────────────────────────────────────────
+function openTxDetailModal(tx) {
+  // Header
+  document.getElementById('tdTxId').textContent    = tx.id;
+
+  // Summary card
+  document.getElementById('tdAmount').textContent  = tx.amount;
+  document.getElementById('tdStatusBadge').innerHTML = statusBadge(tx.status);
+  document.getElementById('tdType').textContent    = tx.type;
+  document.getElementById('tdAsset').textContent   = tx.asset;
+  document.getElementById('tdFees').textContent    = tx.fees  || '—';
+
+  // User info
+  document.getElementById('tdUserId').textContent  = tx.user_id || '—';
+  document.getElementById('tdName').textContent    = tx.name;
+  document.getElementById('tdEmail').textContent   = tx.email;
+
+  // References
+  document.getElementById('tdRef').textContent     = tx.reference || '—';
+
+  // ↓ NEW: Withdrawal payout section — show only for withdrawal rows that
+  //   have a linked WithdrawalRequest (tx.withdrawal !== null).
+  const wdSection = document.getElementById('tdWithdrawalSection');
+  if (tx.type === 'Withdrawal' && tx.withdrawal) {
+    const wr = tx.withdrawal;
+    document.getElementById('tdCryptoCurrency').textContent = wr.crypto_currency || '—';
+    document.getElementById('tdCryptoAddress').textContent  = wr.crypto_address  || '—';
+
+    const noteEl = document.getElementById('tdUserNote');
+    if (wr.user_note) {
+      noteEl.textContent = wr.user_note;
+      noteEl.style.color = '';
+      noteEl.style.fontStyle = '';
+    } else {
+      noteEl.textContent = 'None';
+      noteEl.style.color = '#9ca3af';
+      noteEl.style.fontStyle = 'italic';
+    }
+
+    // Reset copy button state
+    const copyBtn = document.getElementById('tdCopyAddressBtn');
+    copyBtn.textContent = 'Copy';
+    copyBtn.style.background = '';
+    copyBtn.style.color = '#6b7280';
+    copyBtn.style.borderColor = '#d1d5db';
+
+    wdSection.style.display = '';
+  } else {
+    wdSection.style.display = 'none';
+  }
+  // ↑ END NEW
+
+  // Timeline
+  const timeline = document.getElementById('tdTimeline');
+  if (tx.timeline && tx.timeline.length) {
+    timeline.innerHTML = tx.timeline.map(e => `
+      <div class="timeline-item">
+        <span class="timeline-dot"></span>
+        <div>
+          <div class="timeline-label">${e.label}</div>
+          <div class="timeline-date">${e.date}</div>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    // Fallback using data we already have
+    timeline.innerHTML = `
+      <div class="timeline-item">
+        <span class="timeline-dot"></span>
+        <div>
+          <div class="timeline-label">${tx.type} requested</div>
+          <div class="timeline-date">${tx.date} – ${tx.name}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Show/hide footer action buttons based on type + status
+  const isWithdrawal = tx.type === 'Withdrawal';
+  const isPending    = tx.status === 'pending';
+  document.getElementById('tdFooter').style.display = (isWithdrawal && isPending) ? 'grid' : 'none';
+
+  openModal('txDetailModal');
+}
+
+// ↓ NEW: Copy the crypto address shown in the detail modal to clipboard
+function copyTxAddress() {
+  const addr = document.getElementById('tdCryptoAddress').textContent.trim();
+  if (!addr || addr === '—') return;
+
+  navigator.clipboard.writeText(addr).then(() => {
+    const btn = document.getElementById('tdCopyAddressBtn');
+    btn.textContent = 'Copied!';
+    btn.style.background = '#10b981';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'transparent';
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.style.background = '';
+      btn.style.color = '#6b7280';
+      btn.style.borderColor = '#d1d5db';
+    }, 2000);
+  }).catch(() => alert('Could not copy — please copy manually:\n' + addr));
+}
+// ↑ END NEW
+
+// ── MODAL 2: Approve ──────────────────────────────────────────────────────────
+function openApproveModal(tx) {
+  document.getElementById('approveMsg').innerHTML =
+    `Are you sure you want to approve withdrawal <strong>${tx.id}</strong> for <strong>${tx.name}</strong>`;
+  openModal('approveModal');
+}
+
+// ── MODAL 3: Reject ───────────────────────────────────────────────────────────
+function openRejectModal(tx) {
+  document.getElementById('rejectMsg').innerHTML =
+    `Are you sure you want to reject withdrawal <strong>${tx.id}</strong>? This action cannot be undone`;
+  openModal('rejectModal');
+}
+
+// ── MODAL 4: Flag ─────────────────────────────────────────────────────────────
+function openFlagModal(tx) {
+  document.getElementById('flagMsg').innerHTML =
+    `Flag transaction <strong>${tx.id}</strong> for compliance review?`;
+  openModal('flagModal');
+}
+
+// ── Confirm actions (called from modal buttons) ───────────────────────────────
+function confirmAction(action) {
+  closeModal(action === 'flag' ? 'flagModal' : action === 'approve' ? 'approveModal' : 'rejectModal');
+  closeModal('txDetailModal');
+  if (!activeTx) return;
+
+  fetch(`/admin/transactions/${activeTx.raw_id}/${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+    body: JSON.stringify({}),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      fetchTransactions();
+    } else {
+      alert('Action failed: ' + (data.message || 'Please try again.'));
+    }
+  })
+  .catch(() => alert('Network error. Please try again.'));
+}
+
+
+function getCsrfToken() {
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute('content') : '';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+fetchTransactions();
 </script>
 {% endblock %}

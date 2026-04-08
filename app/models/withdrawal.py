@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Optional
+
 from sqlalchemy import String, DateTime, ForeignKey, Numeric, Text, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
@@ -48,6 +50,10 @@ class WithdrawalRequest(db.Model):
     actioned_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
+    )
+
+    transaction_id: Mapped[Optional[int]] = mapped_column(
+        db.Integer, db.ForeignKey("transactions.id"), nullable=True, index=True
     )
 
     # Relationships

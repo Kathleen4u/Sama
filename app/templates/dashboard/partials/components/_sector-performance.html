@@ -1,0 +1,55 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/sector-performance.css">{% endblock %}
+
+<!-- Sector Performance -->
+<div class="sector-performance-section">
+    <div class="sector-header">
+        <h3 class="sector-title">Sector Performance</h3>
+        <span class="sector-subtitle">Today's change by sector</span>
+    </div>
+
+    <div class="sector-grid">
+        {% set sectors = [
+            { 'key': 'technology',      'label': 'Technology',      'icon': 'fa-microchip' },
+            { 'key': 'financials',      'label': 'Financials',      'icon': 'fa-landmark' },
+            { 'key': 'healthcare',      'label': 'Healthcare',      'icon': 'fa-heart-pulse' },
+            { 'key': 'energy',          'label': 'Energy',          'icon': 'fa-bolt' },
+            { 'key': 'consumer',        'label': 'Consumer',        'icon': 'fa-cart-shopping' },
+            { 'key': 'industrials',     'label': 'Industrials',     'icon': 'fa-industry' },
+            { 'key': 'real_estate',     'label': 'Real Estate',     'icon': 'fa-building' },
+            { 'key': 'utilities',       'label': 'Utilities',       'icon': 'fa-plug' },
+            { 'key': 'materials',       'label': 'Materials',       'icon': 'fa-flask' },
+            { 'key': 'communication',   'label': 'Communication',   'icon': 'fa-tower-broadcast' },
+        ] %}
+
+        {% for sec in sectors %}
+            {% set data = sector_performance.get(sec.key) if sector_performance else none %}
+            {% set pct = data.percent_change|float if data and data.percent_change else none %}
+            {% set is_up = pct is not none and pct >= 0 %}
+            {% set abs_pct = pct|abs if pct is not none else 0 %}
+            {# Bar width: cap at 5% = 100% width #}
+            {% set bar_pct = [abs_pct / 5 * 100, 100] | min if pct is not none else 0 %}
+
+            <div class="sector-item {{ 'up' if is_up else ('down' if pct is not none else 'neutral') }}">
+                <div class="sector-item-left">
+                    <div class="sector-icon">
+                        <i class="fas {{ sec.icon }}"></i>
+                    </div>
+                    <span class="sector-name">{{ sec.label }}</span>
+                </div>
+
+                <div class="sector-item-right">
+                    <div class="sector-bar-track">
+                        <div class="sector-bar-fill" style="width: {{ bar_pct }}%;"></div>
+                    </div>
+                    <span class="sector-pct">
+                        {% if pct is not none %}
+                            {{ '+' if is_up else '' }}{{ "%.2f"|format(pct) }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

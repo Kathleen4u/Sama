@@ -6,7 +6,8 @@
 
 {# ─── Page-specific styles ─── #}
 {% block extra_styles %}
-<link rel="stylesheet" href="../../static/css/admin/dashboard.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+
 {% endblock %}
 
 {# ─── Page title ─── #}

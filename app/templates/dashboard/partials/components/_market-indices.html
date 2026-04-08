@@ -1,0 +1,122 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/market-indices.css">{% endblock %}
+
+<!-- Market Indices Row -->
+<div class="market-indices-row">
+
+    {% set indices = [
+        { 'key': 'sp500',   'label': 'S&P 500',      'icon': 'fa-flag-usa' },
+        { 'key': 'nasdaq',  'label': 'NASDAQ',        'icon': 'fa-microchip' },
+        { 'key': 'dow',     'label': 'Dow Jones',     'icon': 'fa-building-columns' },
+        { 'key': 'ngx',     'label': 'NGX All-Share', 'icon': 'fa-globe-africa' }
+    ] %}
+
+    {% for idx in indices %}
+        {% set data = market_indices.get(idx.key) if market_indices else none %}
+        {% set pct = data.percent_change|float if data and data.percent_change else none %}
+        {% set is_up = pct is not none and pct >= 0 %}
+
+        <div class="index-card {{ 'up' if is_up else ('down' if pct is not none else 'neutral') }}">
+            <div class="index-card-top">
+                <div class="index-icon-wrap">
+                    <i class="fas {{ idx.icon }}"></i>
+                </div>
+                <div class="index-status-dot"></div>
+            </div>
+
+            <div class="index-label">{{ idx.label }}</div>
+
+            <div class="index-value">
+                {% if data and data.value %}
+                    {{ "{:,.2f}".format(data.value|float) }}
+                {% else %}
+                    <span class="index-no-data">—</span>
+                {% endif %}
+            </div>
+
+            <div class="index-change">
+                {% if pct is not none %}
+                    <i class="fas fa-caret-{{ 'up' if is_up else 'down' }}"></i>
+                    {{ '+' if is_up else '' }}{{ "%.2f"|format(pct) }}%
+                    {% if data.change %}
+                        <span class="index-change-abs">({{ '+' if is_up else '' }}{{ "%.2f"|format(data.change|float) }})</span>
+                    {% endif %}
+                {% else %}
+                    <span class="index-no-data" style="font-size:12px;">No data</span>
+                {% endif %}
+            </div>
+
+            {% if data and data.sparkline %}
+            <div class="index-sparkline">
+                <canvas class="sparkline-canvas" data-values="{{ data.sparkline | join(',') }}" data-up="{{ is_up | lower }}"></canvas>
+            </div>
+            {% else %}
+            <div class="index-sparkline index-sparkline-empty">
+                <div class="sparkline-placeholder"></div>
+            </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+</div>
+
+<script>
+(function () {
+    document.querySelectorAll('.sparkline-canvas').forEach(function (canvas) {
+        var raw = canvas.dataset.values;
+        var isUp = canvas.dataset.up === 'true';
+        if (!raw) return;
+
+        var values = raw.split(',').map(Number).filter(function (n) { return !isNaN(n); });
+        if (values.length < 2) return;
+
+        var dpr = window.devicePixelRatio || 1;
+        var w = canvas.offsetWidth || 120;
+        var h = canvas.offsetHeight || 36;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+
+        var ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        var min = Math.min.apply(null, values);
+        var max = Math.max.apply(null, values);
+        var range = max - min || 1;
+        var pad = 3;
+
+        var color = isUp ? '#34A853' : '#EA4335';
+
+        // Gradient fill
+        var grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, isUp ? 'rgba(52,168,83,0.25)' : 'rgba(234,67,53,0.25)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+
+        ctx.beginPath();
+        values.forEach(function (v, i) {
+            var x = (i / (values.length - 1)) * w;
+            var y = pad + (1 - (v - min) / range) * (h - pad * 2);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+
+        // Fill path
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Line
+        ctx.beginPath();
+        values.forEach(function (v, i) {
+            var x = (i / (values.length - 1)) * w;
+            var y = pad + (1 - (v - min) / range) * (h - pad * 2);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+    });
+})();
+</script>

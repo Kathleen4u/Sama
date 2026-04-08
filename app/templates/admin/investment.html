@@ -5,7 +5,7 @@
 {% set active_page = 'investment-trades' %}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="../../static/css/admin/investment.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/investment.css') }}">
 {% endblock %}
 
 {% block page_title %}Investments &amp; Trades{% endblock %}
@@ -28,21 +28,21 @@
       </svg>
       <input class="search-input" type="text" id="searchInput"
              placeholder="Search by user, asset, or trade ID..."
-             oninput="applyFilters()"/>
+             oninput="debouncedFetch()"/>
     </div>
-    <select class="filter-select" id="tradeTypeFilter" onchange="applyFilters()">
+    <select class="filter-select" id="tradeTypeFilter" onchange="fetchTrades()">
       <option value="">Trade Type</option>
       <option value="Buy">Buy</option>
       <option value="Sell">Sell</option>
     </select>
-    <select class="filter-select" id="assetTypeFilter" onchange="applyFilters()">
+    <select class="filter-select" id="assetTypeFilter" onchange="fetchTrades()">
       <option value="">Asset Type</option>
       <option value="US Stocks">US Stocks</option>
-      <option value="NG Stocks">NG Stocks</option>
+      <!-- <option value="NG Stocks">NG Stocks</option> -->
       <option value="ETF">ETF</option>
       <option value="Crypto">Crypto</option>
     </select>
-    <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+    <select class="filter-select" id="statusFilter" onchange="fetchTrades()">
       <option value="">Order Status</option>
       <option value="executed">Executed</option>
       <option value="open">Open</option>
@@ -69,13 +69,19 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody id="tableBody"></tbody>
+      <tbody id="tableBody">
+        <tr>
+          <td colspan="10" class="loading-row">
+            <span class="loading-spinner"></span> Loading trades…
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
   <!-- Pagination -->
   <div class="pagination">
-    <div class="page-info" id="pageInfo">Showing 1–14 of 78</div>
+    <div class="page-info" id="pageInfo">—</div>
     <div class="page-btns">
       <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -83,7 +89,7 @@
         </svg>
         Previous
       </button>
-      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)">
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)" disabled>
         Next
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
@@ -98,27 +104,13 @@
 
 {% block extra_scripts %}
 <script>
-const TRADES = [
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'executed'  },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Dangote Cement',  ticker:'DANGCEM', assetType:'NG Stocks', tradeType:'Buy',  qty:150, price:'$178.42', value:'$26,763.00', status:'open'      },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'cancelled' },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'cancelled' },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'cancelled' },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'failed'    },
-  { id:'TRD-2026-001234', name:'Michael Chen', email:'michael.chen@email.com', assetName:'Apple Inc.',      ticker:'AAPL',    assetType:'US Stocks', tradeType:'Sell', qty:150, price:'$178.42', value:'$26,763.00', status:'failed'    },
-];
+// ── state ─────────────────────────────────────────────────────────────────
+const PAGE_SIZE  = 14;
+let   currentPage = 1;
+let   totalPages  = 1;
+let   _debounceTimer = null;
 
-const PAGE_SIZE = 14;
-let currentPage = 1;
-let filtered    = [...TRADES];
-
+// ── helpers ───────────────────────────────────────────────────────────────
 function statusBadge(s) {
   const map = {
     executed:  ['ob-executed',  'Executed'],
@@ -131,11 +123,76 @@ function statusBadge(s) {
   return `<span class="order-badge ${cls}">${label}</span>`;
 }
 
-function renderTable() {
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const page  = filtered.slice(start, start + PAGE_SIZE);
+// ── fetch from API ────────────────────────────────────────────────────────
+async function fetchTrades() {
+  const q         = document.getElementById('searchInput').value.trim();
+  const tradeType = document.getElementById('tradeTypeFilter').value;
+  const assetType = document.getElementById('assetTypeFilter').value;
+  const status    = document.getElementById('statusFilter').value;
 
-  document.getElementById('tableBody').innerHTML = page.map(t => `
+  const params = new URLSearchParams({ page: currentPage, per_page: PAGE_SIZE });
+  if (q)         params.set('q',          q);
+  if (tradeType) params.set('trade_type', tradeType);
+  if (assetType) params.set('asset_type', assetType);
+  if (status)    params.set('status',     status);
+
+  // Show loading state
+  document.getElementById('tableBody').innerHTML = `
+    <tr>
+      <td colspan="10" class="loading-row">
+        <span class="loading-spinner"></span> Loading trades…
+      </td>
+    </tr>`;
+  document.getElementById('prevBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = true;
+
+  try {
+    const res  = await fetch(`/admin/api/investments?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    totalPages = data.total_pages || 1;
+    renderTable(data);
+  } catch (err) {
+    console.error('Failed to load trades:', err);
+    document.getElementById('tableBody').innerHTML = `
+      <tr>
+        <td colspan="10" style="text-align:center; padding: 2rem; color: var(--text-muted);">
+          Failed to load trades. Please refresh the page.
+        </td>
+      </tr>`;
+    document.getElementById('pageInfo').textContent = '—';
+  }
+}
+
+// ── debounce for search input ─────────────────────────────────────────────
+function debouncedFetch() {
+  clearTimeout(_debounceTimer);
+  currentPage = 1;   // reset to page 1 on new search
+  _debounceTimer = setTimeout(fetchTrades, 350);
+}
+
+// ── render ────────────────────────────────────────────────────────────────
+function renderTable(data) {
+  const { trades, total, page, per_page } = data;
+
+  if (!trades || trades.length === 0) {
+    document.getElementById('tableBody').innerHTML = `
+      <tr>
+        <td colspan="10" style="text-align:center; padding: 2rem; color: var(--text-muted);">
+          No trades found.
+        </td>
+      </tr>`;
+    document.getElementById('pageInfo').textContent = 'No results';
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    return;
+  }
+
+  const start = (page - 1) * per_page + 1;
+  const end   = Math.min(page * per_page, total);
+
+  document.getElementById('tableBody').innerHTML = trades.map(t => `
     <tr>
       <td class="td-id">${t.id}</td>
       <td>
@@ -143,51 +200,61 @@ function renderTable() {
         <div class="user-email">${t.email}</div>
       </td>
       <td>
-        <div class="asset-name">${t.assetName}</div>
+        <div class="asset-name">${t.asset_name}</div>
         <div class="asset-ticker">${t.ticker}</div>
       </td>
-      <td class="td-asset-type">${t.assetType}</td>
-      <td><span class="trade-${t.tradeType.toLowerCase()}">${t.tradeType}</span></td>
-      <td class="td-qty">${t.qty}</td>
+      <td class="td-asset-type">${t.asset_type}</td>
+      <td><span class="trade-${t.trade_type.toLowerCase()}">${t.trade_type}</span></td>
+      <td class="td-qty">${t.qty.toLocaleString()}</td>
       <td class="td-price">${t.price}</td>
       <td class="td-value">${t.value}</td>
       <td>${statusBadge(t.status)}</td>
-      <td><button class="action-btn">⋮</button></td>
+      <td><button class="action-btn" onclick="viewTrade(${t.raw_id})">⋮</button></td>
     </tr>
   `).join('');
 
-  const total = filtered.length;
-  const s = start + 1, e = Math.min(start + PAGE_SIZE, total);
   document.getElementById('pageInfo').textContent =
-    total === 0 ? 'No results' : `Showing ${s}–${e} of ${total}`;
+    `Showing ${start}–${end} of ${total}`;
 
-  const maxPage = Math.ceil(total / PAGE_SIZE) || 1;
-  document.getElementById('prevBtn').disabled = currentPage === 1;
-  document.getElementById('nextBtn').disabled = currentPage >= maxPage;
+  document.getElementById('prevBtn').disabled = currentPage <= 1;
+  document.getElementById('nextBtn').disabled = currentPage >= totalPages;
 }
 
-function applyFilters() {
-  const q         = document.getElementById('searchInput').value.toLowerCase();
-  const tradeType = document.getElementById('tradeTypeFilter').value;
-  const assetType = document.getElementById('assetTypeFilter').value;
-  const status    = document.getElementById('statusFilter').value;
-
-  filtered = TRADES.filter(t =>
-    (!q         || t.id.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || t.assetName.toLowerCase().includes(q) || t.ticker.toLowerCase().includes(q)) &&
-    (!tradeType || t.tradeType === tradeType) &&
-    (!assetType || t.assetType === assetType) &&
-    (!status    || t.status    === status)
-  );
-  currentPage = 1;
-  renderTable();
-}
-
+// ── pagination ────────────────────────────────────────────────────────────
 function changePage(dir) {
-  const max = Math.ceil(filtered.length / PAGE_SIZE) || 1;
-  currentPage = Math.max(1, Math.min(max, currentPage + dir));
-  renderTable();
+  const next = currentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  currentPage = next;
+  fetchTrades();
 }
 
-renderTable();
+// ── action stub (extend when detail drawer is added) ─────────────────────
+function viewTrade(holdingId) {
+  // Placeholder — wire up a detail drawer here when ready
+  console.log('View holding:', holdingId);
+}
+
+// ── initial load ─────────────────────────────────────────────────────────
+fetchTrades();
 </script>
+
+<style>
+.loading-row {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
 {% endblock %}
