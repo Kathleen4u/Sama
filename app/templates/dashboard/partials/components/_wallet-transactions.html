@@ -1,0 +1,42 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/wallet-transactions.css">{% endblock %}
+
+
+<!-- Transaction History Section -->
+<div class="transaction-section">
+    <h2 class="section-title">Transaction History</h2>
+
+    <div class="card">
+        <div class="transaction-table-wrapper">
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>
+                            <span class="type-badge {{ transaction.type.lower() }}">
+                                {{ transaction.type }}
+                            </span>
+                        </td>
+                        <td class="description-cell">{{ transaction.description }}</td>
+                        <td class="amount-cell">${{ transaction.amount }}</td>
+                        <td>
+                            <span class="status-badge {{ transaction.status.lower() }}">
+                                {{ transaction.status }}
+                            </span>
+                        </td>
+                        <td class="date-cell">{{ transaction.date.strftime('%d-%m-%Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

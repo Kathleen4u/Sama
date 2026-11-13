@@ -1,0 +1,379 @@
+.referrals-container {
+    max-width: 1100px;
+}
+
+.referrals-header {
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.page-description {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+}
+
+/* Offer Banner */
+.offer-banner {
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    border-radius: 16px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: white;
+    margin-bottom: 40px;
+}
+
+.offer-banner i {
+    font-size: 28px;
+}
+
+.offer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.offer-label {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.offer-text {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* How It Works */
+.how-it-works-section {
+    margin-bottom: 48px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 24px 0;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.step-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+}
+
+.step-icon {
+    width: 64px;
+    height: 64px;
+    background: #EFF6FF;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: #2563EB;
+    font-size: 28px;
+}
+
+.step-number {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9CA3AF;
+    margin-bottom: 8px;
+}
+
+.step-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.step-description {
+    font-size: 13px;
+    color: #6B7280;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Referral Link Section */
+.referral-link-section {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.link-container {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 32px;
+}
+
+.link-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 4px 0;
+}
+
+.link-description {
+    font-size: 13px;
+    color: #6B7280;
+    margin: 0 0 24px 0;
+}
+
+.link-input-group {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.link-input {
+    flex: 1;
+    padding: 14px 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #F9FAFB;
+    color: var(--text-dark);
+}
+
+.copy-btn {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: #1D4ED8;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.share-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.share-btn.whatsapp {
+    background: #D1FAE5;
+    color: #065F46;
+    border-color: #A7F3D0;
+}
+
+.share-btn.whatsapp:hover {
+    background: #A7F3D0;
+}
+
+.share-btn.twitter {
+    background: #DBEAFE;
+    color: #1E40AF;
+    border-color: #BFDBFE;
+}
+
+.share-btn.twitter:hover {
+    background: #BFDBFE;
+}
+
+/* Stats Cards */
+.stats-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-card.blue {
+    background: #EFF6FF;
+}
+
+.stat-card.green {
+    background: #ECFDF5;
+}
+
+.stat-card.orange {
+    background: #FFF7ED;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.stat-card.blue .stat-icon {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.stat-card.green .stat-icon {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.stat-card.orange .stat-icon {
+    background: #FED7AA;
+    color: #EA580C;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #6B7280;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+/* History Table */
+.history-section {
+    margin-top: 40px;
+}
+
+.history-table-wrapper {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table thead {
+    background: #F9FAFB;
+}
+
+.history-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    color: #6B7280;
+    font-size: 13px;
+    border-bottom: 2px solid #E5E7EB;
+}
+
+.history-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.history-table tbody tr:hover {
+    background: #F9FAFB;
+}
+
+.user-cell {
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.reward-cell {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.pending {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.status-badge.completed {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.date-cell {
+    color: #6B7280;
+}
+
+@media (max-width: 968px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .referral-link-section {
+        grid-template-columns: 1fr;
+    }
+
+    .share-buttons {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 22px;
+    }
+
+    .offer-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .link-input-group {
+        flex-direction: column;
+    }
+}

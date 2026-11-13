@@ -1,0 +1,47 @@
+/* ════════════════════════════════════════════
+   ADMIN — CONTACT INBOX (layout basics come from investment.css)
+════════════════════════════════════════════ */
+.inbox-unread {
+  display: inline-block; margin-left: 8px; padding: 2px 8px;
+  border-radius: 999px; background: var(--orange-bg); color: var(--orange);
+  font-size: 12px; font-weight: 600; vertical-align: middle;
+}
+
+.inbox-list { border-top: 1px solid var(--border); }
+.inbox-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+
+.inbox-item { border-bottom: 1px solid var(--border); }
+.inbox-item > summary {
+  list-style: none; cursor: pointer;
+  padding: 14px 24px;
+}
+.inbox-item > summary::-webkit-details-marker { display: none; }
+.inbox-item > summary:hover { background: var(--bg); }
+.inbox-item[open] > summary { background: var(--bg); }
+.inbox-item.is-unread .inbox-who { font-weight: 700; }
+.inbox-item.is-unread > summary { box-shadow: inset 3px 0 0 var(--accent-blue); }
+
+.inbox-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.inbox-who  { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.inbox-meta { margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+.inbox-preview {
+  margin-top: 4px; font-size: 13px; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.inbox-item[open] .inbox-preview { display: none; }
+
+.inbox-body { padding: 4px 24px 16px; }
+.inbox-text { margin: 0 0 10px; font-size: 13.5px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.inbox-contact { font-size: 13px; color: var(--text-secondary); }
+.inbox-contact a { color: var(--accent-blue); text-decoration: none; }
+.inbox-contact a:hover { text-decoration: underline; }
+.inbox-actions { margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+
+.inbox-status {
+  flex-shrink: 0; padding: 2px 9px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  background: #f3f4f6; color: #374151;
+}
+.inbox-status.s-unread      { background: var(--accent-blue-bg); color: var(--accent-blue); }
+.inbox-status.s-in_progress { background: var(--orange-bg); color: var(--orange); }
+.inbox-status.s-resolved    { background: var(--green-bg); color: #15803d; }

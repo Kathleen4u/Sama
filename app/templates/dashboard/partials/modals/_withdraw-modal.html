@@ -1,0 +1,81 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/withdraw-modal.css">{% endblock %}
+
+<!-- Withdrawal Modal -->
+<div class="modal" id="withdrawModal">
+    <div class="modal-overlay" onclick="closeModal('withdrawModal')"></div>
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('withdrawModal')">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2 class="modal-title">Pick a withdrawal method for quick, secure transactions</h2>
+
+        <!-- Alert area -->
+        <div id="withdrawAlert" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:8px; font-size:0.88rem;"></div>
+
+        <form id="withdrawForm" class="modal-form" onsubmit="submitWithdrawal(event)">
+            <!-- Select Currency -->
+            <div class="form-group">
+                <label class="form-label">Select Currency</label>
+                <div class="select-wrapper">
+                    <i class="fas fa-bitcoin select-icon" id="withdrawCurrencyIcon"></i>
+                    <select class="form-select" id="withdrawCurrency" onchange="updateWithdrawIcon(this)">
+                        <option value="BTC" data-icon="fa-bitcoin">BTC</option>
+                        <option value="ETH" data-icon="fa-ethereum">ETH</option>
+                        <option value="USDT" data-icon="fa-dollar-sign">USDT</option>
+                        <option value="USDC" data-icon="fa-dollar-sign">USDC</option>
+                        <option value="TRX" data-icon="fa-dollar-sign">TRX</option>
+                        <option value="SOL" data-icon="fa-dollar-sign">SOL</option>
+                        <option value="BNB" data-icon="fa-dollar-sign">BNB</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+                <label class="form-label">Amount</label>
+                <input type="number"
+                       class="form-input"
+                       placeholder="$0.00"
+                       id="withdrawAmount"
+                       min="10"
+                       step="0.01">
+                <small style="color:#888; font-size:0.8rem;">Minimum: $10.00</small>
+            </div>
+
+            <!-- Wallet Address -->
+            <div class="form-group">
+                <label class="form-label">Wallet address</label>
+                <input type="text"
+                       class="form-input"
+                       placeholder="Paste your wallet address"
+                       id="walletAddress"
+                       autocomplete="off">
+            </div>
+
+            <!-- Confirm Wallet Address -->
+            <div class="form-group">
+                <label class="form-label">Confirm wallet address</label>
+                <input type="text"
+                       class="form-input"
+                       placeholder="Re-enter wallet address"
+                       id="confirmWalletAddress"
+                       autocomplete="off">
+                <small style="color:#f0a500; font-size:0.8rem;">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    Funds sent to a wrong address cannot be recovered.
+                </small>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="modal-submit-btn" id="withdrawSubmitBtn">
+                <span id="withdrawBtnText">Withdraw</span>
+                <span id="withdrawBtnSpinner" style="display:none;">
+                    <i class="fas fa-spinner fa-spin"></i> Submitting...
+                </span>
+            </button>
+        </form>
+    </div>
+</div>
+
+{% block extra_js %}<script src="../../../../static/js/withdrawal-modal.js"></script>{% endblock %} 

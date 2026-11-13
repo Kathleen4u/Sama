@@ -1,0 +1,94 @@
+{% extends "landing/layouts/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/css/landing/cookie.css">{% endblock %}
+
+{% block content %}
+    <div class="legal-container">
+        <a href="/" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            Back
+        </a>
+
+        <div class="legal-content">
+            <h1>Cookie Policy</h1>
+            <p class="last-updated">Last Updated: <strong>{{ month }}, {{ year }}</strong></p>
+
+            <p class="intro-text">
+                This Cookie Policy explains how StocksCo ("we", "our", or "us") uses cookies and similar technologies when you visit our Platform. By continuing to use StocksCo, you agree to the use of cookies as described in this policy, unless you choose to disable them through your browser or cookie preferences.
+            </p>
+
+            <h2>1. What Are Cookies?</h2>
+            <p>Cookies are small text files stored on your device when you visit a website. They help websites:</p>
+            <ul>
+                <li>Function properly</li>
+                <li>Remember your preferences</li>
+                <li>Improve performance and user experience</li>
+                <li>Provide analytics and insights</li>
+            </ul>
+            <p>Cookies do not give us access to your device or personal files.</p>
+
+            <h2>2. Types of Cookies We Use</h2>
+
+            <h3>a. Essential Cookies</h3>
+            <p>These cookies are required for the Platform to function properly and cannot be disabled.</p>
+            <p>Examples:</p>
+            <ul>
+                <li>User authentication and login sessions</li>
+                <li>Security and fraud prevention</li>
+                <li>Account access and navigation</li>
+            </ul>
+
+            <h3>b. Performance & Analytics Cookies</h3>
+            <p>These cookies help us understand how users interact with StocksCo so we can improve performance and usability.</p>
+            <p>Examples:</p>
+            <ul>
+                <li>Page views and traffic sources</li>
+                <li>Feature usage and interaction patterns</li>
+                <li>Error tracking and load performance</li>
+            </ul>
+            <p>Data collected is aggregated and anonymized where possible.</p>
+
+            <h3>c. Functional Cookies</h3>
+            <p>These cookies allow us to remember your preferences and provide a more personalized experience.</p>
+            <p>Examples:</p>
+            <ul>
+                <li>Language and region preferences</li>
+                <li>Dashboard layout settings</li>
+                <li>Notification preferences</li>
+            </ul>
+
+            <h3>d. Marketing & Communication Cookies</h3>
+            <p>These cookies may be used to deliver relevant messages or promotions (where applicable).</p>
+            <p>Examples:</p>
+            <ul>
+                <li>Referral tracking</li>
+                <li>Campaign performance measurement</li>
+                <li>Platform announcements</li>
+            </ul>
+            <p><strong>StocksCo does not sell user data to advertisers.</strong></p>
+
+            <h2>3. Third-Party Cookies</h2>
+            <p>We may allow trusted third-party services to place cookies on our Platform for:</p>
+            <ul>
+                <li>Analytics and performance monitoring</li>
+                <li>Identity verification support</li>
+                <li>Payment processing functionality</li>
+            </ul>
+            <p>These third parties are required to comply with applicable data protection laws.</p>
+
+            <h2>4. How You Can Manage Cookies</h2>
+            <p>You can control or delete cookies at any time through:</p>
+            <ul>
+                <li>Your browser settings</li>
+                <li>Device privacy settings</li>
+            </ul>
+            <p><strong>Please note that disabling essential cookies may affect platform functionality, including login, trading, or transactions.</strong></p>
+
+            <h2>5. Updates to This Cookie Policy</h2>
+            <p>We may update this Cookie Policy from time to time to reflect changes in technology, laws, or platform functionality. Any updates will be posted on this page with a revised date.</p>
+
+            <h2>6. Contact Us</h2>
+            <p>If you have questions about our use of cookies or data practices, contact us at: <a href="mailto:support@stocksco.io">support@stocksco.io</a></p>
+        </div>
+    </div>
+{% endblock %}

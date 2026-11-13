@@ -1,0 +1,107 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/investment-assets.css">{% endblock %}
+
+
+<!-- Investment Assets Section -->
+<div class="investment-assets-grid">
+    <!-- US Stocks Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">US Stocks</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Invest in leading U.S. companies and global market leaders.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Medium–High</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$10</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="openStockModal('US Stocks')">Explore</button>
+    </div>
+
+    <!-- International Stocks Card -->
+    <div class="investment-card">
+        <h3 class="investment-title">International Stocks</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                Trade top-performing International companies listed on the market.
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">Medium–High</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">$10</span>
+            </div>
+        </div>
+        <button class="explore-btn" onclick="openStockModal('NG Stocks')">Explore</button>
+    </div>
+
+    <!-- Investment Product Cards (Managed Portfolio, Dollar Savings, Fixed Returns, Treasury Bills)
+         Rates, minimums and availability come from the investment_products table (Admin → Settings). -->
+    {% for code in ["managed_portfolio", "dollar_savings", "fixed_returns", "treasury_bills"] %}
+    {% set product = products[code] %}
+    <div class="investment-card">
+        <h3 class="investment-title">{{ product.name }}</h3>
+        <div class="investment-content">
+            <div class="investment-icon">
+                <img src="{{ url_for('static', filename='images/invest.jpg') }}" alt="Investment" />
+            </div>
+            <p class="investment-description">
+                {{ product.description }}
+            </p>
+        </div>
+        <div class="investment-details">
+            <div class="detail-row">
+                <span class="detail-label">Risk level</span>
+                <span class="detail-value">{{ product.risk_level }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Min Investment</span>
+                <span class="detail-value">${{ "{:,.0f}".format(product.min_amount) }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Returns</span>
+                <span class="detail-value">
+                    {% if product.product_type == "managed" %}
+                        Market-linked
+                    {% elif product.rate_min == product.rate_max %}
+                        {{ "%.2f"|format(product.rate_min) }}% p.a.
+                    {% else %}
+                        {{ "%.2f"|format(product.rate_min) }}–{{ "%.2f"|format(product.rate_max) }}% p.a.
+                    {% endif %}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Term</span>
+                <span class="detail-value">
+                    {% if product.product_type == "fixed_term" %}
+                        {{ product.terms[0].label }}{% if product.terms|length > 1 %} – {{ product.terms[-1].label }}{% endif %}
+                    {% else %}
+                        Flexible
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% if product.is_active %}
+        <button class="explore-btn" onclick="openInvestModal('{{ code }}')">Explore</button>
+        {% else %}
+        <button class="explore-btn" disabled>Currently unavailable</button>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

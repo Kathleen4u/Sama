@@ -1,0 +1,521 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – {{ u.name }}{% endblock %}
+
+{% set active_page = 'user-management' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/user-detail.css') }}">
+{% endblock %}
+
+{% block page_title %}User Profile{% endblock %}
+
+{% macro pill(value) -%}
+  {%- set v = (value or '')|lower -%}
+  {%- if v in ('active', 'verified', 'approved', 'completed', 'matured') -%}
+    {%- set cls = 'ud-pill--green' -%}
+  {%- elif v in ('suspended', 'closed', 'rejected', 'failed', 'reversed', 'expired') -%}
+    {%- set cls = 'ud-pill--red' -%}
+  {%- elif v in ('pending', 'pending_verification', 'confirming', 'unverified') -%}
+    {%- set cls = 'ud-pill--orange' -%}
+  {%- else -%}
+    {%- set cls = '' -%}
+  {%- endif -%}
+  <span class="ud-pill {{ cls }}">{{ (value or '—')|replace('_', ' ')|title }}</span>
+{%- endmacro %}
+
+{% block content %}
+
+<a class="ud-back" href="{{ url_for('admin.user_management') }}">← All users</a>
+
+<!-- ── Header ── -->
+<div class="ud-card">
+  <div class="ud-header">
+    <div>
+      <div class="ud-name">{{ u.name }}</div>
+      <div class="ud-meta"><span class="mono">{{ u.uid }}</span> · {{ u.email }} · joined {{ u.joined }}</div>
+      <div class="ud-badges">
+        {{ pill(u.status) }}
+        <span class="ud-pill {{ 'ud-pill--blue' if u.kyc == 'verified' else 'ud-pill--orange' }}">KYC: {{ u.kyc|title }}</span>
+        {% if not u.email_verified %}<span class="ud-pill ud-pill--orange">Email not verified</span>{% endif %}
+        {% if u.is_admin %}<span class="ud-pill ud-pill--blue">Admin account</span>{% endif %}
+      </div>
+    </div>
+    {% if u.is_admin %}
+    <div class="ud-hint">Admin accounts are view-only here — account actions are disabled.</div>
+    {% else %}
+    <div class="ud-actions">
+      <button class="ud-btn ud-btn--primary" onclick="openAction('message')">Message</button>
+      {% if u.status != 'closed' %}
+      <button class="ud-btn" onclick="openAction('adjust')">Adjust wallet</button>
+      <button class="ud-btn" onclick="sendReset()">Send password reset</button>
+      {% if u.kyc == 'verified' %}
+      <button class="ud-btn ud-btn--danger" onclick="openAction('kycRevoke')">Revoke KYC</button>
+      {% else %}
+      <button class="ud-btn ud-btn--good" onclick="openAction('kycVerify')">Verify KYC</button>
+      {% endif %}
+      {% if u.status == 'suspended' %}
+      <button class="ud-btn ud-btn--good" onclick="toggleSuspend()">Unsuspend</button>
+      {% else %}
+      <button class="ud-btn ud-btn--danger" onclick="toggleSuspend()">Suspend</button>
+      {% endif %}
+      <button class="ud-btn ud-btn--danger" onclick="openAction('close')">Close account</button>
+      {% else %}
+      <button class="ud-btn ud-btn--good" onclick="openAction('reopen')">Reopen account</button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Money ── -->
+<div class="ud-stats">
+  <div class="ud-stat"><div class="ud-stat-label">Wallet balance</div><div class="ud-stat-value">{{ money.wallet }}</div></div>
+  <div class="ud-stat"><div class="ud-stat-label">Stock holdings</div><div class="ud-stat-value">{{ money.holdings }}</div></div>
+  <div class="ud-stat"><div class="ud-stat-label">Active investments</div><div class="ud-stat-value">{{ money.invested }}</div></div>
+  <div class="ud-stat"><div class="ud-stat-label">Net worth</div><div class="ud-stat-value">{{ money.net_worth }}</div></div>
+</div>
+
+<div class="ud-grid">
+
+  <!-- ════════ Left column ════════ -->
+  <div>
+
+    <div class="ud-card">
+      <div class="ud-card-head">
+        <div><div class="ud-card-title">Transactions</div><div class="ud-card-sub">Latest 50</div></div>
+      </div>
+      {% if transactions %}
+      <div class="ud-table-wrap">
+        <table class="ud-table">
+          <thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for t in transactions %}
+            <tr>
+              <td class="muted">{{ t.date }}</td>
+              <td>{{ t.type }}</td>
+              <td>
+                {{ t.description }}
+                {% if t.flag %}<div><span class="ud-pill ud-pill--orange" title="{{ t.flag }}">Flagged</span></div>{% endif %}
+              </td>
+              <td class="num {{ 'ud-pos' if t.positive else 'ud-neg' }}">{{ t.amount }}</td>
+              <td>{{ pill(t.status) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="ud-empty">No transactions yet.</div>{% endif %}
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head"><div class="ud-card-title">Withdrawals</div></div>
+      {% if withdrawals %}
+      <div class="ud-table-wrap">
+        <table class="ud-table">
+          <thead><tr><th>Date</th><th>Amount</th><th>To</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for w in withdrawals %}
+            <tr>
+              <td class="muted">{{ w.date }}</td>
+              <td class="num">{{ w.amount }} <span class="muted">{{ w.currency }}</span></td>
+              <td>
+                <div class="wrap">{{ w.address }}</div>
+                {% if w.hash %}<div class="muted">Payout tx: <span class="wrap">{{ w.hash }}</span></div>{% endif %}
+                {% if w.reason %}<div class="muted">Reason: {{ w.reason }}</div>{% endif %}
+              </td>
+              <td>{{ pill(w.status) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="ud-empty">No withdrawals.</div>{% endif %}
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head"><div class="ud-card-title">Stock holdings</div></div>
+      {% if holdings %}
+      <div class="ud-table-wrap">
+        <table class="ud-table">
+          <thead><tr><th>Stock</th><th>Qty</th><th>Cost</th><th>Price</th><th>Value</th></tr></thead>
+          <tbody>
+            {% for h in holdings %}
+            <tr>
+              <td><strong>{{ h.symbol }}</strong><div class="muted">{{ h.name }} · {{ h.date }}</div></td>
+              <td class="num">{{ h.qty }}</td>
+              <td class="num">{{ h.cost }}</td>
+              <td class="num">{{ h.price }}</td>
+              <td class="num">{{ h.value }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="ud-empty">No stock holdings.</div>{% endif %}
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head"><div class="ud-card-title">Investment positions</div></div>
+      {% if positions %}
+      <div class="ud-table-wrap">
+        <table class="ud-table">
+          <thead><tr><th>Product</th><th>Principal</th><th>Value</th><th>Rate</th><th>Opened</th><th>Matures</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for p in positions %}
+            <tr>
+              <td>{{ p.name }}</td>
+              <td class="num">{{ p.principal }}</td>
+              <td class="num">{{ p.value }}</td>
+              <td class="num">{{ p.rate }}</td>
+              <td class="muted">{{ p.opened }}</td>
+              <td class="muted">{{ p.matures }}</td>
+              <td>{{ pill(p.status) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="ud-empty">No investment positions.</div>{% endif %}
+    </div>
+
+  </div>
+
+  <!-- ════════ Right column ════════ -->
+  <div>
+
+    <div class="ud-card">
+      <div class="ud-card-head"><div class="ud-card-title">Profile</div></div>
+      <div class="ud-card-body">
+        <dl class="ud-kv">
+          <dt>Phone</dt><dd>{{ u.phone }}</dd>
+          <dt>Date of birth</dt><dd>{{ u.dob }}</dd>
+          <dt>Last login</dt><dd>{{ u.last_login }}</dd>
+          <dt>Referral code</dt><dd>{{ u.referral_code }}</dd>
+          <dt>Referral rewards</dt><dd>{{ u.rewards }}</dd>
+          {% if u.kyc_rejection %}<dt>KYC rejection</dt><dd>{{ u.kyc_rejection }}</dd>{% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head">
+        <div><div class="ud-card-title">Internal notes</div><div class="ud-card-sub">Only admins see these</div></div>
+      </div>
+      <div class="ud-card-body">
+        {% if not u.is_admin %}
+        <div class="ud-note-form">
+          <textarea class="ud-input" id="noteBody" rows="3" maxlength="2000"
+                    placeholder="e.g. Called the user about the address mismatch — confirmed new wallet"></textarea>
+          <div class="ud-error" id="noteError" style="display:none;"></div>
+          <div class="ud-row" style="justify-content:flex-end;">
+            <button class="ud-btn ud-btn--primary" id="noteSubmit" onclick="addNote()">Add note</button>
+          </div>
+        </div>
+        {% endif %}
+        {% if notes %}
+        <ul class="ud-list">
+          {% for n in notes %}
+          <li>
+            <div class="ud-note-body">{{ n.body }}</div>
+            <div class="ud-list-meta">{{ n.admin }} · {{ n.date }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head"><div class="ud-card-title">KYC documents</div></div>
+      <div class="ud-card-body">
+        {% if kyc_docs %}
+        <ul class="ud-list">
+          {% for d in kyc_docs %}
+          <li>
+            <div class="ud-row">
+              <span>{{ d.type }}</span>
+              {{ pill(d.status) }}
+            </div>
+            <div class="ud-list-meta">
+              Uploaded {{ d.uploaded }} ·
+              <a class="ud-link" href="{{ url_for('admin.kyc_detail', doc_id=d.id) }}">Review</a>
+            </div>
+            {% if d.reason %}<div class="ud-list-meta">Rejected: {{ d.reason }}</div>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}<div class="ud-hint">No documents uploaded.</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head"><div class="ud-card-title">Referrals</div></div>
+      <div class="ud-card-body">
+        <div class="ud-hint" style="margin-bottom:6px;">
+          {% if referred_by %}
+          Referred by <a class="ud-link" href="{{ url_for('admin.user_detail', user_id=referred_by.id) }}">{{ referred_by.name }}</a>
+          ({{ referred_by.status }})
+          {% else %}Signed up without a referral.{% endif %}
+        </div>
+        {% if referrals %}
+        <ul class="ud-list">
+          {% for r in referrals %}
+          <li>
+            <div class="ud-row">
+              <a class="ud-link" href="{{ url_for('admin.user_detail', user_id=r.id) }}">{{ r.name }}</a>
+              {{ pill(r.status) }}
+            </div>
+            <div class="ud-list-meta">Joined {{ r.date }} · reward {{ r.reward }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}<div class="ud-hint">Hasn't referred anyone.</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="ud-card">
+      <div class="ud-card-head">
+        <div><div class="ud-card-title">Admin activity</div><div class="ud-card-sub">Actions taken on this account</div></div>
+      </div>
+      <div class="ud-card-body">
+        {% if activity %}
+        <ul class="ud-list">
+          {% for a in activity %}
+          <li>
+            <div>{{ a.label }} <span class="muted ud-list-meta">· {{ a.target }}</span></div>
+            {% if a.reason %}<div class="ud-list-meta">“{{ a.reason }}”</div>{% endif %}
+            <div class="ud-list-meta">{{ a.admin }} · {{ a.date }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}<div class="ud-hint">No admin actions yet.</div>{% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Action modal (message / adjust / close / reopen / KYC verify / revoke) ── -->
+<div class="ud-modal-overlay" id="actionModal" onclick="if (event.target === this) closeAction()">
+  <div class="ud-modal" role="dialog" aria-modal="true" aria-labelledby="actionTitle">
+    <div class="ud-modal-head" id="actionTitle"></div>
+    <div class="ud-modal-body">
+
+      <div data-action="message">
+        <label class="ud-label" for="msgTitle">Title</label>
+        <input class="ud-input" id="msgTitle" maxlength="120" placeholder="e.g. About your recent withdrawal">
+        <label class="ud-label" for="msgBody">Message</label>
+        <textarea class="ud-input" id="msgBody" rows="5" maxlength="2000"></textarea>
+        <p class="ud-hint">Appears in the user's notifications, even if they've muted a category.</p>
+      </div>
+
+      <div data-action="adjust">
+        <div>
+          <label class="ud-choice"><input type="radio" name="adjDir" value="credit" checked> Credit (add)</label>
+          <label class="ud-choice"><input type="radio" name="adjDir" value="debit"> Debit (remove)</label>
+        </div>
+        <label class="ud-label" for="adjAmount">Amount (USD)</label>
+        <input class="ud-input" type="number" id="adjAmount" min="0.01" step="0.01" inputmode="decimal">
+        <label class="ud-label" for="adjReason">Reason — shown to the user</label>
+        <input class="ud-input" id="adjReason" maxlength="200" placeholder="e.g. Correction for duplicate fee on Oct 3">
+        <label class="ud-label" for="adjNote">Internal note (optional, audit log only)</label>
+        <textarea class="ud-input" id="adjNote" rows="2" maxlength="500"></textarea>
+      </div>
+
+      <div data-action="close">
+        <p class="ud-hint">
+          The user is logged out and can't sign in again. Only possible once their wallet is empty
+          and they have no pending withdrawals, stocks or active investments.
+        </p>
+        <label class="ud-label" for="closeReason">Reason</label>
+        <textarea class="ud-input" id="closeReason" rows="3" maxlength="500"></textarea>
+      </div>
+
+      <div data-action="reopen">
+        <p class="ud-hint">The user can sign in again{{ '' if u.email_verified else ' once they verify their email' }}.</p>
+        <label class="ud-label" for="reopenReason">Reason</label>
+        <textarea class="ud-input" id="reopenReason" rows="3" maxlength="500"></textarea>
+      </div>
+
+      <div data-action="kycVerify">
+        <p class="ud-hint">
+          Marks the user KYC-verified without reviewing documents{{ ' (they have ' ~ kyc_docs|length ~ ' on file — any still pending stay pending)' if kyc_docs else '' }}.
+          They get the "KYC Approved" notification.
+        </p>
+        <label class="ud-label" for="kycVerifyReason">Reason — audit log only</label>
+        <textarea class="ud-input" id="kycVerifyReason" rows="3" maxlength="500" placeholder="e.g. Identity confirmed on a video call"></textarea>
+      </div>
+
+      <div data-action="kycRevoke">
+        <p class="ud-hint">
+          KYC goes back to what the user's documents support (pending, rejected or unverified) and they're
+          notified. They may need to upload documents again.
+        </p>
+        <label class="ud-label" for="kycRevokeReason">Reason — audit log only</label>
+        <textarea class="ud-input" id="kycRevokeReason" rows="3" maxlength="500"></textarea>
+      </div>
+
+      <div class="ud-error" id="actionError" style="display:none;"></div>
+    </div>
+    <div class="ud-modal-foot">
+      <button class="ud-btn" onclick="closeAction()">Cancel</button>
+      <button class="ud-btn ud-btn--primary" id="actionSubmit" onclick="submitAction()"></button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const USER_ID    = {{ u.id }};
+const USER_EMAIL = {{ u.email|tojson }};
+
+const ACTIONS = {
+  message: { title: "Message user", submit: "Send message" },
+  adjust:  { title: "Adjust wallet balance", submit: "Apply" },
+  close:   { title: "Close account", submit: "Close account" },
+  reopen:  { title: "Reopen account", submit: "Reopen account" },
+  kycVerify: { title: "Verify KYC manually", submit: "Verify KYC" },
+  kycRevoke: { title: "Revoke KYC verification", submit: "Revoke KYC" },
+};
+let currentAction = null;
+
+function openAction(name) {
+  currentAction = name;
+  document.getElementById("actionTitle").textContent  = ACTIONS[name].title;
+  document.getElementById("actionSubmit").textContent = ACTIONS[name].submit;
+  document.querySelectorAll("#actionModal [data-action]").forEach(el => {
+    el.style.display = el.dataset.action === name ? "" : "none";
+  });
+  document.querySelectorAll("#actionModal input:not([type=radio]), #actionModal textarea").forEach(el => el.value = "");
+  document.querySelector('input[name="adjDir"][value="credit"]').checked = true;
+  document.getElementById("actionError").style.display = "none";
+  document.getElementById("actionModal").classList.add("open");
+}
+
+function closeAction() {
+  document.getElementById("actionModal").classList.remove("open");
+  currentAction = null;
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeAction(); });
+
+function showActionError(msg) {
+  const box = document.getElementById("actionError");
+  box.textContent = msg;
+  box.style.display = "";
+}
+
+// Builds the request for the open action, or returns an error string
+function buildRequest() {
+  const val = id => document.getElementById(id).value.trim();
+  if (currentAction === "message") {
+    if (!val("msgTitle") || !val("msgBody")) return "Add a title and a message.";
+    return { url: "message", body: { title: val("msgTitle"), message: val("msgBody") } };
+  }
+  if (currentAction === "adjust") {
+    const direction = document.querySelector('input[name="adjDir"]:checked').value;
+    if (!(parseFloat(val("adjAmount")) > 0)) return "Enter an amount greater than zero.";
+    if (!val("adjReason")) return "Give a reason — the user sees it in their history.";
+    const verb = direction === "credit" ? "Add" : "Remove";
+    const prep = direction === "credit" ? "to" : "from";
+    if (!confirm(`${verb} $${parseFloat(val("adjAmount")).toFixed(2)} ${prep} ${USER_EMAIL}'s wallet?`)) return null;
+    return { url: "adjust-wallet", body: {
+      direction, amount: val("adjAmount"), reason: val("adjReason"), internal_note: val("adjNote"),
+    } };
+  }
+  if (currentAction === "close") {
+    if (!val("closeReason")) return "Give a reason for closing the account.";
+    return { url: "close", body: { reason: val("closeReason") } };
+  }
+  if (currentAction === "reopen") {
+    if (!val("reopenReason")) return "Give a reason for reopening the account.";
+    return { url: "reopen", body: { reason: val("reopenReason") } };
+  }
+  if (currentAction === "kycVerify") {
+    if (!val("kycVerifyReason")) return "Give a reason for verifying this user.";
+    return { url: "kyc/verify", body: { reason: val("kycVerifyReason") } };
+  }
+  if (currentAction === "kycRevoke") {
+    if (!val("kycRevokeReason")) return "Give a reason for revoking verification.";
+    return { url: "kyc/revoke", body: { reason: val("kycRevokeReason") } };
+  }
+  return "Unknown action.";
+}
+
+async function submitAction() {
+  const req = buildRequest();
+  if (req === null) return;                       // confirm() cancelled
+  if (typeof req === "string") { showActionError(req); return; }
+
+  const btn = document.getElementById("actionSubmit");
+  btn.disabled = true;
+  try {
+    const res  = await fetch(`/admin/api/users/${USER_ID}/${req.url}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) { showActionError(data.error || "That didn't work. Please try again."); return; }
+    location.reload();
+  } catch {
+    showActionError("Network error. Please try again.");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function postSimple(path, confirmText, doneText) {
+  if (!confirm(confirmText)) return;
+  try {
+    const res  = await fetch(`/admin/api/users/${USER_ID}/${path}`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.success === false || data.error) throw new Error(data.error || "Request failed");
+    if (doneText) alert(doneText);
+    location.reload();
+  } catch (err) {
+    alert(err.message === "Request failed" ? "That didn't work. Please try again." : err.message);
+  }
+}
+
+function toggleSuspend() {
+  {% if u.status == 'suspended' %}
+  postSimple("toggle-suspend", `Unsuspend ${USER_EMAIL}?`);
+  {% else %}
+  postSimple("toggle-suspend", `Suspend ${USER_EMAIL}? They'll be logged out immediately.`);
+  {% endif %}
+}
+
+function sendReset() {
+  postSimple("send-password-reset", `Send a password reset link to ${USER_EMAIL}?`,
+             `Password reset link sent to ${USER_EMAIL}.`);
+}
+
+async function addNote() {
+  const body   = document.getElementById("noteBody").value.trim();
+  const errBox = document.getElementById("noteError");
+  const btn    = document.getElementById("noteSubmit");
+  if (!body) { errBox.textContent = "Write a note first."; errBox.style.display = ""; return; }
+
+  btn.disabled = true;
+  try {
+    const res  = await fetch(`/admin/api/users/${USER_ID}/notes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) { errBox.textContent = data.error || "Could not save the note."; errBox.style.display = ""; return; }
+    location.reload();
+  } catch {
+    errBox.textContent = "Network error. Please try again.";
+    errBox.style.display = "";
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

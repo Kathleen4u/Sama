@@ -1,0 +1,40 @@
+/* ════════════════════════════════════════════
+   AUDIT LOG — table layout comes from investment.css
+════════════════════════════════════════════ */
+.audit-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+.audit-time {
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.audit-muted { color: var(--text-muted); font-size: 12.5px; }
+
+.audit-action {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+}
+.audit-action--withdrawal,
+.audit-action--deposit     { background: var(--green-bg);  color: var(--green); }
+.audit-action--user        { background: var(--red-bg);    color: var(--red); }
+.audit-action--transaction { background: var(--orange-bg); color: var(--orange); }
+
+.audit-details {
+  max-width: 380px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+.audit-key { color: var(--text-primary); font-weight: 500; }

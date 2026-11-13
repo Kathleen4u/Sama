@@ -1,0 +1,117 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/support-content.css">{% endblock %}
+
+
+<!-- Support Page Content -->
+<div class="support-container">
+
+    <!-- Search Bar -->
+    <!-- <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search for answers....." class="search-input">
+        </div>
+    </div> -->
+
+    <!-- Help Categories -->
+    <div class="help-section mt-5">
+        <h2 class="section-title">Help Categories</h2>
+        
+        <div class="help-grid">
+            <!-- Account & Verification -->
+            <div class="help-card">
+                <div class="help-icon blue">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="help-content">
+                    <h3 class="help-title">Account & Verification</h3>
+                    <p class="help-description">Manage your profile, verify identity, and update settings</p>
+                    <a href="{{ url_for('dashboard.settings', tab='kyc') }}" class="help-link">
+                        View details <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Wallet & Payments -->
+            <div class="help-card">
+                <div class="help-icon green">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="help-content">
+                    <h3 class="help-title">Wallet & Payments</h3>
+                    <p class="help-description">Deposits, withdrawals, payment methods, and transactions</p>
+                    <a href="{{ url_for('dashboard.wallet') }}" class="help-link">
+                        View details <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Trading & Investments -->
+            <div class="help-card">
+                <div class="help-icon blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="help-content">
+                    <h3 class="help-title">Trading & Investments</h3>
+                    <p class="help-description">Learn about buying, selling, portfolios, and market insights</p>
+                    <a href="{{ url_for('dashboard.invest') }}" class="help-link">
+                        View details <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Security & Privacy -->
+            <div class="help-card">
+                <div class="help-icon teal">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="help-content">
+                    <h3 class="help-title">Security & Privacy</h3>
+                    <p class="help-description">Two-factor authentication, data protection, and security</p>
+                    <a href="{{ url_for('dashboard.settings') }}" class="help-link">
+                        View details <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Support -->
+    <div class="contact-section">
+        <h2 class="section-title">Contact Support</h2>
+        
+        <div class="contact-grid">
+            <!-- Email Support -->
+            <div class="contact-card">
+                <div class="contact-icon blue">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3 class="contact-title">Email Support</h3>
+                <p class="contact-description">We typically respond within 24 hours</p>
+                <p class="contact-info">support@stocksco.io</p><a href="mailto:support@stocksco.io">
+                <button class="contact-btn">Send Email</button></a>
+            </div>
+
+            <!-- Live Chat -->
+            <div class="contact-card">
+                <div class="contact-icon green">
+                    <i class="fas fa-comment-dots"></i>
+                </div>
+                <h3 class="contact-title">Live Chat</h3>
+                <p class="contact-description">Available Mon-Fri, 9 AM - 6 PM EST</p>
+                <p class="contact-info">Chat with us now</p><a href="https://wa.me/447311134144">
+                <button class="contact-btn">Start Chat</button></a>
+            </div>
+
+            <!-- Phone Support -->
+            <div class="contact-card">
+                <div class="contact-icon purple">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <h3 class="contact-title">Phone Support</h3>
+                <p class="contact-description">Mon-Fri, 9 AM - 6 PM EST</p>
+                <p class="contact-info">+447311134144</p><a href="tel:+447311134144">
+                <button class="contact-btn">Call Now</button></a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+/* Stock Ticker Bar */
+.stock-ticker {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.ticker-items {
+    display: flex;
+    gap: 40px;
+    animation: scroll 30s linear infinite;
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+}
+
+.ticker-symbol {
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 14px;
+}
+
+.ticker-price {
+    font-weight: 600;
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.ticker-change {
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ticker-change.positive {
+    color: #10B981;
+}
+
+.ticker-change.negative {
+    color: #EF4444;
+}
+
+@media (max-width: 768px) {
+    .ticker-items {
+        gap: 24px;
+    }
+}

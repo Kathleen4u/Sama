@@ -1,0 +1,49 @@
+{# ETF cards with live prices. Expects `etfs` (from dashboard._etf_page_context). #}
+<div class="etf-grid">
+    {% for etf in etfs %}
+    {% set pct = etf.percent_change if etf.percent_change is not none else 0 %}
+    {% set up = pct >= 0 %}
+    <div class="etf-card" data-symbol="{{ etf.symbol }}" data-name="{{ etf.name }}"
+         data-live-symbol="{{ etf.symbol }}">
+        <div class="etf-card-header">
+            <div class="etf-info">
+                <h3 class="etf-symbol">{{ etf.symbol }}</h3>
+                <p class="etf-name">{{ etf.name }}</p>
+            </div>
+            <span class="etf-risk {{ etf.risk|lower }}">{{ etf.risk }}</span>
+        </div>
+
+        {# Sparkline: last 30 daily closes, drawn by etf-page.js #}
+        <div class="etf-chart {{ '' if up else 'negative' }}">
+            <svg viewBox="0 0 300 80" preserveAspectRatio="none" data-spark="{{ etf.symbol }}"
+                 data-positive="{{ 'true' if up else 'false' }}">
+                <defs>
+                    <linearGradient id="etfGradient{{ loop.index }}" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:{{ '#10B981' if up else '#EF4444' }};stop-opacity:0.2" />
+                        <stop offset="100%" style="stop-color:{{ '#10B981' if up else '#EF4444' }};stop-opacity:0.05" />
+                    </linearGradient>
+                </defs>
+                <polyline class="spark-fill" fill="url(#etfGradient{{ loop.index }})" stroke="none" points="" />
+                <polyline class="spark-line" fill="none" stroke="{{ '#10B981' if up else '#EF4444' }}"
+                          stroke-width="2" points="" />
+            </svg>
+        </div>
+
+        <div class="etf-footer">
+            <div class="etf-price-info">
+                <div class="etf-price" data-live="price">
+                    {{ "$%.2f"|format(etf.close) if etf.close is not none else "—" }}
+                </div>
+                <div class="etf-change {{ 'positive' if up else 'negative' }}" data-live="change-arrow">
+                    {% if etf.percent_change is not none %}
+                    <i class="fas fa-arrow-{{ 'up' if up else 'down' }}"></i>
+                    {{ '+' if up else '' }}{{ "%.2f"|format(pct) }}%
+                    {% else %}—{% endif %}
+                </div>
+            </div>
+            <button type="button" class="buy-etf-btn" onclick="selectETF('{{ etf.symbol }}')"
+                    {{ 'disabled' if etf.close is none }}>Buy ETF</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>

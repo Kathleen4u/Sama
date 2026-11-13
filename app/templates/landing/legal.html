@@ -1,0 +1,261 @@
+{% extends "landing/layouts/base.html" %}
+{% block styles %}
+<link rel="stylesheet" href="../../static/css/landing/legal.css">
+{% endblock %}
+
+{% block content %}
+    <!-- Legal Hero Section -->
+    <section class="legal-hero">
+        <div class="container">
+            <h1>Legal & Compliance</h1>
+            <p>
+                StocksCo is committed to operating with full transparency and regulatory compliance. Learn about our legal framework, investor protections, and trading regulations.
+            </p>
+        </div>
+    </section>
+
+    <!-- Main Legal Content -->
+    <section class="legal-content-section">
+        <div class="container">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8">
+                    <!-- Regulatory Compliance -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <h2>Regulatory Compliance & Licensing</h2>
+                        <p>
+                            StocksCo operates in full compliance with applicable financial regulations and maintains the necessary licenses to provide digital investment services. We are committed to upholding the highest standards of regulatory compliance across all jurisdictions where we operate.
+                        </p>
+                        <h3>Our Regulatory Framework</h3>
+                        <ul>
+                            <li><strong>Know Your Customer (KYC):</strong> All users must complete identity verification to comply with anti-money laundering (AML) regulations.</li>
+                            <li><strong>Anti-Money Laundering (AML):</strong> We monitor transactions for suspicious activity and report as required by law.</li>
+                            <li><strong>Counter-Terrorist Financing (CTF):</strong> Strict controls prevent the platform from being used for illegal financing activities.</li>
+                            <li><strong>Data Protection Compliance:</strong> We comply with GDPR, CCPA, and other applicable data privacy regulations.</li>
+                        </ul>
+                        <p>
+                            StocksCo works with licensed financial partners and regulated custodians to ensure your investments are held securely and in compliance with financial regulations.
+                        </p>
+                    </div>
+
+                    <!-- Investment Risks & Disclaimers -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h2>Investment Risks & Disclaimers</h2>
+                        <p>
+                            Investing in stocks, ETFs, and other financial instruments involves substantial risk and may not be suitable for all investors. StocksCo provides access to investment tools but does not provide personalized financial, legal, or tax advice.
+                        </p>
+                        <h3>Key Risk Factors</h3>
+                        <ul>
+                            <li><strong>Market Risk:</strong> Stock prices can fluctuate significantly due to market conditions, economic factors, and company performance.</li>
+                            <li><strong>Loss of Capital:</strong> You may lose some or all of your invested capital. Past performance does not guarantee future results.</li>
+                            <li><strong>Liquidity Risk:</strong> Some assets may be difficult to sell quickly at desired prices.</li>
+                            <li><strong>Currency Risk:</strong> Investments in foreign markets may be affected by exchange rate fluctuations.</li>
+                            <li><strong>Regulatory Risk:</strong> Changes in laws or regulations may impact investment values or platform operations.</li>
+                            <li><strong>Technology Risk:</strong> While we maintain robust security systems, no platform is completely immune to technical failures or cyber threats.</li>
+                        </ul>
+                        <p class="disclaimer-note">
+                            <strong>Important:</strong> You should carefully consider your investment objectives, level of experience, and risk appetite before investing. If you have any doubts, consult with an independent financial advisor.
+                        </p>
+                    </div>
+
+                    <!-- Investor Protection -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h2>Investor Protection Measures</h2>
+                        <p>
+                            Your security and protection are our top priorities. StocksCo implements multiple layers of safeguards to protect your investments and personal information.
+                        </p>
+                        <h3>How We Protect You</h3>
+                        <ul>
+                            <li><strong>Segregated Accounts:</strong> Client funds are held in segregated accounts separate from company operating funds.</li>
+                            <li><strong>Bank-Grade Security:</strong> We use 256-bit encryption, multi-factor authentication (2FA), and biometric verification.</li>
+                            <li><strong>Regular Security Audits:</strong> Our systems undergo regular third-party security assessments and penetration testing.</li>
+                            <li><strong>Fraud Monitoring:</strong> 24/7 automated monitoring systems detect and prevent suspicious activities.</li>
+                            <li><strong>Secure Custody Partners:</strong> Assets are held with regulated financial institutions and custodians.</li>
+                            <li><strong>Transaction Verification:</strong> All withdrawals require multi-step verification to prevent unauthorized access.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Trading Rules & Fair Practices -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h2>Trading Rules & Fair Practices</h2>
+                        <p>
+                            StocksCo is committed to maintaining fair, transparent, and orderly markets for all users.
+                        </p>
+                        <h3>Market Conduct Standards</h3>
+                        <ul>
+                            <li><strong>No Market Manipulation:</strong> Engaging in activities that artificially influence prices is strictly prohibited.</li>
+                            <li><strong>Best Execution:</strong> We strive to execute trades at the best available prices for our clients.</li>
+                            <li><strong>Fair Pricing:</strong> All fees and charges are clearly disclosed before you confirm transactions.</li>
+                            <li><strong>Conflict of Interest Management:</strong> We maintain policies to identify and manage potential conflicts of interest.</li>
+                            <li><strong>Order Handling:</strong> Client orders are processed fairly and in accordance with applicable regulations.</li>
+                        </ul>
+                        <h3>Prohibited Activities</h3>
+                        <p>Users are prohibited from:</p>
+                        <ul>
+                            <li>Engaging in insider trading or using non-public information</li>
+                            <li>Manipulating or attempting to manipulate market prices</li>
+                            <li>Using the platform for money laundering or terrorist financing</li>
+                            <li>Creating multiple accounts to circumvent limits or restrictions</li>
+                            <li>Disrupting platform infrastructure or other users' access</li>
+                        </ul>
+                        <p>Violations may result in account suspension, termination, and reporting to relevant authorities.</p>
+                    </div>
+
+                    <!-- Account & Transaction Policies -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h2>Account & Transaction Policies</h2>
+                        <h3>Account Requirements</h3>
+                        <ul>
+                            <li><strong>Age Requirement:</strong> Users must be at least 18 years old.</li>
+                            <li><strong>Identity Verification:</strong> All users must complete KYC verification before trading.</li>
+                            <li><strong>Accurate Information:</strong> You must provide truthful and up-to-date personal information.</li>
+                            <li><strong>Account Security:</strong> You are responsible for maintaining the confidentiality of your login credentials.</li>
+                        </ul>
+                        <h3>Transaction Processing</h3>
+                        <ul>
+                            <li><strong>Order Execution:</strong> Market orders are executed at prevailing market prices, which may differ from displayed prices.</li>
+                            <li><strong>Settlement Times:</strong> Trades typically settle within standard settlement periods (T+2 for most equities).</li>
+                            <li><strong>Deposits & Withdrawals:</strong> Funds must be deposited from and withdrawn to accounts in your own name.</li>
+                            <li><strong>Processing Times:</strong> Deposits are typically processed within minutes; withdrawals may take 1-3 business days depending on the method.</li>
+                            <li><strong>Transaction Limits:</strong> Limits may apply based on verification level and regulatory requirements.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Fees & Charges -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <h2>Fees & Charges</h2>
+                        <p>
+                            StocksCo believes in transparent pricing. All applicable fees are clearly displayed before you complete any transaction.
+                        </p>
+                        <h3>Fee Structure</h3>
+                        <ul>
+                            <li><strong>Trading Fees:</strong> Competitive commission rates on stock and ETF trades.</li>
+                            <li><strong>Withdrawal Fees:</strong> Small fees may apply for certain withdrawal methods.</li>
+                            <li><strong>Currency Conversion:</strong> Foreign exchange fees apply when converting between currencies.</li>
+                            <li><strong>Inactivity Fees:</strong> No inactivity fees on StocksCo accounts.</li>
+                        </ul>
+                        <p>
+                            StocksCo reserves the right to update its fee structure with advance notice to users. Current fees are always available in your account settings.
+                        </p>
+                    </div>
+
+                    <!-- Dispute Resolution -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <h2>Dispute Resolution & Complaints</h2>
+                        <p>
+                            If you have a concern or complaint about our services, we encourage you to contact us first so we can work to resolve it.
+                        </p>
+                        <h3>Complaint Process</h3>
+                        <ol>
+                            <li><strong>Contact Support:</strong> Email us at <a href="mailto:complaints@stocksco.io">complaints@stocksco.io</a> with details of your concern.</li>
+                            <li><strong>Investigation:</strong> We will investigate your complaint and respond within 5-10 business days.</li>
+                            <li><strong>Escalation:</strong> If you're not satisfied with our response, you may escalate to our compliance officer.</li>
+                            <li><strong>External Resolution:</strong> You may have the right to refer unresolved disputes to financial ombudsman services or regulatory authorities in your jurisdiction.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Jurisdictional Restrictions -->
+                    <div class="legal-content-block">
+                        <div class="block-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h2>Jurisdictional Restrictions</h2>
+                        <p>
+                            StocksCo services may not be available in all countries. The platform is not intended for use in jurisdictions where such services are prohibited by law.
+                        </p>
+                        <p>
+                            Users are responsible for ensuring that their use of StocksCo complies with local laws and regulations in their jurisdiction. We reserve the right to restrict access from certain countries or regions.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Quick Links -->
+                    <div class="sidebar-card">
+                        <h3>Legal Documents</h3>
+                        <ul class="legal-links">
+                            <li>
+                                <a href="{{ url_for('main.terms') }}">
+                                    <i class="fas fa-file-contract"></i>
+                                    Terms & Conditions
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('main.privacy') }}">
+                                    <i class="fas fa-user-lock"></i>
+                                    Privacy Policy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('main.cookie') }}">
+                                    <i class="fas fa-cookie-bite"></i>
+                                    Cookie Policy
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Contact Support -->
+                    <div class="sidebar-card">
+                        <h3>Need Help?</h3>
+                        <p>Our legal and compliance team is here to answer your questions.</p>
+                        <div class="contact-methods">
+                            <div class="contact-method">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <strong>Legal Inquiries</strong>
+                                    <a href="mailto:legal@stocksco.io">legal@stocksco.io</a>
+                                </div>
+                            </div>
+                            <div class="contact-method">
+                                <i class="fas fa-headset"></i>
+                                <div>
+                                    <strong>General Support</strong>
+                                    <a href="mailto:support@stocksco.io">support@stocksco.io</a>
+                                </div>
+                            </div>
+                            <div class="contact-method">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <div>
+                                    <strong>Complaints</strong>
+                                    <a href="mailto:complaints@stocksco.io">complaints@stocksco.io</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Last Updated -->
+                    <div class="sidebar-card update-notice">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div>
+                            <strong>Last Updated</strong>
+                            <p>{{ month }}, {{ year }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

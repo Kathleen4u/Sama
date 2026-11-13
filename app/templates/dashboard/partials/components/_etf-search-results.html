@@ -1,0 +1,34 @@
+{# Results of searching every ETF (GET /api/etfs/search), filled by etf-page.js #}
+<div class="etf-results" id="etfResults" hidden aria-live="polite">
+    <div class="etf-results-head">
+        <span id="etfResultsTitle">All matching ETFs</span>
+        <span class="etf-results-note">Prices refresh through the day. Opening Buy checks the latest price.</span>
+    </div>
+    <ul class="etf-results-list" id="etfResultsList"></ul>
+</div>
+
+<style>
+.etf-results { background: #fff; border: 1px solid #E5E7EB; border-radius: 14px; padding: 14px 16px; margin: -8px 0 24px; }
+.etf-results[hidden] { display: none; }
+.etf-results-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.etf-results-head span:first-child { font-weight: 700; color: #111827; font-size: 14px; }
+.etf-results-note { font-size: 12px; color: #6B7280; }
+.etf-results-list { list-style: none; margin: 0; padding: 0; }
+.etf-result { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid #F3F4F6; }
+.etf-result:first-child { border-top: 0; }
+.etf-result-sym { font-weight: 700; color: #111827; margin-right: 8px; }
+.etf-result-name { color: #4B5563; font-size: 13px; }
+.etf-result-price { text-align: right; font-size: 14px; font-weight: 600; color: #111827; white-space: nowrap; }
+.etf-result-price small { display: block; font-size: 11px; font-weight: 400; color: #6B7280; }
+.etf-result-price .positive { color: #10B981; } .etf-result-price .negative { color: #EF4444; }
+.etf-result-actions { display: flex; gap: 6px; }
+.etf-result-actions a, .etf-result-actions button { font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 8px; cursor: pointer; text-decoration: none; }
+.etf-result-actions a { border: 1px solid #D1D5DB; color: #374151; background: #fff; }
+.etf-result-actions button { border: 0; background: #2563EB; color: #fff; }
+.etf-result-actions button:disabled { opacity: .6; cursor: wait; }
+.etf-results-empty { color: #6B7280; font-size: 13px; padding: 6px 0; }
+@media (max-width: 640px) {
+    .etf-result { grid-template-columns: 1fr auto; }
+    .etf-result-actions { grid-column: 1 / -1; }
+}
+</style>

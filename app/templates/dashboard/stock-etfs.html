@@ -1,0 +1,52 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Stocks ETFs" %}
+{% set page_icon = "fa-chart-line" %}
+{% set etf_kind = "Stock" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard/stock-etfs.css') }}">
+{% endblock %}
+
+{% block content %}
+    <!-- KYC Alert -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Page Header -->
+    <div class="etf-header"
+         data-live-updated-at="{{ market_updated_at.isoformat() if market_updated_at else '' }}">
+        <h1 class="etf-title">Smart Investing with Stock ETFs</h1>
+        <p class="etf-subtitle">Access professionally structured funds that combine stability, growth, and diversification across global equities</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="etf-search">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search all stock ETFs by name or ticker..." id="etfSearch" data-etf-kind="stock" autocomplete="off" oninput="filterETFs()">
+    </div>
+    {% include "dashboard/partials/components/_etf-search-results.html" %}
+
+    <!-- ETF Grid (live prices) -->
+    {% include "dashboard/partials/components/_etf-cards.html" %}
+
+    <!-- Bottom Section - Info + Quick Invest -->
+    <div class="bottom-section">
+        <!-- What is Stock ETF -->
+        <div class="info-card">
+            <h2 class="info-title">What is Stock ETF?</h2>
+            <p class="info-description">Stock ETFs (Exchange-Traded Funds) are investment funds that let you buy a collection of stocks in one single purchase.</p>
+            <p class="info-description">Learn how Exchange-Traded Funds work and why they're perfect for building wealth</p>
+            <button type="button" class="learn-more-btn" data-guide-open aria-haspopup="dialog" aria-controls="etfGuide">Learn More</button>
+        </div>
+
+        {% include "dashboard/partials/components/_etf-quick-invest.html" %}
+    </div>
+
+    <!-- "Learn More" guide -->
+    {% include "dashboard/partials/components/_etf-guide.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etf-page.js') }}"></script>
+<script src="{{ url_for('static', filename='js/market-live.js') }}"></script>
+{% endblock %}

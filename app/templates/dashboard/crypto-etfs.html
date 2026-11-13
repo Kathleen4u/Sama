@@ -1,0 +1,61 @@
+{% extends "dashboard/partials/_base.html" %}
+
+{% set page_title = "Crypto ETFs" %}
+{% set page_icon = "fa-ethereum" %}
+{% set etf_kind = "Crypto" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard/crypto-etfs.css') }}">
+{% endblock %}
+
+{% block content %}
+    <!-- KYC Alert -->
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+
+    <!-- Page Header -->
+    <div class="etf-header"
+         data-live-updated-at="{{ market_updated_at.isoformat() if market_updated_at else '' }}">
+        <h1 class="etf-title">Smart Investing with Crypto ETFs</h1>
+        <p class="etf-subtitle">Invest in digital assets through diversified funds, without directly owning cryptocurrencies</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="etf-search">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search all crypto ETFs by name or ticker..." id="etfSearch" data-etf-kind="crypto" autocomplete="off" oninput="filterETFs()">
+    </div>
+    {% include "dashboard/partials/components/_etf-search-results.html" %}
+
+    <!-- Risk Warning Banner -->
+    <div class="risk-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Risk High Volatility Warning</strong>
+            <p>Crypto ETFs are more volatile and may experience rapid price changes.</p>
+        </div>
+    </div>
+
+    <!-- ETF Grid (live prices) -->
+    {% include "dashboard/partials/components/_etf-cards.html" %}
+
+    <!-- Bottom Section - Info + Quick Invest -->
+    <div class="bottom-section">
+        <!-- What is Crypto ETF -->
+        <div class="info-card">
+            <h2 class="info-title">What is Crypto ETF?</h2>
+            <p class="info-description">A Crypto ETF (Exchange-Traded Fund) is an investment fund that gives you benefit from the performance of cryptocurrencies like Bitcoin or Ethereum without needing to buy or store the crypto yourself.</p>
+            <p class="info-description">Learn how Exchange-Traded Funds work and why they're perfect for building wealth</p>
+            <button type="button" class="learn-more-btn" data-guide-open aria-haspopup="dialog" aria-controls="etfGuide">Learn More</button>
+        </div>
+
+        {% include "dashboard/partials/components/_etf-quick-invest.html" %}
+    </div>
+
+    <!-- "Learn More" guide -->
+    {% include "dashboard/partials/components/_etf-guide.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/etf-page.js') }}"></script>
+<script src="{{ url_for('static', filename='js/market-live.js') }}"></script>
+{% endblock %}

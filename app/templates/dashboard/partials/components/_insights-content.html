@@ -1,0 +1,51 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/insights-content.css">{% endblock %}
+
+<div class="insights-container">
+    <!-- News Grid -->
+    <div class="news-grid">
+        {% if articles %}
+            {% for article in articles %}
+            <div class="news-card" onclick="window.open('{{ article.article_url }}', '_blank');">
+                <div class="news-image">
+                    {% if article.image_url %}
+                        <img src="{{ article.image_url }}" alt="{{ article.title }}">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/insight-placeholder.jpg') }}" alt="{{ article.title }}">
+                    {% endif %}
+                </div>
+                <div class="news-content">
+                    <h3 class="news-title">{{ article.title }}</h3>
+                    <p class="news-meta">
+                        {{ article.published_at.strftime('%b %d, %Y') if article.published_at else 'Recent' }}
+                        by {{ article.source or 'StocksCo' }}
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="news-empty">
+                <i class="fas fa-newspaper"></i>
+                <p>No market news available right now. Check back soon.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <span class="pagination-info">
+            Showing {{ start }}-{{ end }} of {{ total }}
+        </span>
+        <div class="pagination-buttons">
+            <a href="?page={{ current_page - 1 }}"
+               class="pagination-btn {% if current_page <= 1 %}disabled{% endif %}"
+               {% if current_page <= 1 %}aria-disabled="true"{% endif %}>
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <a href="?page={{ current_page + 1 }}"
+               class="pagination-btn {% if current_page >= total_pages %}disabled{% endif %}"
+               {% if current_page >= total_pages %}aria-disabled="true"{% endif %}>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

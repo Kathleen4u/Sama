@@ -1,0 +1,88 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/notifications-content.css">{% endblock %}
+
+<!-- Notifications Page Content -->
+<div class="notifications-container">
+    <!-- Notifications List -->
+    <div class="notifications-list">
+        {% set default_notifications = [
+            {
+                'type': 'success',
+                'title': 'Trade Successful',
+                'message': 'Your order to buy Apple (AAPL) has been completed at $185.40 per share. The asset has been added to your portfolio.',
+                'time': 'Just now',
+                'date': 'Dec 20, 12:40 PM',
+                'unread': true
+            },
+            {
+                'type': 'warning',
+                'title': 'Action Required',
+                'message': 'Please complete your KYC / identity verification to enable withdrawals and unlock all features.',
+                'time': '1 day ago',
+                'date': 'Dec 20, 12:40 PM',
+                'unread': false,
+                'action_text': 'Verify now',
+                'action_url': '/settings?tab=kyc'
+            },
+            {
+                'type': 'success',
+                'title': 'Wallet Funded',
+                'message': '$50,000 has been successfully added to your wallet via bank transfer and is now available for use',
+                'time': '4 days ago',
+                'date': 'Dec 20, 12:40 PM',
+                'unread': false
+            },
+            {
+                'type': 'info',
+                'title': 'Withdrawal in Progress',
+                'message': 'Your withdrawal request of $20,000 is being processed. Funds will be credited to your wallet within 24 hours.',
+                'time': '7 days ago',
+                'date': 'Dec 20, 12:40 PM',
+                'unread': false
+            },
+            {
+                'type': 'danger',
+                'title': 'New Login Detected',
+                'message': 'A new login was detected from Lagos, Nigeria. If this wasn\'t you, please secure your account immediately.',
+                'time': '2 weeks ago',
+                'date': 'Dec 20, 12:40 PM',
+                'unread': false
+            }
+        ] %}
+
+        {% for notification in notifications|default(default_notifications) %}
+        <div class="notification-card {{ notification.type }} {{ 'unread' if notification.unread }}">
+            <div class="notification-indicator">
+                {% if notification.unread %}
+                <div class="unread-dot"></div>
+                {% endif %}
+            </div>
+
+            <div class="notification-icon {{ notification.type }}">
+                {% if notification.type == 'success' %}
+                <i class="fas fa-check-circle"></i>
+                {% elif notification.type == 'warning' %}
+                <i class="fas fa-exclamation-circle"></i>
+                {% elif notification.type == 'info' %}
+                <i class="fas fa-info-circle"></i>
+                {% elif notification.type == 'danger' %}
+                <i class="fas fa-exclamation-triangle"></i>
+                {% endif %}
+            </div>
+
+            <div class="notification-content">
+                <h3 class="notification-title">{{ notification.title }}</h3>
+                <p class="notification-message">{{ notification.message }}</p>
+                
+                {% if notification.action_text %}
+                <a href="{{ notification.action_url }}" class="notification-action">{{ notification.action_text }}</a>
+                {% endif %}
+
+                <div class="notification-meta">
+                    <span class="notification-time">{{ notification.time }}</span>
+                    <span class="notification-date">{{ notification.date }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,27 @@
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script>
+  // CSRF protection (Flask-WTF) rejects POST/PUT/PATCH/DELETE without a token.
+  // Wrap fetch() so every same-origin state-changing request sends it as the
+  // X-CSRFToken header — existing and future fetch calls need no changes.
+  // X-Requested-With lets the server answer a rejected token with JSON.
+  (function () {
+    var token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+    var unsafe = /^(POST|PUT|PATCH|DELETE)$/i;
+    var nativeFetch = window.fetch.bind(window);
+
+    window.fetch = function (input, init) {
+      init = init || {};
+      var isRequest = typeof Request !== "undefined" && input instanceof Request;
+      var method = init.method || (isRequest ? input.method : "GET");
+      var url = new URL(isRequest ? input.url : String(input), window.location.href);
+
+      if (unsafe.test(method) && url.origin === window.location.origin) {
+        var headers = new Headers(init.headers || (isRequest ? input.headers : undefined));
+        if (!headers.has("X-CSRFToken")) headers.set("X-CSRFToken", token);
+        if (!headers.has("X-Requested-With")) headers.set("X-Requested-With", "XMLHttpRequest");
+        init = Object.assign({}, init, { headers: headers });
+      }
+      return nativeFetch(input, init);
+    };
+  })();
+</script>

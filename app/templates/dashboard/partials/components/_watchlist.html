@@ -1,0 +1,152 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/watchlist.css">{% endblock %}
+{% macro stock_logo(symbol) %}
+{% set domain = symbol | stock_domain %}
+{% if domain %}
+<img
+    src="https://www.google.com/s2/favicons?domain={{ domain }}&sz=64"
+    alt="{{ symbol }}"
+    class="stock-logo-img"
+    width="32" height="32"
+    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+<span class="stock-logo-fallback" style="display:none;">{{ symbol[:2] }}</span>
+{% else %}
+<span class="stock-logo-fallback">{{ symbol[:2] }}</span>
+{% endif %}
+{% endmacro %}
+
+<!-- Watchlist Card -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title" style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-eye" style="color: var(--primary-blue);"></i>
+            Watchlist
+        </div>
+        {% if market_updated_at %}
+        <div style="font-size: 11px; color: var(--text-muted, #888); margin-left: auto;">
+            Updated {{ market_updated_at.strftime('%H:%M') }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab Buttons -->
+    <div class="watchlist-tabs">
+        <button class="watchlist-tab active" data-tab="popular" onclick="switchWatchlistTab('popular')">Popular</button>
+        <button class="watchlist-tab" data-tab="gainers" onclick="switchWatchlistTab('gainers')">Gainers</button>
+        <button class="watchlist-tab" data-tab="losers" onclick="switchWatchlistTab('losers')">Losers</button>
+    </div>
+
+    <!-- Table Headers -->
+    <div class="watchlist-headers">
+        <div>Name</div>
+        <div>Price</div>
+        <div>Change</div>
+    </div>
+
+    <!-- ─── Tab: Popular ─────────────────────── -->
+    <div class="watchlist-content active" id="watchlist-popular">
+        {% if popular_stocks %}
+            {% for stock in popular_stocks[:6] %}
+            <a href="/dashboard/markets/{{ stock.symbol }}" class="watchlist-item" style="text-decoration: none; color: inherit;">
+                <div class="stock-info">
+                    <div class="stock-logo">
+                        {{ stock_logo(stock.symbol) }}
+                    </div>
+                    <div>
+                        <div class="stock-name">{{ stock.company_name.split(" ")[0] }}</div>
+                        <div class="stock-symbol">{{ stock.symbol }}</div>
+                    </div>
+                </div>
+                <div class="stock-volume">
+                    ${{ "%.2f"|format(stock.close|float) if stock.close else "—" }}
+                </div>
+                <div class="stock-change {{ 'positive' if stock.percent_change and stock.percent_change >= 0 else 'negative' }}">
+                    {{ "%+.2f"|format(stock.percent_change|float) if stock.percent_change else "—" }}%
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="padding: 24px; text-align: center; color: var(--text-muted, #888); font-size: 13px;">
+                <i class="fas fa-sync-alt" style="margin-bottom: 8px; display: block;"></i>
+                Market data loading...
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ─── Tab: Gainers ──────────────────────── -->
+    <div class="watchlist-content" id="watchlist-gainers">
+        {% if gainers %}
+            {% for stock in gainers[:6] %}
+            <a href="/dashboard/markets/{{ stock.symbol }}" class="watchlist-item" style="text-decoration: none; color: inherit;">
+                <div class="stock-info">
+                    <div class="stock-logo">
+                        {{ stock_logo(stock.symbol) }}
+                    </div>
+                    <div>
+                        <div class="stock-name">{{ stock.company_name.split(" ")[0] }}</div>
+                        <div class="stock-symbol">{{ stock.symbol }}</div>
+                    </div>
+                </div>
+                <div class="stock-volume">
+                    ${{ "%.2f"|format(stock.close|float) if stock.close else "—" }}
+                </div>
+                <div class="stock-change positive">
+                    {{ "%+.2f"|format(stock.percent_change|float) if stock.percent_change else "—" }}%
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="padding: 24px; text-align: center; color: var(--text-muted, #888); font-size: 13px;">
+                No gainers data yet
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ─── Tab: Losers ───────────────────────── -->
+    <div class="watchlist-content" id="watchlist-losers">
+        {% if losers %}
+            {% for stock in losers[:6] %}
+            <a href="/dashboard/markets/{{ stock.symbol }}" class="watchlist-item" style="text-decoration: none; color: inherit;">
+                <div class="stock-info">
+                    <div class="stock-logo">
+                        {{ stock_logo(stock.symbol) }}
+                    </div>
+                    <div>
+                        <div class="stock-name">{{ stock.company_name.split(" ")[0] }}</div>
+                        <div class="stock-symbol">{{ stock.symbol }}</div>
+                    </div>
+                </div>
+                <div class="stock-volume">
+                    ${{ "%.2f"|format(stock.close|float) if stock.close else "—" }}
+                </div>
+                <div class="stock-change negative">
+                    {{ "%+.2f"|format(stock.percent_change|float) if stock.percent_change else "—" }}%
+                </div>
+            </a>
+            {% endfor %}
+        {% else %}
+            <div style="padding: 24px; text-align: center; color: var(--text-muted, #888); font-size: 13px;">
+                No losers data yet
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- View All -->
+    <div style="padding: 12px 16px; border-top: 1px solid var(--border-color, #eee); text-align: center;">
+        <a href="/dashboard/markets" style="font-size: 13px; color: var(--primary-blue); text-decoration: none;">
+            View all markets <i class="fas fa-arrow-right" style="font-size: 11px;"></i>
+        </a>
+    </div>
+</div>
+
+<script>
+function switchWatchlistTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.watchlist-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    // Update content panels
+    document.querySelectorAll('.watchlist-content').forEach(panel => {
+        panel.classList.toggle('active', panel.id === 'watchlist-' + tab);
+    });
+}
+</script>

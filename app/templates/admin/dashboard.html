@@ -1,0 +1,283 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Dashboard{% endblock %}
+
+{% set active_page = 'dashboard' %}
+
+{# ─── Page-specific styles ─── #}
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+
+{% endblock %}
+
+{# ─── Page title ─── #}
+{% block page_title %}Dashboard{% endblock %}
+
+{# ─── Page content ─── #}
+{% block content %}
+
+{# ── Stats Row ── #}
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Users</div>
+    <div class="stat-value">{{ "{:,}".format(stats.total_users) }}</div>
+    <div class="stat-sub">{{ stats.new_users_7d }} joined in the last 7 days</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Total&nbsp;Managed Assets</div>
+    <div class="stat-value">{{ stats.managed_assets | currency }}</div>
+    <div class="stat-sub">
+      Stocks {{ stats.holdings_value | currency }} · investments {{ stats.investments_value | currency }}
+      · cash {{ stats.wallet_liabilities | currency }}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Cash in User Wallets</div>
+    <div class="stat-value">{{ stats.wallet_liabilities | currency }}</div>
+    <div class="stat-sub">What users could withdraw right now</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">
+      Trading Volume Today
+      <span class="stat-date">{{ now_date }}</span>
+    </div>
+    <div class="stat-value">{{ stats.trading_volume_today | currency }}</div>
+    <div class="stat-sub">Stock purchases since 00:00 UTC</div>
+  </div>
+</div>
+
+{# ── Needs attention — each card opens the filtered list ── #}
+<div class="attention-row">
+  <a class="attention-card {{ 'is-hot' if stats.pending_withdrawals }}" href="{{ url_for('admin.transaction') }}?type=Withdrawal&status=pending">
+    <div class="attention-num">{{ stats.pending_withdrawals }}</div>
+    <div class="attention-label">Pending withdrawals</div>
+    <div class="attention-sub">{{ stats.pending_withdrawals_amount | currency }} waiting</div>
+  </a>
+  <a class="attention-card {{ 'is-hot' if stats.pending_kyc }}" href="{{ url_for('admin.kyc_compliance', status='pending') }}">
+    <div class="attention-num">{{ stats.pending_kyc }}</div>
+    <div class="attention-label">KYC reviews</div>
+    <div class="attention-sub">Users with documents pending</div>
+  </a>
+  <a class="attention-card {{ 'is-hot' if stats.stuck_deposits }}" href="{{ url_for('admin.transaction') }}?status=stuck">
+    <div class="attention-num">{{ stats.stuck_deposits }}</div>
+    <div class="attention-label">Stuck deposits</div>
+    <div class="attention-sub">Pending over 24h — check NOWPayments</div>
+  </a>
+  <a class="attention-card {{ 'is-hot' if stats.flagged }}" href="{{ url_for('admin.transaction') }}?status=flagged">
+    <div class="attention-num">{{ stats.flagged }}</div>
+    <div class="attention-label">Flagged transactions</div>
+    <div class="attention-sub">Awaiting compliance review</div>
+  </a>
+  <a class="attention-card {{ 'is-hot' if stats.payouts_due }}" href="{{ url_for('admin.investment') }}?tab=positions&due=1">
+    <div class="attention-num">{{ stats.payouts_due }}</div>
+    <div class="attention-label">Payouts due in 7 days</div>
+    <div class="attention-sub">{{ stats.payouts_due_amount | currency }} to pay out</div>
+  </a>
+</div>
+
+{# ── Chart ── #}
+<div class="chart-card">
+  <div class="chart-header">
+    <div>
+      <div class="chart-title">Money In vs Money Out</div>
+      <div class="chart-subtitle">Deposits credited and withdrawals paid out, per period</div>
+      <div class="flow-legend" id="flowLegend">
+        <span class="flow-key"><span class="flow-swatch flow-swatch--in"></span>Deposits <strong id="totalIn"></strong></span>
+        <span class="flow-key"><span class="flow-swatch flow-swatch--out"></span>Withdrawals <strong id="totalOut"></strong></span>
+        <span class="flow-key flow-net">Net <strong id="totalNet"></strong></span>
+      </div>
+    </div>
+    <div class="timeframe-btns">
+      <button class="tf-btn"        onclick="setTf(this, 'today')">Today</button>
+      <button class="tf-btn"        onclick="setTf(this, '7d')">7 Days</button>
+      <button class="tf-btn active" onclick="setTf(this, '30d')">30 Days</button>
+      <button class="tf-btn"        onclick="setTf(this, '90d')">90 Days</button>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <canvas id="perfChart" role="img" aria-label="Deposits versus withdrawals per period"></canvas>
+  </div>
+  <details class="flow-table-wrap">
+    <summary>Show as table</summary>
+    <table class="flow-table">
+      <thead><tr><th>Period</th><th>Deposits</th><th>Withdrawals</th><th>Net</th></tr></thead>
+      <tbody id="flowTableBody"></tbody>
+    </table>
+  </details>
+</div>
+
+{# ── Recent Activity ── #}
+<div class="activity-card">
+  <div class="activity-header">
+    <div class="activity-title">Recent User Activity</div>
+    <div class="activity-subtitle">Live feed of important user actions across the platform</div>
+  </div>
+
+  {% if activity %}
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>User</th>
+        <th>Activity</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in activity %}
+      <tr>
+        <td class="td-time">{{ event.time_ago }}</td>
+        <td>
+          <a class="user-name activity-user" href="{{ url_for('admin.user_detail', user_id=event.user_id) }}">{{ event.name }}</a>
+          <div class="user-id">{{ event.uid }}</div>
+        </td>
+        <td><span class="activity-type">{{ event.activity }}</span></td>
+        <td class="td-details">{{ event.details }}</td>
+        <td>
+          {% set s = event.status %}
+          {% if s == 'completed' %}
+            <span class="badge tag status-completed">Completed</span>
+          {% elif s == 'pending' %}
+            <span class="badge tag status-pending">Pending</span>
+          {% elif s == 'review' %}
+            <span class="badge tag status-review">Under Review</span>
+          {% elif s == 'failed' %}
+            <span class="badge tag status-failed">Failed</span>
+          {% elif s == 'approved' %}
+            <span class="badge tag status-completed">Approved</span>
+          {% elif s == 'rejected' %}
+            <span class="badge tag status-failed">Rejected</span>
+          {% else %}
+            <span class="badge tag status-pending">{{ s | title }}</span>
+          {% endif %}
+        </td>
+        <td><a class="activity-link" href="{{ url_for('admin.user_detail', user_id=event.user_id) }}">View user</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="activity-empty">No activity yet.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{# ─── Scripts ─── #}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Chart data injected from the server — safe JSON, no XSS risk via |tojson
+const datasets = {{ chart_json | safe }};
+
+// Series colors: categorical slots 1 (blue) and 2 (orange) — validated for
+// colorblind separation and >= 3:1 contrast on the white card surface
+const COLOR_IN  = '#2a78d6';
+const COLOR_OUT = '#eb6834';
+
+const fmtMoney = v => '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function getDataset(key) {
+  const d = datasets[key];
+  return d && d.labels ? d : { labels: [], deposits: [], withdrawals: [], total_deposits: 0, total_withdrawals: 0 };
+}
+
+const ctx = document.getElementById('perfChart').getContext('2d');
+const initial = getDataset('30d');
+
+// Thin columns, rounded only at the data end, never wider than 24px
+const barStyle = { borderRadius: 4, borderSkipped: 'start', maxBarThickness: 24,
+                   categoryPercentage: 0.7, barPercentage: 0.85 };
+
+const chart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: initial.labels,
+    datasets: [
+      { label: 'Deposits',    data: initial.deposits,    backgroundColor: COLOR_IN,  ...barStyle },
+      { label: 'Withdrawals', data: initial.withdrawals, backgroundColor: COLOR_OUT, ...barStyle },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },   // HTML legend above the chart carries identity + totals
+      tooltip: {
+        backgroundColor: '#1a1d23', titleColor: '#9ca3af', bodyColor: '#fff',
+        titleFont: { family: 'DM Sans', size: 11 },
+        bodyFont: { family: 'DM Mono', size: 13, weight: '500' },
+        padding: 10, boxPadding: 4,
+        callbacks: {
+          title: items => items[0].label,
+          label: item => ` ${item.dataset.label}: ${fmtMoney(item.raw)}`,
+          footer: items => {
+            const net = (items[0]?.raw || 0) - (items[1]?.raw || 0);
+            return `Net: ${net < 0 ? '−' : ''}${fmtMoney(Math.abs(net))}`;
+          },
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false }, border: { display: false },
+        ticks: {
+          color: '#9ca3af',
+          font: { family: 'DM Sans', size: 11 },
+          maxTicksLimit: 10,
+          maxRotation: 0
+        }
+      },
+      y: {
+        grid: { color: '#f0f2f5' }, border: { display: false },
+        ticks: {
+          color: '#9ca3af',
+          font: { family: 'DM Sans', size: 11 },
+          callback: v => '$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v),
+          maxTicksLimit: 6,
+        }
+      }
+    }
+  }
+});
+
+// Totals in the legend + the table view, built with textContent
+function renderSummary(d) {
+  const net = d.total_deposits - d.total_withdrawals;
+  document.getElementById('totalIn').textContent  = fmtMoney(d.total_deposits);
+  document.getElementById('totalOut').textContent = fmtMoney(d.total_withdrawals);
+  document.getElementById('totalNet').textContent = (net < 0 ? '−' : '') + fmtMoney(Math.abs(net));
+
+  const body = document.getElementById('flowTableBody');
+  body.replaceChildren(...d.labels.map((label, i) => {
+    const row = document.createElement('tr');
+    const rowNet = d.deposits[i] - d.withdrawals[i];
+    [label, fmtMoney(d.deposits[i]), fmtMoney(d.withdrawals[i]),
+     (rowNet < 0 ? '−' : '') + fmtMoney(Math.abs(rowNet))].forEach(text => {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      row.appendChild(cell);
+    });
+    return row;
+  }));
+}
+
+function setTf(btn, key) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = getDataset(key);
+  chart.data.labels = d.labels;
+  chart.data.datasets[0].data = d.deposits;
+  chart.data.datasets[1].data = d.withdrawals;
+  chart.update('active');
+  renderSummary(d);
+}
+
+renderSummary(initial);
+</script>
+{% endblock %}

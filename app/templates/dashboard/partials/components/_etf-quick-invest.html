@@ -1,0 +1,45 @@
+{# Quick Invest: whole-share ETF purchase via POST /api/buy. Expects `etfs`, `wallet`, `etf_kind`. #}
+<div class="quick-invest-card">
+    <h2 class="quick-invest-title">Quick Invest</h2>
+
+    <form id="quickInvestForm" novalidate>
+        <div class="form-group">
+            <label class="form-label" for="etfSelect">Select {{ etf_kind }} ETF</label>
+            <select class="form-select" id="etfSelect" required>
+                <option value="" disabled selected>Choose an ETF</option>
+                {% for etf in etfs %}
+                <option value="{{ etf.symbol }}"
+                        data-price="{{ etf.close if etf.close is not none else '' }}"
+                        {{ 'disabled' if etf.close is none }}>
+                    {{ etf.symbol }} - {{ etf.name }}{{ ' (price unavailable)' if etf.close is none }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="etfAmount">Amount (USD)</label>
+            <input type="number" class="form-input" id="etfAmount" placeholder="e.g. 1000"
+                   min="1" step="0.01" required>
+        </div>
+
+        <p class="qi-summary" id="qiSummary">Shares are bought in whole units at the live price.</p>
+        <p class="qi-balance">
+            Wallet balance: <strong id="qiBalance" data-balance="{{ wallet.balance }}">${{ "{:,.2f}".format(wallet.balance|float) }}</strong>
+        </p>
+
+        <button type="submit" class="invest-now-btn" id="qiSubmit" disabled>Invest Now</button>
+        <div class="qi-result" id="qiResult" role="status" hidden></div>
+    </form>
+</div>
+
+<style>
+.qi-summary { font-size: 13px; color: #4B5563; margin: 4px 0 6px; min-height: 18px; }
+.qi-summary.warn { color: #B45309; }
+.qi-balance { font-size: 12px; color: #6B7280; margin: 0 0 14px; }
+.qi-result { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+.qi-result.success { background: #ECFDF5; border: 1.5px solid #10B981; color: #065F46; }
+.qi-result.warning { background: #FFFBEB; border: 1.5px solid #F59E0B; color: #92400E; }
+.qi-result.error   { background: #FEF2F2; border: 1.5px solid #EF4444; color: #991B1B; }
+.invest-now-btn:disabled, .buy-etf-btn:disabled { opacity: .55; cursor: not-allowed; }
+</style>

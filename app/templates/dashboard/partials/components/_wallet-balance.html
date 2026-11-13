@@ -1,0 +1,59 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/wallet-balance-modal.css">{% endblock %}
+
+<!-- Wallet Balance Section -->
+<div class="wallet-grid">
+    <!-- Available Balance Card -->
+    <div class="balance-card-large">
+        <div class="balance-label">Available Balance</div>
+        <div class="balance-amount-large">{{ wallet.balance|currency  }}</div>
+        
+        <div class="balance-comparison">
+            <span class="comparison-badge {{ 'positive' if balance_change_positive|default(true) else 'negative' }}">
+                <i class="fas fa-caret-{{ 'up' if balance_change_positive|default(true) else 'down' }}"></i>
+                {{ balance_change_percent|default('00.00') }}%
+            </span>
+            <span class="comparison-text">Compare to last month</span>
+        </div>
+
+        <!-- Hide Deposit and Withdraw Button from Dashboard home page to avoid modal irregular view -->
+        {% if page_title != "Dashboard" %}
+        <div class="balance-actions">
+            <button class="action-btn primary" onclick="openModal('depositModal')">
+                <i class="fas fa-plus-circle"></i>
+                Deposit
+            </button>
+            <button class="action-btn secondary" onclick="openModal('withdrawModal')">
+                <i class="fas fa-arrow-up"></i>
+                Withdraw
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="wallet-stats">
+        <!-- Total Deposits -->
+        <div class="wallet-stat-card deposits">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Deposits</div>
+                <div class="stat-value">${{ total_deposits|default('0') }}</div>
+                <div class="stat-description">The total amount you've added to your wallet over time</div>
+            </div>
+        </div>
+
+        <!-- Total Withdrawals -->
+        <div class="wallet-stat-card withdrawals">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-money-bill-transfer"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Withdrawals</div>
+                <div class="stat-value">${{ total_withdrawals|default('0') }}</div>
+                <div class="stat-description">The total amount you've successfully withdrawn from your wallet</div>
+            </div>
+        </div>
+    </div>
+</div>

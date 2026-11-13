@@ -1,0 +1,268 @@
+.support-container {
+    max-width: 1100px;
+}
+
+.support-header {
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.page-description {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+}
+
+/* Search */
+.search-container {
+    margin-bottom: 48px;
+}
+
+.search-box {
+    position: relative;
+    max-width: 100%;
+}
+
+.search-box i {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+    font-size: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 18px 24px 18px 64px;
+    border: 1px solid #E5E7EB;
+    border-radius: 50px;
+    font-size: 15px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input::placeholder {
+    color: #9CA3AF;
+}
+
+/* Help Section */
+.help-section {
+    margin-bottom: 48px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 24px 0;
+}
+
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.help-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    gap: 20px;
+    transition: all 0.3s;
+}
+
+.help-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-color: #D1D5DB;
+}
+
+.help-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.help-icon.blue {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.help-icon.green {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.help-icon.teal {
+    background: #CCFBF1;
+    color: #0D9488;
+}
+
+.help-content {
+    flex: 1;
+}
+
+.help-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.help-description {
+    font-size: 13px;
+    color: #6B7280;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+}
+
+.help-link {
+    font-size: 14px;
+    color: #2563EB;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+}
+
+.help-link:hover {
+    color: #1D4ED8;
+}
+
+.help-link i {
+    font-size: 12px;
+}
+
+/* Contact Section */
+.contact-section {
+    margin-bottom: 40px;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.contact-card {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.contact-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.contact-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 20px;
+}
+
+.contact-icon.blue {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.contact-icon.green {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.contact-icon.purple {
+    background: #E9D5FF;
+    color: #9333EA;
+}
+
+.contact-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.contact-description {
+    font-size: 13px;
+    color: #6B7280;
+    margin: 0 0 4px 0;
+}
+
+.contact-info {
+    font-size: 13px;
+    color: #9CA3AF;
+    margin: 0 0 20px 0;
+}
+
+.contact-btn {
+    width: 100%;
+    padding: 12px 24px;
+    background: #F3F4F6;
+    color: #374151;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.contact-btn:hover {
+    background: #E5E7EB;
+}
+
+@media (max-width: 968px) {
+    .help-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 22px;
+    }
+
+    .help-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .help-icon {
+        margin: 0 auto;
+    }
+}

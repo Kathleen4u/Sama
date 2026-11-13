@@ -1,0 +1,181 @@
+.settings-form {
+    max-width: 600px;
+}
+
+.form-row {
+    margin-bottom: 24px;
+}
+
+.form-row.two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B7280;
+    margin-bottom: 8px;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 16px;
+    color: #9CA3AF;
+    font-size: 16px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #F9FAFB;
+    color: var(--text-dark);
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    background: white;
+}
+
+.form-input::placeholder {
+    color: #9CA3AF;
+}
+
+.phone-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.country-code-select {
+    width: 120px;
+    padding: 14px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #F9FAFB;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.phone-input {
+    flex: 1;
+    padding: 14px 16px;
+}
+
+.form-select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #F9FAFB;
+    color: var(--text-dark);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #2563EB;
+    background-color: white;
+}
+
+.submit-btn-container {
+     display: flex;         
+    justify-content: center;  
+    align-items: center; 
+}
+
+.submit-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 14px 32px;
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+}
+
+.submit-btn:hover {
+    background: #1D4ED8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .form-row.two-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .phone-input-group {
+        flex-direction: column;
+    }
+
+    .country-code-select {
+        width: 100%;
+    }
+}
+
+.country-code-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.85rem;
+    height: 44px;                       /* match your .form-input height */
+    background: var(--input-bg, #1e2535);
+    border: 1px solid var(--border-color, #2a3347);
+    border-radius: 8px;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.country-flag {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.country-dial {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary, #7a8a9e);
+    font-family: 'DM Mono', monospace;  /* or whatever mono font you use */
+}
+
+/* The number input fills remaining space */
+.phone-input-group .phone-input {
+    flex: 1;
+    min-width: 0;
+}

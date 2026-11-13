@@ -1,0 +1,241 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Investment & Trades{% endblock %}
+
+{% set active_page = 'investment-trades' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/investment.css') }}">
+{% endblock %}
+
+{% block page_title %}Investments &amp; Trades{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="card-title">Investments &amp; Trades</div>
+    <div class="card-subtitle">Stock holdings and investment positions across all users</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="inv-tabs" role="tablist">
+    <button class="inv-tab active" role="tab" id="tabHoldings" onclick="setTab('holdings')">Stock holdings</button>
+    <button class="inv-tab" role="tab" id="tabPositions" onclick="setTab('positions')">Investment positions</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="searchInput"
+             placeholder="Search by user, ticker or company…"
+             oninput="debouncedFetch()"/>
+    </div>
+    <select class="filter-select pos-only" id="statusFilter" onchange="resetAndFetch()" style="display:none;">
+      <option value="">Status</option>
+      <option value="active">Active</option>
+      <option value="matured">Matured</option>
+      <option value="closed">Closed</option>
+    </select>
+    <select class="filter-select pos-only" id="productFilter" onchange="resetAndFetch()" style="display:none;">
+      <option value="">Product</option>
+    </select>
+    <label class="due-toggle pos-only" style="display:none;">
+      <input type="checkbox" id="dueFilter" onchange="resetAndFetch()"> Maturing in 7 days
+    </label>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody">
+        <tr><td colspan="9" class="loading-row">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">—</div>
+    <div class="page-btns">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)" disabled>
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── state ─────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 14;
+let tab = 'holdings';
+let currentPage = 1;
+let totalPages  = 1;
+let _debounceTimer = null;
+let productsLoaded = false;
+
+const HEADERS = {
+  holdings:  ['User', 'Stock', 'Qty', 'Buy price', 'Cost', 'Current value', 'Gain / loss', 'Bought'],
+  positions: ['User', 'Product', 'Principal', 'Current value', 'Rate', 'Opened', 'Matures', 'Status'],
+};
+const COLS = 8;
+
+function userCell(r) {
+  return `<td>
+    <a class="user-name user-link" href="/admin/users/${Number(r.user_id)}">${escapeHtml(r.name)}</a>
+    <div class="user-email">${escapeHtml(r.email)}</div>
+  </td>`;
+}
+
+function positionBadge(s) {
+  const cls = { active: 'ob-open', matured: 'ob-executed', closed: 'ob-cancelled' }[s] || 'ob-cancelled';
+  return `<span class="order-badge ${cls}">${escapeHtml(s.charAt(0).toUpperCase() + s.slice(1))}</span>`;
+}
+
+function setMessage(text) {
+  document.getElementById('tableBody').innerHTML =
+    `<tr><td colspan="${COLS}" class="loading-row">${escapeHtml(text)}</td></tr>`;
+}
+
+// ── tabs ──────────────────────────────────────────────────────────────────
+function setTab(name) {
+  tab = name;
+  document.getElementById('tabHoldings').classList.toggle('active', name === 'holdings');
+  document.getElementById('tabPositions').classList.toggle('active', name === 'positions');
+  document.querySelectorAll('.pos-only').forEach(el => el.style.display = name === 'positions' ? '' : 'none');
+  document.getElementById('searchInput').placeholder =
+    name === 'holdings' ? 'Search by user, ticker or company…' : 'Search by user or product…';
+  document.getElementById('tableHead').innerHTML =
+    `<tr>${HEADERS[name].map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr>`;
+  resetAndFetch();
+}
+
+// ── fetch ─────────────────────────────────────────────────────────────────
+async function fetchRows() {
+  const params = new URLSearchParams({ page: currentPage, per_page: PAGE_SIZE });
+  const q = document.getElementById('searchInput').value.trim();
+  if (q) params.set('q', q);
+  if (tab === 'positions') {
+    const status  = document.getElementById('statusFilter').value;
+    const product = document.getElementById('productFilter').value;
+    if (status)  params.set('status', status);
+    if (product) params.set('product', product);
+    if (document.getElementById('dueFilter').checked) params.set('due', '1');
+  }
+
+  setMessage('Loading…');
+  document.getElementById('prevBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = true;
+
+  const url = tab === 'holdings' ? '/admin/api/investments' : '/admin/api/investment-positions';
+  const requestedTab = tab;
+  try {
+    const res = await fetch(`${url}?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (requestedTab !== tab) return;   // tab switched while loading
+    totalPages = data.total_pages || 1;
+    if (tab === 'positions' && !productsLoaded && data.products) {
+      const select = document.getElementById('productFilter');
+      data.products.forEach(p => select.add(new Option(p.name, p.code)));
+      productsLoaded = true;
+    }
+    render(tab === 'holdings' ? data.holdings : data.positions, data);
+  } catch (err) {
+    console.error('Failed to load:', err);
+    setMessage('Failed to load. Please refresh the page.');
+    document.getElementById('pageInfo').textContent = '—';
+  }
+}
+
+// ── render ────────────────────────────────────────────────────────────────
+function render(rows, { total, page, per_page }) {
+  if (!rows || rows.length === 0) {
+    setMessage(tab === 'holdings' ? 'No stock holdings found.' : 'No investment positions found.');
+    document.getElementById('pageInfo').textContent = 'No results';
+    return;
+  }
+
+  // Every value is escaped — names and emails are user-supplied
+  document.getElementById('tableBody').innerHTML = rows.map(r => tab === 'holdings' ? `
+    <tr>
+      ${userCell(r)}
+      <td>
+        <div class="asset-name">${escapeHtml(r.asset_name)}</div>
+        <div class="asset-ticker">${escapeHtml(r.ticker)}</div>
+      </td>
+      <td class="td-qty">${escapeHtml(r.qty.toLocaleString())}</td>
+      <td class="td-price">${escapeHtml(r.price)}</td>
+      <td class="td-value">${escapeHtml(r.cost)}</td>
+      <td class="td-value">${escapeHtml(r.value)}</td>
+      <td class="td-value ${r.gain === '—' ? '' : (r.gain_positive ? 'gain-pos' : 'gain-neg')}">${escapeHtml(r.gain)}</td>
+      <td class="td-asset-type">${escapeHtml(r.purchased_at)}</td>
+    </tr>` : `
+    <tr>
+      ${userCell(r)}
+      <td class="asset-name">${escapeHtml(r.product)}</td>
+      <td class="td-value">${escapeHtml(r.principal)}</td>
+      <td class="td-value">${escapeHtml(r.value)}</td>
+      <td class="td-price">${escapeHtml(r.rate)}</td>
+      <td class="td-asset-type">${escapeHtml(r.opened)}</td>
+      <td class="td-asset-type">
+        ${escapeHtml(r.matures)}
+        ${r.status === 'active' && r.days_left !== null && r.days_left <= 7
+          ? `<div class="due-soon">${r.days_left === 0 ? 'Due today' : `In ${Number(r.days_left)} day${r.days_left === 1 ? '' : 's'}`}${r.maturity_value ? ` · pays ${escapeHtml(r.maturity_value)}` : ''}</div>`
+          : ''}
+      </td>
+      <td>${positionBadge(r.status)}</td>
+    </tr>`).join('');
+
+  const start = (page - 1) * per_page + 1;
+  const end   = Math.min(page * per_page, total);
+  document.getElementById('pageInfo').textContent = `Showing ${start}–${end} of ${total}`;
+  document.getElementById('prevBtn').disabled = currentPage <= 1;
+  document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+}
+
+// ── filters & pagination ──────────────────────────────────────────────────
+function resetAndFetch() {
+  currentPage = 1;
+  fetchRows();
+}
+
+function debouncedFetch() {
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(resetAndFetch, 350);
+}
+
+function changePage(dir) {
+  const next = currentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  currentPage = next;
+  fetchRows();
+}
+
+// ── initial load — the dashboard links here with ?tab=positions&due=1 ─────
+(function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('due') === '1') document.getElementById('dueFilter').checked = true;
+  setTab(params.get('tab') === 'positions' ? 'positions' : 'holdings');
+})();
+</script>
+{% endblock %}

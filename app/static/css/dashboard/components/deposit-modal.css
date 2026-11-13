@@ -1,0 +1,153 @@
+/* Payment Options */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.payment-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.payment-option-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.payment-option input[type="radio"]:checked + .payment-option-content {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.payment-option:hover .payment-option-content {
+  border-color: #d1d5db;
+}
+
+.payment-option input[type="radio"]:checked + .payment-option-content::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  width: 20px;
+  height: 20px;
+  background: #2563eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-option input[type="radio"]:checked + .payment-option-content::after {
+  content: "";
+  position: absolute;
+  left: 26px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.payment-option-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-left: 32px;
+}
+
+.payment-logo {
+  height: 24px;
+  width: auto;
+}
+
+.card-logos {
+  display: flex;
+  gap: 8px;
+  font-size: 24px;
+}
+
+.card-logos i {
+  color: #6b7280;
+}
+
+.card-logos .fa-cc-visa {
+  color: #1a1f71;
+}
+
+.card-logos .fa-cc-mastercard {
+  color: #eb001b;
+}
+
+.card-logos .fa-cc-amex {
+  color: #006fcf;
+}
+
+.card-logos .fa-cc-stripe {
+  color: #635bff;
+}
+
+/* Card Details Section */
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.card-input-wrapper {
+  position: relative;
+}
+
+.card-brand-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 28px;
+  color: #1a1f71;
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Card Number Formatting */
+#cardNumber {
+  padding-right: 50px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .payment-option-content {
+    padding: 14px 16px;
+  }
+
+  .payment-option-text {
+    font-size: 14px;
+    margin-left: 28px;
+  }
+
+  .card-logos {
+    font-size: 20px;
+    gap: 6px;
+  }
+
+  .payment-logo {
+    height: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

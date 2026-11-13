@@ -1,0 +1,200 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Audit Log{% endblock %}
+
+{% set active_page = 'audit-log' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/investment.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/audit-log.css') }}">
+{% endblock %}
+
+{% block page_title %}Audit Log{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="card-title">Audit Log</div>
+    <div class="card-subtitle">Every action taken by an admin, newest first. Entries can't be edited or deleted.</div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="targetInput" inputmode="numeric"
+             placeholder="Target ID (withdrawal, user, transaction, document)…"
+             oninput="debouncedFetch()"/>
+    </div>
+    <select class="filter-select" id="actionFilter" onchange="resetAndFetch()">
+      <option value="">Action</option>
+      {% for key, label in actions.items() %}
+      <option value="{{ key }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select class="filter-select" id="adminFilter" onchange="resetAndFetch()">
+      <option value="">Admin</option>
+      {% for a in admins %}
+      <option value="{{ a.id }}">{{ a.name }}</option>
+      {% endfor %}
+    </select>
+    <select class="filter-select" id="dateFilter" onchange="resetAndFetch()">
+      <option value="">Date Range</option>
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Admin</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Details</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="6" class="audit-empty">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">—</div>
+    <div class="page-btns">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)" disabled>
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentPage = 1;
+let totalPages  = 1;
+let _debounceTimer = null;
+
+// Render the details JSON as "key: value" lines. Nested before/after
+// objects are flattened one level so they stay readable in a table cell.
+function renderDetails(details) {
+  const lines = [];
+  for (const [key, value] of Object.entries(details || {})) {
+    if (value === null || value === '' || value === undefined) continue;
+    const label = key.replace(/_/g, ' ');
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const inner = Object.entries(value)
+        .map(([k, v]) => `${k.replace(/_/g, ' ')}=${typeof v === 'object' ? JSON.stringify(v) : v}`)
+        .join(', ');
+      lines.push(`<div><span class="audit-key">${escapeHtml(label)}:</span> ${escapeHtml(inner)}</div>`);
+    } else {
+      const text = Array.isArray(value) ? JSON.stringify(value) : String(value);
+      lines.push(`<div><span class="audit-key">${escapeHtml(label)}:</span> ${escapeHtml(text)}</div>`);
+    }
+  }
+  return lines.join('') || '<span class="audit-muted">—</span>';
+}
+
+async function fetchEntries() {
+  const params = new URLSearchParams({ page: currentPage });
+  const target = document.getElementById('targetInput').value.trim();
+  const action = document.getElementById('actionFilter').value;
+  const admin  = document.getElementById('adminFilter').value;
+  const date   = document.getElementById('dateFilter').value;
+  if (/^\d+$/.test(target)) params.set('target_id', target);
+  if (action) params.set('action', action);
+  if (admin)  params.set('admin_id', admin);
+  if (date)   params.set('date', date);
+
+  const body = document.getElementById('tableBody');
+  body.innerHTML = '<tr><td colspan="6" class="audit-empty">Loading…</td></tr>';
+  document.getElementById('prevBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = true;
+
+  try {
+    const res = await fetch(`/admin/api/audit-log?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    totalPages = data.total_pages || 1;
+    render(data);
+  } catch (err) {
+    console.error('Failed to load audit log:', err);
+    body.innerHTML = '<tr><td colspan="6" class="audit-empty">Failed to load the audit log. Please refresh the page.</td></tr>';
+    document.getElementById('pageInfo').textContent = '—';
+  }
+}
+
+function render({ entries, total, page, per_page }) {
+  const body = document.getElementById('tableBody');
+  if (!entries.length) {
+    body.innerHTML = '<tr><td colspan="6" class="audit-empty">No admin actions match these filters.</td></tr>';
+    document.getElementById('pageInfo').textContent = 'No results';
+    return;
+  }
+
+  // Every value is escaped — reasons and notes are free text
+  body.innerHTML = entries.map(e => `
+    <tr>
+      <td class="audit-time">${escapeHtml(e.at)}</td>
+      <td>
+        <div class="user-name">${escapeHtml(e.admin)}</div>
+        <div class="user-email">${escapeHtml(e.admin_email)}</div>
+      </td>
+      <td><span class="audit-action audit-action--${escapeHtml(e.action.split('.')[0])}">${escapeHtml(e.action_label)}</span></td>
+      <td class="td-id">${escapeHtml(e.target)}</td>
+      <td class="audit-details">${renderDetails(e.details)}</td>
+      <td class="audit-muted">${escapeHtml(e.ip)}</td>
+    </tr>
+  `).join('');
+
+  const start = (page - 1) * per_page + 1;
+  const end   = Math.min(page * per_page, total);
+  document.getElementById('pageInfo').textContent = `Showing ${start}–${end} of ${total}`;
+  document.getElementById('prevBtn').disabled = page <= 1;
+  document.getElementById('nextBtn').disabled = page >= totalPages;
+}
+
+function resetAndFetch() {
+  currentPage = 1;
+  fetchEntries();
+}
+
+function debouncedFetch() {
+  clearTimeout(_debounceTimer);
+  _debounceTimer = setTimeout(resetAndFetch, 350);
+}
+
+function changePage(dir) {
+  const next = currentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  currentPage = next;
+  fetchEntries();
+}
+
+fetchEntries();
+</script>
+{% endblock %}

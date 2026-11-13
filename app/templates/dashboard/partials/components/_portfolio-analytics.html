@@ -1,0 +1,305 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/portfolio-analytics.css">{% endblock %}
+
+<!-- Portfolio Overview - Stats + Analytics + Breakdown (All in One Grid) -->
+<div class="portfolio-overview-grid">
+
+    <!-- Stat Card 1: Total Portfolio Value -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon blue">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <span class="stat-label">Total Portfolio Value</span>
+        </div>
+        <div class="stat-value">${{ portfolio_value }}</div>
+        <div class="stat-description">Current market value of all assets</div>
+    </div>
+
+    <!-- Stat Card 2: Total Invested -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon orange">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <span class="stat-label">Total Invested</span>
+        </div>
+        <div class="stat-value">${{ total_invested }}</div>
+        <div class="stat-description">Amount deposited and invested over time</div>
+    </div>
+
+    <!-- Stat Card 3: Total Returns -->
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon {{ 'green' if portfolio_change_positive else 'red' }}">
+                <i class="fas fa-arrow-trend-{{ 'up' if portfolio_change_positive else 'down' }}"></i>
+            </div>
+            <span class="stat-label">Total Returns</span>
+        </div>
+        <div class="stat-value">${{ total_returns }}</div>
+        <div class="stat-change {{ 'positive' if portfolio_change_positive else 'negative' }}">
+            {{ '+' if portfolio_change_positive else '' }}{{ returns_percentage }}%
+        </div>
+    </div>
+
+    <!-- Stat Card 4: Portfolio Breakdown — SPANS DOWN -->
+    <div class="stat-card breakdown-card-tall">
+        <div class="stat-header">
+            <div class="stat-icon purple">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <span class="stat-label">Portfolio Breakdown</span>
+        </div>
+        <div class="stat-description">By asset type · live prices</div>
+
+        <!-- Donut Chart -->
+        <div class="breakdown-chart-wrapper">
+            <div class="breakdown-chart-container">
+                <canvas id="breakdownChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Legend — built from server-side breakdown_data -->
+        <div class="breakdown-legend">
+            {% for label, pct, color in breakdown_data %}
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: {{ color }};"></div>
+                <div class="legend-details">
+                    <span class="legend-label">{{ label }}</span>
+                    <span class="legend-value">{{ pct }}%</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #E0E0E0;"></div>
+                <div class="legend-details">
+                    <span class="legend-label">No holdings yet</span>
+                    <span class="legend-value">—</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Portfolio Analytics Chart — SPANS 3 COLUMNS -->
+    <div class="analytics-chart-card">
+        <div class="analytics-header">
+            <div class="analytics-title-group">
+                <h3 class="analytics-title">Portfolio Analytics</h3>
+                <div class="analytics-value">
+                    <span class="value-amount">${{ portfolio_value }}</span>
+                    <span class="value-change {{ 'positive' if portfolio_change_positive else 'negative' }}">
+                        <i class="fas fa-caret-{{ 'up' if portfolio_change_positive else 'down' }}"></i>
+                        {{ '+' if portfolio_change_positive else '' }}{{ change_percentage }}%
+                    </span>
+                </div>
+            </div>
+            <div class="chart-timeframe">
+                <button class="timeframe-btn active" data-range="all">All</button>
+                <button class="timeframe-btn" data-range="1m">1M</button>
+                <button class="timeframe-btn" data-range="3m">3M</button>
+                <button class="timeframe-btn" data-range="6m">6M</button>
+                <button class="timeframe-btn" data-range="1y">1Y</button>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="portfolioChart"></canvas>
+        </div>
+
+        <div class="chart-timeline" id="chartTimeline">
+            <!-- populated by JS after chart renders -->
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Data injected from Flask ───────────────────────────────────────────────────
+const ALL_CHART_LABELS = {{ chart_labels | safe }};
+const ALL_CHART_VALUES = {{ chart_values | safe }};
+
+const BREAKDOWN_LABELS = {{ breakdown_labels | safe }};
+const BREAKDOWN_VALUES = {{ breakdown_values | safe }};
+const BREAKDOWN_COLORS = {{ breakdown_colors | safe }};
+
+// ── Portfolio Line Chart ───────────────────────────────────────────────────────
+(function () {
+    const ctx = document.getElementById("portfolioChart");
+    if (!ctx) return;
+
+    const isPositive = {{ 'true' if portfolio_change_positive else 'false' }};
+    const lineColor  = isPositive ? "#4FC3F7" : "#EF5350";
+    const fillColor  = isPositive ? "rgba(79,195,247,0.10)" : "rgba(239,83,80,0.10)";
+
+    const portfolioChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: ALL_CHART_LABELS,
+            datasets: [{
+                data: ALL_CHART_VALUES,
+                borderColor: lineColor,
+                backgroundColor: fillColor,
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: lineColor,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: "#fff",
+                pointHoverBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "#1A237E",
+                    titleColor: "#fff",
+                    bodyColor: "#fff",
+                    borderColor: "#1A237E",
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: (ctx) => ctx[0].label,
+                        label: (ctx) =>
+                            "$" + ctx.parsed.y.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }),
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: false,
+                    grid: { display: false },
+                },
+                y: {
+                    display: true,
+                    position: "right",
+                    grid: { color: "#f0f0f0", drawBorder: false },
+                    ticks: {
+                        callback: (v) => "$" + (v >= 1000 ? (v / 1000).toFixed(1) + "k" : v),
+                        color: "#5f6368",
+                        font: { size: 11 },
+                    }
+                }
+            },
+            interaction: { mode: "nearest", axis: "x", intersect: false },
+        }
+    });
+
+    // Populate the timeline strip under the chart
+    const timeline = document.getElementById("chartTimeline");
+    if (timeline && ALL_CHART_LABELS.length > 0) {
+        // Show up to 6 evenly-spaced labels
+        const step = Math.max(1, Math.floor((ALL_CHART_LABELS.length - 1) / 5));
+        const shown = [];
+        for (let i = 0; i < ALL_CHART_LABELS.length; i += step) {
+            shown.push(ALL_CHART_LABELS[i]);
+        }
+        // Always include the last label
+        if (shown[shown.length - 1] !== ALL_CHART_LABELS[ALL_CHART_LABELS.length - 1]) {
+            shown.push(ALL_CHART_LABELS[ALL_CHART_LABELS.length - 1]);
+        }
+        timeline.innerHTML = shown.map(l => `<span>${l}</span>`).join("");
+    }
+
+    // ── Timeframe filter buttons ───────────────────────────────────────────────
+    const MONTHS = { "1m": 1, "3m": 3, "6m": 6, "1y": 12 };
+
+    document.querySelectorAll(".timeframe-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            document.querySelectorAll(".timeframe-btn").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+
+            const range = this.dataset.range;
+            let labels, values;
+
+            if (range === "all") {
+                labels = ALL_CHART_LABELS;
+                values = ALL_CHART_VALUES;
+            } else {
+                // Filter to last N months of data points
+                // Since labels are "Mon DD" strings we work by index:
+                // approximate by taking the last (months × 30) / avg_gap points
+                const monthCount = MONTHS[range] || null;
+                if (!monthCount || ALL_CHART_LABELS.length === 0) {
+                    labels = ALL_CHART_LABELS;
+                    values = ALL_CHART_VALUES;
+                } else {
+                    // Estimate: each label is one purchase event, not daily —
+                    // so just take the last N items proportionally
+                    const total = ALL_CHART_LABELS.length;
+                    // Rough cut: 1y = all, 6m = last 50%, 3m = last 25%, 1m = last 12%
+                    const fractions = { "1m": 0.12, "3m": 0.25, "6m": 0.50, "1y": 1.0 };
+                    const fraction  = fractions[range] || 1.0;
+                    const cutoff    = Math.max(2, Math.floor(total * fraction));
+                    labels = ALL_CHART_LABELS.slice(-cutoff);
+                    values = ALL_CHART_VALUES.slice(-cutoff);
+                }
+            }
+
+            portfolioChart.data.labels   = labels;
+            portfolioChart.data.datasets[0].data = values;
+            portfolioChart.update();
+
+            // Update timeline strip
+            if (timeline) {
+                const step = Math.max(1, Math.floor((labels.length - 1) / 5));
+                const shown = [];
+                for (let i = 0; i < labels.length; i += step) shown.push(labels[i]);
+                if (shown[shown.length - 1] !== labels[labels.length - 1]) {
+                    shown.push(labels[labels.length - 1]);
+                }
+                timeline.innerHTML = shown.map(l => `<span>${l}</span>`).join("");
+            }
+        });
+    });
+})();
+
+// ── Portfolio Breakdown Donut Chart ───────────────────────────────────────────
+(function () {
+    const ctx = document.getElementById("breakdownChart");
+    if (!ctx) return;
+
+    new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: BREAKDOWN_LABELS,
+            datasets: [{
+                data: BREAKDOWN_VALUES,
+                backgroundColor: BREAKDOWN_COLORS,
+                borderWidth: 0,
+                cutout: "70%",
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: "#202124",
+                    titleColor: "#fff",
+                    bodyColor: "#fff",
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: (ctx) => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct   = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                            return ` ${ctx.label}: ${pct}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>

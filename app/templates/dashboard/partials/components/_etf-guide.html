@@ -1,0 +1,126 @@
+{# "Learn More" guide panel. Expects `etfs`, `etf_kind` ("Stock" | "Crypto"). Opened by etf-page.js. #}
+<div class="etf-guide" id="etfGuide" hidden>
+    <div class="etf-guide-backdrop" data-guide-close></div>
+    <div class="etf-guide-panel" role="dialog" aria-modal="true" aria-labelledby="etfGuideTitle" tabindex="-1">
+        <div class="etf-guide-head">
+            <h2 id="etfGuideTitle">Understanding {{ etf_kind }} ETFs</h2>
+            <button type="button" class="etf-guide-x" data-guide-close aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="etf-guide-body">
+            <section>
+                <h3>What is an ETF?</h3>
+                <p>An exchange-traded fund (ETF) is a fund that holds a basket of assets, such as stocks{{ ', company shares or crypto' if etf_kind == 'Crypto' }}, and trades on a stock exchange like a single share. Buying one share gives you a slice of everything the fund holds.</p>
+                <ul>
+                    <li><strong>Diversified in one purchase.</strong> One fund can spread your money across dozens or hundreds of holdings.</li>
+                    <li><strong>Priced through the day.</strong> ETF prices move while the US market is open (9:30am–4:00pm New York time, weekdays).</li>
+                    <li><strong>Low running costs.</strong> Funds charge a small yearly fee (the "expense ratio"), taken from the fund's assets rather than billed to you.</li>
+                </ul>
+            </section>
+
+            {% if etf_kind == 'Crypto' %}
+            <section>
+                <h3>Three kinds of crypto ETF</h3>
+                <ul>
+                    <li><strong>Spot funds</strong> (IBIT, ETHA, FBTC) hold the coin itself, so they track its price closely.</li>
+                    <li><strong>Futures funds</strong> (BITO) hold bitcoin futures contracts. Rolling those contracts each month has a cost, so over time the fund can lag bitcoin.</li>
+                    <li><strong>Company funds</strong> (BITQ, BLOK) hold shares of crypto and blockchain businesses. They tend to move with crypto, but also with the stock market and each company's own results.</li>
+                </ul>
+            </section>
+            {% endif %}
+
+            <section>
+                <h3>The funds on this page</h3>
+                <ul class="etf-guide-funds">
+                    {% for etf in etfs %}
+                    <li>
+                        <div>
+                            <strong>{{ etf.symbol }}</strong>
+                            {% if etf.kind %}<span class="etf-guide-kind">{{ etf.kind }}</span>{% endif %}
+                            <span class="etf-guide-risk {{ etf.risk|lower }}">{{ etf.risk }} risk</span>
+                            <p>{{ etf.summary }}</p>
+                        </div>
+                        <button type="button" class="etf-guide-buy" data-guide-buy="{{ etf.symbol }}"
+                                {{ 'disabled' if etf.close is none }}>Buy</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section>
+                <h3>How buying works on StocksCo</h3>
+                <ol>
+                    <li>Choose a fund in <strong>Quick Invest</strong> and enter how much you want to invest.</li>
+                    <li>We buy <strong>whole shares</strong> at the latest price. Any amount left over stays in your wallet.</li>
+                    <li>The cost is paid from your <strong>wallet balance</strong>, so deposit first if you need to.</li>
+                    <li>Your shares appear in <strong>Portfolio</strong>, valued at the latest price. Prices refresh every few minutes.</li>
+                </ol>
+            </section>
+
+            <section>
+                <h3>Risks to know</h3>
+                <ul>
+                    <li>An ETF's value can fall as well as rise, and you can get back less than you put in.</li>
+                    <li>Diversification spreads risk across holdings, but it doesn't protect you when the whole market falls.</li>
+                    {% if etf_kind == 'Crypto' %}
+                    <li>Crypto prices are highly volatile and can move sharply in a single day.</li>
+                    <li>You own fund shares, not coins. You can't move them to a crypto wallet.</li>
+                    <li>Crypto trades around the clock, but these funds trade only during US market hours, so prices can jump when the market opens.</li>
+                    <li>Spot bitcoin and ether funds aren't registered under the Investment Company Act of 1940 like most ETFs, so they come with fewer of that law's investor protections.</li>
+                    {% else %}
+                    <li>Funds focused on one area, such as small companies or technology, usually swing more than broad-market funds.</li>
+                    <li>Funds holding non-US companies are also affected by currency moves.</li>
+                    {% endif %}
+                    <li>Past performance doesn't predict future returns. This guide is general information, not personal financial advice.</li>
+                </ul>
+            </section>
+
+            <p class="etf-guide-more">
+                Want more depth? Read the SEC's
+                <a href="https://www.investor.gov/introduction-investing/general-resources/news-alerts/alerts-bulletins/investor-bulletins-24"
+                   target="_blank" rel="noopener noreferrer">Investor Bulletin on ETFs <i class="fas fa-external-link-alt"></i></a>.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.etf-guide { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.etf-guide[hidden] { display: none; }
+.etf-guide-backdrop { position: absolute; inset: 0; background: rgba(17, 24, 39, .55); }
+.etf-guide-panel { position: relative; background: #fff; border-radius: 16px; width: min(720px, 100%); max-height: calc(100vh - 32px);
+                   display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,.25); outline: none; }
+.etf-guide-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #E5E7EB; }
+.etf-guide-head h2 { margin: 0; font-size: 20px; font-weight: 700; color: #111827; }
+.etf-guide-x { border: 0; background: #F3F4F6; width: 34px; height: 34px; border-radius: 50%; color: #4B5563; cursor: pointer; }
+.etf-guide-x:hover { background: #E5E7EB; }
+.etf-guide-body { padding: 8px 24px 24px; overflow-y: auto; font-size: 14px; line-height: 1.6; color: #374151; }
+.etf-guide-body section { margin-top: 18px; }
+.etf-guide-body h3 { font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 8px; }
+.etf-guide-body p { margin: 0 0 8px; }
+.etf-guide-body ul, .etf-guide-body ol { margin: 0; padding-left: 20px; }
+.etf-guide-body li { margin-bottom: 6px; }
+.etf-guide-funds { list-style: none; padding: 0 !important; }
+.etf-guide-funds li { display: flex; align-items: center; gap: 12px; justify-content: space-between;
+                      padding: 12px 14px; border: 1px solid #E5E7EB; border-radius: 12px; margin-bottom: 8px; }
+.etf-guide-funds p { margin: 4px 0 0; font-size: 13px; color: #4B5563; }
+.etf-guide-kind, .etf-guide-risk { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 20px; margin-left: 6px; }
+.etf-guide-kind { background: #EEF2FF; color: #4338CA; }
+.etf-guide-risk.low { background: #ECFDF5; color: #047857; }
+.etf-guide-risk.medium { background: #FFFBEB; color: #B45309; }
+.etf-guide-risk.high { background: #FEF2F2; color: #B91C1C; }
+.etf-guide-buy { flex-shrink: 0; border: 0; background: #2563EB; color: #fff; font-size: 13px; font-weight: 600;
+                 padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+.etf-guide-buy:hover { background: #1D4ED8; }
+.etf-guide-buy:disabled { opacity: .55; cursor: not-allowed; }
+.etf-guide-more { margin-top: 18px !important; padding-top: 14px; border-top: 1px solid #E5E7EB; font-size: 13px; }
+.etf-guide-more a { color: #2563EB; font-weight: 600; text-decoration: none; }
+body.etf-guide-open { overflow: hidden; }
+@media (max-width: 600px) {
+    .etf-guide { padding: 0; align-items: flex-end; }
+    .etf-guide-panel { border-radius: 16px 16px 0 0; max-height: 92vh; }
+    .etf-guide-head, .etf-guide-body { padding-left: 16px; padding-right: 16px; }
+}
+</style>

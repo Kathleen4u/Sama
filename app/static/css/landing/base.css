@@ -1,0 +1,1023 @@
+:root {
+    --primary-blue: #1A73E8;
+    --text-dark: #0A1A2F;
+}
+
+html {
+  font-size: 14px !important;
+}
+
+body {
+    /* font-family: 'Montserrat', sans-serif !important; */
+    /* zoom: 0.8; */
+}
+
+/* Navbar Styles */
+.navbar-div,
+.hero-div,
+.why-invest-div,
+.market-overview-bg,
+.how-stocksco-work-div,
+.user-experience-div,
+.cta-div,
+.brand-partners-div,
+.who-we-are-div,
+.belief-div,
+.features-section,
+.faq-section,
+.contact-section,
+.about-us-div,
+.tech-people-section-div,
+.what-we-do-section-div,
+.mission-vision-section-div,
+.ai-trading-section-div {
+    margin: 0.625rem 0.725rem;
+
+}
+
+.navbar {
+    padding: 1rem 2rem;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-blue) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.navbar-brand i {
+    font-size: 2rem;
+}
+
+.navbar-nav {
+    gap: 2.5rem;
+}
+
+.nav-link {
+    color: var(--text-dark) !important;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.5rem 0 !important;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-blue) !important;
+}
+
+.nav-link.active {
+    color: var(--text-dark) !important;
+    font-weight: 600;
+}
+
+
+/* Centered navbar links - won't affect existing styles */
+.navbar-nav.nav-centered {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Keep auth buttons on the right */
+.navbar .auth-buttons {
+    margin-left: auto;
+}
+
+@media (max-width: 991px) {
+    .navbar-nav.nav-centered {
+        position: static;
+        transform: none;
+    }
+
+    .navbar .auth-buttons {
+        margin-left: 0;
+    }
+}
+
+/* Button Styles - Navbar specific */
+.navbar .btn-sign-in {
+    padding: 0.325rem 1.45rem;
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
+    background-color: transparent;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar .btn-sign-in:hover {
+    background-color: var(--primary-blue);
+    color: #ffffff;
+}
+
+.navbar .btn-get-started {
+    padding: 0.325rem 1.45rem;
+    background-color: var(--primary-blue);
+    color: #ffffff;
+    border: 2px solid var(--primary-blue);
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-left: 1rem;
+}
+
+.navbar .btn-get-started:hover {
+    background-color: #1a6be6;
+    border-color: #1a6be6;
+    color: #ffffff;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 0;
+    align-items: center;
+}
+
+/* Mobile Menu Toggle */
+.navbar-toggler {
+    border: none;
+    padding: 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2843, 127, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Mobile Responsive */
+@media (max-width: 991px) {
+    .navbar {
+        padding: 1rem 1.5rem;
+    }
+
+    .navbar-nav {
+        gap: 0;
+        margin-top: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.75rem 0 !important;
+    }
+
+    .auth-buttons {
+        margin-top: 1rem;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .navbar .btn-sign-in,
+    .navbar .btn-get-started {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar {
+        padding: 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.5rem;
+    }
+
+    .navbar-brand i {
+        font-size: 1.75rem;
+    }
+}
+
+
+/* Hero Section */
+.stocksco-hero-section {
+    position: relative;
+    background: linear-gradient(180deg, #484848 0%, #101011 100%);
+    /* min-height: 100vh; */
+    color: white;
+    overflow: hidden;
+}
+
+.stocksco-hero-section .hero-content {
+    padding: 40px 20px 0px;
+    text-align: center;
+    z-index: 2;
+}
+
+.stocksco-hero-section .category-badge {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 24px;
+    border-radius: 30px;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.stocksco-hero-section .hero-title {
+    font-size: 4rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    line-height: 1.2;
+}
+
+.stocksco-hero-section .hero-description {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 900px;
+    margin: 0 auto 20px;
+    line-height: 1.6;
+}
+
+.stocksco-hero-section .cta-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 80px;
+}
+
+/* Hero section specific buttons */
+.stocksco-hero-section .btn-get-started {
+    background: #2E7FF3;
+    color: white;
+    padding: 15px 40px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.stocksco-hero-section .btn-get-started:hover {
+    background: #1E6FE3;
+    transform: translateY(-2px);
+}
+
+.stocksco-hero-section .btn-explore {
+    background: transparent;
+    color: white;
+    padding: 15px 40px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.stocksco-hero-section .btn-explore:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.stocksco-hero-section .floating-icons {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+.stocksco-hero-section .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+.stocksco-hero-section .icon-box {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    animation: float 6s ease-in-out infinite;
+}
+
+ /* Floating animation */
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        25% {
+            transform: translateY(-20px) rotate(5deg);
+        }
+        50% {
+            transform: translateY(0px) rotate(0deg);
+        }
+        75% {
+            transform: translateY(20px) rotate(-5deg);
+        }
+    }
+
+    /* Different animation delays for each icon */
+    .stocksco-hero-section .icon-1 {
+        animation-delay: 0s;
+    }
+    
+    .stocksco-hero-section .icon-2 {
+        animation-delay: 1s;
+    }
+    
+    .stocksco-hero-section .icon-3 {
+        animation-delay: 2s;
+    }
+    
+    .stocksco-hero-section .icon-4 {
+        animation-delay: 3s;
+    }
+    
+    .stocksco-hero-section .icon-5 {
+        animation-delay: 4s;
+    }
+    
+    .stocksco-hero-section .icon-6 {
+        animation-delay: 5s;
+    }
+
+.stocksco-hero-section .icon-1 {
+    top: 20%;
+    left: 5%;
+}
+
+.stocksco-hero-section .icon-2 {
+    top: 15%;
+    right: 8%;
+}
+
+.stocksco-hero-section .icon-3 {
+    top: 45%;
+    left: 10%;
+}
+
+.stocksco-hero-section .icon-4 {
+    top: 50%;
+    right: 12%;
+}
+
+.stocksco-hero-section .icon-5 {
+    bottom: 25%;
+    left: 8%;
+}
+
+.stocksco-hero-section .icon-6 {
+    bottom: 20%;
+    right: 10%;
+}
+
+.stocksco-hero-section .dashboard-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    z-index: 2;
+}
+
+.stocksco-hero-section .dashboard-placeholder {
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stocksco-hero-section .dashboard-placeholder p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .stocksco-hero-section {
+        min-height: auto;
+    }
+    .stocksco-hero-section .hero-title {
+        font-size: 1.75rem;
+        line-height: 1.3;
+        margin-bottom: 15px;
+        margin-top: 5px;
+
+    }
+
+    .stocksco-hero-section .hero-description {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+
+    .stocksco-hero-section .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 10px; /* Reduced significantly from 30px to 10px */
+        gap: 10px;
+
+    }
+
+    .stocksco-hero-section .icon-box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}
+
+
+/* Partners Brand Scrolling  */
+.logo-container {
+    overflow: hidden;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.trust-heading {
+    font-size: clamp(20px, 5vw, 32px);
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 50px;
+}
+
+.logo-scroll {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll 25s linear infinite;
+}
+
+.logo-scroll img {
+    height: 45px;
+    width: auto;
+    margin: 0 50px;
+    display: inline-block;
+    vertical-align: middle;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.logo-scroll img:hover {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Pause animation on hover */
+.logo-container:hover .logo-scroll {
+    animation-play-state: paused;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .trust-heading {
+        font-size: 24px;
+        margin-bottom: 30px;
+    }
+
+    .logo-scroll img {
+        height: 35px;
+        margin: 0 30px;
+    }
+
+    .logo-container {
+        padding: 40px 20px;
+    }
+}
+
+/* Why Invest Styles */
+.value-badge {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: white;
+}
+
+.feature-card {
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    padding: 1.5rem;
+    background-color: white;
+    height: 100%;
+}
+
+.feature-card img {
+    border-radius: 15px;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.section-title {
+    color: #2E7FF3;
+}
+
+
+
+/* Live Market Styles */
+.market-overview-bg {
+    background-color: #F2FEFF;
+}
+
+.market-badge {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: white;
+}
+
+.feature-card-market {
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    padding: 2rem;
+    background-color: white;
+    height: 100%;
+}
+
+.icon-box-purple {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.icon-box-cyan {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.icon-box-green {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.section-title-market {
+    color: #2E7FF3;
+}
+
+/* How StocksCo Work Styles */
+.process-badge {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: white;
+}
+
+.process-illustration-card {
+    border: 1px solid #e9ecef;
+    border-radius: 30px;
+    padding: 3rem;
+    background-color: #F8F9FA;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.process-illustration-card img {
+    width: 100%;
+    height: auto;
+    max-width: 500px;
+}
+
+.process-step {
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 3rem;
+}
+
+.process-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
+    border-radius: 50%;
+}
+
+.step-line {
+    position: absolute;
+    left: 9px;
+    top: 25px;
+    width: 2px;
+    height: calc(100% + 1rem);
+    background: linear-gradient(180deg, #06B6D4 0%, #22D3EE 100%);
+}
+
+.process-step:last-child .step-line {
+    display: none;
+}
+
+.section-title-process {
+    color: #2E7FF3;
+}
+
+/* Testimonials Styles  */
+/* Scrolling Container Wrapper */
+.testimonials-scroll-wrapper {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+/* Inner Container that moves */
+.testimonials-scroll-container {
+    display: flex;
+    gap: 1.5rem; 
+    animation: scrollLeft 60s linear infinite;
+    width: max-content; /* Container grows with content */
+}
+
+/* Pause on hover */
+.testimonials-scroll-container:hover {
+    animation-play-state: paused;
+}
+
+/* The animation */
+@keyframes scrollLeft {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Individual card wrapper */
+.testimonial-scroll-item {
+    flex-shrink: 0; /* Prevents cards from shrinking */
+    width: 350px; /* Fixed width for consistency */
+}
+
+/* Performance optimization */
+.testimonials-scroll-container {
+    will-change: transform;
+}
+
+.testimonials-bg {
+    background-color: #F2FEFF;
+}
+
+.social-proof-badge {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: white;
+}
+
+.testimonial-card {
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    padding: 2rem;
+    background-color: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.star-rating {
+    color: #10B981;
+    font-size: 1.25rem;
+}
+
+.rating-number {
+    color: #6B7280;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.testimonial-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.section-title-testimonials {
+    color: #2E7FF3;
+}
+
+
+/* CTA Styles */
+
+.cta-section {
+    position: relative;
+    border-radius: 30px;
+    overflow: hidden;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cta-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.cta-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+.cta-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    color: white;
+    padding: 3rem 2rem;
+}
+
+.cta-btn-primary {
+    background: #2E7FF3 !important;
+    color: white !important;
+    padding: 15px 40px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.cta-btn-primary:hover {
+    background: #1E6FE3 !important;
+    color: white !important;
+    transform: translateY(-2px);
+}
+
+.cta-btn-secondary {
+    background: transparent !important;
+    color: white !important;
+    padding: 15px 40px;
+    border-radius: 10px;
+    border: 2px solid white !important;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.cta-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+}
+
+.ai-trading-section {
+        background: linear-gradient(180deg, #484848 0%, #2a2a2a 100%);
+        color: white;
+        padding: 80px 20px;
+    }
+
+    .ai-trading-section .ai-badge {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 25px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+
+    .ai-trading-section h2 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .ai-trading-section .section-description {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.8;
+        margin-bottom: 3rem;
+        max-width: 1000px;
+    }
+
+    .chart-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-card h5 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+
+    .chart-card p {
+        font-size: 0.95rem;
+        color: #6B7280;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-card .feature-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-icon.blue {
+        background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+        color: white;
+    }
+
+    .feature-icon.green {
+        background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+        color: white;
+    }
+
+    .feature-icon.cyan {
+        background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
+        color: white;
+    }
+
+    .feature-icon.teal {
+        background: linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%);
+        color: white;
+    }
+
+    .feature-card h4 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card p {
+        font-size: 0.95rem;
+        color: #6B7280;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .ai-cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-ai-primary {
+        background: #2E7FF3;
+        color: white;
+        padding: 15px 35px;
+        border-radius: 10px;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-ai-primary:hover {
+        background: #1E6FE3;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-ai-secondary {
+        background: transparent;
+        color: white;
+        padding: 15px 35px;
+        border-radius: 10px;
+        border: 2px solid white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-ai-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .ai-trading-section h2 {
+            font-size: 2rem;
+        }
+
+        .ai-trading-section .section-description {
+            font-size: 1rem;
+        }
+
+        .chart-card, .feature-card {
+            margin-bottom: 1rem;
+        }
+
+        .ai-cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-ai-primary, .btn-ai-secondary {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+
+.footer-gradient {
+    background: linear-gradient(135deg, #1559B4 0%, #4C8FF0 100%);
+}

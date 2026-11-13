@@ -1,0 +1,154 @@
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard/components/settings-kyc.css') }}">
+{% endblock %}
+
+<!-- KYC Tab Content -->
+<div class="kyc-form">
+
+    <!-- KYC Status Banner -->
+    {% if current_user.kyc_status == 'verified' %}
+    <div class="kyc-status-banner verified">
+        <i class="fas fa-check-circle"></i>
+        <div>
+            <strong>Identity Verified</strong>
+            <p>Your KYC verification is complete. You have full access to all platform features.</p>
+        </div>
+    </div>
+
+    {% elif current_user.kyc_status == 'pending' %}
+    <div class="kyc-status-banner pending">
+        <i class="fas fa-clock"></i>
+        <div>
+            <strong>Verification Under Review</strong>
+            <p>Your documents have been submitted and are being reviewed. This usually takes 1–2 business days.</p>
+        </div>
+    </div>
+
+    {% elif current_user.kyc_status == 'rejected' %}
+    <div class="kyc-status-banner rejected">
+        <i class="fas fa-times-circle"></i>
+        <div>
+            <strong>Verification Rejected</strong>
+            <p>{{ current_user.kyc_rejection_reason or 'Your documents were rejected. Please resubmit clear, valid documents.' }}</p>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="kyc-status-banner unverified">
+        <i class="fas fa-shield-alt"></i>
+        <div>
+            <strong>Verify Your Identity</strong>
+            <p>Upload the required documents below to unlock trading on StocksCo.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.kyc_status != 'verified' %}
+
+    <!-- Step 1: Choose ID Type -->
+    <div class="kyc-section">
+        <h3 class="kyc-section-title">
+            <span class="step-number">1</span>
+            Choose Identification Type
+        </h3>
+        <div class="id-type-grid">
+            <button type="button" class="id-type-card" data-type="passport">
+                <i class="fas fa-passport"></i>
+                <span>International Passport</span>
+            </button>
+            <button type="button" class="id-type-card" data-type="national_id">
+                <i class="fas fa-id-card"></i>
+                <span>National ID Card</span>
+            </button>
+            <button type="button" class="id-type-card" data-type="drivers_license">
+                <i class="fas fa-car"></i>
+                <span>Driver's License</span>
+            </button>
+            <button type="button" class="id-type-card" data-type="voters_card">
+                <i class="fas fa-vote-yea"></i>
+                <span>Voter's Card</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 2: Upload Documents (shown after ID type selected) -->
+    <div class="kyc-section" id="uploadSection" style="display: none;">
+        <h3 class="kyc-section-title">
+            <span class="step-number">2</span>
+            Upload Documents
+        </h3>
+
+        <div id="uploadSlots">
+            <!-- Dynamically populated by JS based on selected ID type -->
+        </div>
+    </div>
+
+    <!-- Step 3: Proof of Address (always shown after ID type selected) -->
+    <div class="kyc-section" id="addressSection" style="display: none;">
+        <h3 class="kyc-section-title">
+            <span class="step-number">3</span>
+            Proof of Address
+        </h3>
+        <p class="kyc-section-desc">Upload a utility bill, bank statement, or government letter dated within the last 3 months.</p>
+        <div class="upload-slot" id="slot-proof_of_address">
+            <div class="upload-slot-header">
+                <span class="slot-label">Proof of Address</span>
+                <span class="slot-status" id="status-proof_of_address"></span>
+            </div>
+            <div class="file-drop-zone" id="drop-proof_of_address">
+                <input type="file" id="file-proof_of_address" accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none;">
+                <div class="drop-zone-content" onclick="document.getElementById('file-proof_of_address').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to upload or drag & drop</p>
+                    <span>JPG, PNG, WEBP or PDF — max 10MB</span>
+                </div>
+                <div class="file-preview" id="preview-proof_of_address" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-btn-container" id="submitSection" style="display: none;">
+        <div class="kyc-checklist" id="kycChecklist"></div>
+        <button class="submit-btn" id="submitKycBtn" disabled>
+            <i class="fas fa-paper-plane"></i>
+            Submit for Verification
+        </button>
+    </div>
+
+    {% endif %}
+
+    <!-- Submitted Documents (always visible if any exist) -->
+    {% if current_user.kyc_documents %}
+    <div class="kyc-section">
+        <h3 class="kyc-section-title">Submitted Documents</h3>
+        <div class="submitted-docs-list">
+            {% for doc in current_user.kyc_documents if not doc.is_deleted %}
+            <div class="submitted-doc-item">
+                <div class="doc-info">
+                    <i class="fas fa-file-alt"></i>
+                    <div>
+                        <span class="doc-name">{{ doc.file_name }}</span>
+                        <span class="doc-type">{{ doc.document_type | replace('_', ' ') | title }}</span>
+                    </div>
+                </div>
+                <div class="doc-meta">
+                    <span class="doc-status status-{{ doc.status }}">{{ doc.status | title }}</span>
+                    <span class="doc-date">{{ doc.uploaded_at.strftime('%b %d, %Y') }}</span>
+                    {% if current_user.kyc_status != 'verified' %}
+                    <button class="doc-remove-btn"
+                            data-doc-id="{{ doc.id }}"
+                            onclick="removeDocument({{ doc.id }})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+{% block extra_js %}
+<script src="../../../../static/js/setting-kyc.js"></script>
+{% endblock %}
+</div>

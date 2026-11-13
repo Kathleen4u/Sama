@@ -1,0 +1,42 @@
+{% block extra_css %}
+<link rel="stylesheet" href="../../../../static/css/dashboard/components/price-chart.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+<!-- Price Chart -->
+<div class="price-chart-container"
+     data-symbol="{{ featured.symbol if featured else '' }}">
+
+    <div class="chart-header">
+        <div class="chart-header-left">
+            <h3 class="chart-title">Price Chart</h3>
+            {% if featured %}
+            <span class="chart-symbol-badge">{{ featured.symbol }}</span>
+            {% endif %}
+            <span id="chartPriceChange" class="chart-price-change"></span>
+        </div>
+        <div class="chart-timeframes" id="intervalButtons">
+            <button class="timeframe-btn" data-interval="1min">1m</button>
+            <button class="timeframe-btn" data-interval="5min">5m</button>
+            <button class="timeframe-btn" data-interval="1h">1H</button>
+            <button class="timeframe-btn active" data-interval="1day">1D</button>
+            <button class="timeframe-btn" data-interval="1week">1W</button>
+        </div>
+    </div>
+
+    <div class="chart-canvas-wrapper">
+        <div class="chart-loading" id="chartLoading">
+            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+            <span>Loading chart data...</span>
+        </div>
+        <canvas id="priceChart" style="display:none;"></canvas>
+        <div class="chart-empty" id="chartEmpty" style="display:none;">
+            <i class="fas fa-chart-line"></i>
+            <span>No chart data available</span>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="../../../../static/js/price-chart.js"></script>
+{% endblock %}

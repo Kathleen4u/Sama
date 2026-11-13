@@ -1,0 +1,62 @@
+    .overview-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 24px 24px 16px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .overview-header {
+        margin-bottom: 16px;
+        flex-shrink: 0;
+    }
+
+    .overview-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #5f6368;
+        margin-bottom: 6px;
+    }
+
+    .overview-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #202124;
+        margin-bottom: 4px;
+        letter-spacing: -0.5px;
+    }
+
+    .overview-change {
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .overview-change.positive {
+        color: #0f9d58;
+    }
+
+    .overview-change.negative {
+        color: #d93025;
+    }
+
+    /* Chart fills remaining card height */
+    .overview-chart-wrap {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+    }
+
+    .overview-chart-wrap canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+.overview-subtitle .dot {
+    color: #dadce0;
+}

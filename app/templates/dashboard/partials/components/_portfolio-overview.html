@@ -1,0 +1,115 @@
+{% block extra_css %}<link rel="stylesheet" href="../../../../static/css/dashboard/components/portfolio-overview.css">{% endblock %}
+
+
+<!-- Portfolio Overview Card -->
+<div class="overview-card">
+    <div class="overview-header">
+        <div class="overview-meta">
+            <div class="overview-title">Total Balance</div>
+            <div class="overview-value">${{ portfolio_value }}</div>
+            <div class="overview-change ...">
+                <i class="fas fa-caret-..."></i>
+                {{ '+' if portfolio_change_positive else '' }}{{ change_percentage }}% today
+            </div>
+        </div>
+    </div>
+  
+    <div class="overview-chart-wrap">
+        <canvas id="overviewChart"></canvas>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const ctx = document.getElementById("overviewChart");
+        if (!ctx) return;
+
+        const labels = {{ chart_labels | default ('[]') | safe
+    }};
+    const values = {{ chart_values | default ('[]') | safe }};
+
+    const isPositive = {{ 'true' if portfolio_change_positive else 'false' }};
+    const lineColor = isPositive ? "#1976D2" : "#EF5350";
+    const fillColor = isPositive ? "rgba(25,118,210,0.10)" : "rgba(239,83,80,0.10)";
+
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                borderColor: lineColor,
+                backgroundColor: fillColor,
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: lineColor,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: "#fff",
+                pointHoverBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 600 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    mode: "index",
+                    intersect: false,
+                    backgroundColor: "#1A237E",
+                    titleColor: "#fff",
+                    bodyColor: "#fff",
+                    borderColor: "#1A237E",
+                    borderWidth: 1,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        title: (ctx) => ctx[0].label,
+                        label: (ctx) =>
+                            "$" + ctx.parsed.y.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            }),
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        color: "#9AA0A6",
+                        font: { size: 11 },
+                        maxRotation: 0,
+                        maxTicksLimit: 5,
+                    }
+                },
+                y: {
+                    display: true,
+                    position: "right",
+                    grid: {
+                        color: "#f0f0f0",
+                        drawBorder: false,
+                    },
+                    border: { display: false, dash: [4, 4] },
+                    ticks: {
+                        color: "#9AA0A6",
+                        font: { size: 11 },
+                        maxTicksLimit: 5,
+                        callback: (v) =>
+                            v >= 1000
+                                ? "$" + (v / 1000).toFixed(1) + "k"
+                                : "$" + v,
+                    }
+                }
+            },
+            interaction: { mode: "nearest", axis: "x", intersect: false },
+        }
+    });
+}) ();
+</script>

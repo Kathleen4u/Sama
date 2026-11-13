@@ -1,0 +1,7 @@
+{% extends "dashboard/partials/_base.html" %}
+{% set page_title = "Notifications" %}
+{% set page_icon = "fa-bell" %}
+{% block content %}
+    {% include "dashboard/partials/components/_kyc-alert.html" %}
+    {% include "dashboard/partials/components/_notifications-content.html" %}
+{% endblock %}

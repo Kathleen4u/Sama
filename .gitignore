@@ -1,0 +1,13 @@
+.env
+.idea
+instance
+__pycache__/
+*.pyc
+testing.py
+app/cache/
+app/static/css/dashboard/components/dashboard-grid.css
+app/static/css/dashboard/components/market-indices.css
+app/static/css/dashboard/components/sector-performance.css
+app/templates/dashboard/partials/components/_market-indices.html
+app/templates/dashboard/partials/components/_sector-performance.html
+./docs

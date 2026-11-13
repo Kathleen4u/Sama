@@ -1,0 +1,131 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard/components/investments.css') }}">
+
+<!-- My Investments Section -->
+<div class="my-investments">
+    <div class="my-investments-header">
+        <h2 class="section-title">My Investments</h2>
+        <div class="inv-wallet-chip">
+            <i class="fas fa-wallet"></i> Wallet: <strong>${{ "{:,.2f}".format(wallet.balance) }}</strong>
+        </div>
+    </div>
+
+    {% if investments.positions %}
+    <div class="inv-summary">
+        <div class="inv-summary-item">
+            <span class="inv-summary-label">Invested</span>
+            <span class="inv-summary-value">${{ "{:,.2f}".format(investments.total_invested) }}</span>
+        </div>
+        <div class="inv-summary-item">
+            <span class="inv-summary-label">Current value</span>
+            <span class="inv-summary-value">${{ "{:,.2f}".format(investments.total_value) }}</span>
+        </div>
+        <div class="inv-summary-item">
+            <span class="inv-summary-label">Unrealised gain</span>
+            <span class="inv-summary-value {{ 'positive' if investments.total_gain >= 0 else 'negative' }}">
+                {{ "+" if investments.total_gain >= 0 else "−" }}${{ "{:,.2f}".format(investments.total_gain|abs) }}
+            </span>
+        </div>
+    </div>
+
+    <div class="inv-positions">
+        {% for p in investments.positions %}
+        <div class="inv-position"
+             data-position-id="{{ p.id }}"
+             {% if p.rate is not none %}
+             data-principal="{{ p.principal }}"
+             data-rate="{{ p.rate }}"
+             data-accrual-start="{{ p.accrual_start }}"
+             {% if p.matures_at %}data-matures-at="{{ p.matures_at.isoformat() }}"{% endif %}
+             {% endif %}>
+            <div class="inv-position-head">
+                <div>
+                    <div class="inv-position-name">
+                        {{ p.product_name }}{% if p.portfolio_name %} · {{ p.portfolio_name }}{% endif %}
+                    </div>
+                    <div class="inv-position-meta">
+                        {% if p.product_type == "managed" %}
+                            Opened {{ p.opened_at.strftime('%b %d, %Y') }} · Market-linked
+                        {% elif p.product_type == "fixed_term" %}
+                            {{ p.term_label }} at {{ "%.2f"|format(p.rate) }}% p.a. · Matures {{ p.matures_at.strftime('%b %d, %Y') }}
+                        {% else %}
+                            Flexible at {{ "%.2f"|format(p.rate) }}% p.a. · Interest accrues daily
+                        {% endif %}
+                    </div>
+                </div>
+                <span class="inv-type-badge {{ p.product_type }}">
+                    {{ {"managed": "Portfolio", "fixed_term": "Fixed term", "savings": "Savings"}[p.product_type] }}
+                </span>
+            </div>
+
+            <div class="inv-position-stats">
+                <div>
+                    <span class="inv-stat-label">{{ "Balance" if p.product_type == "savings" else "Invested" }}</span>
+                    <span class="inv-stat-value">${{ "{:,.2f}".format(p.principal) }}</span>
+                </div>
+                <div>
+                    <span class="inv-stat-label">Current value</span>
+                    <span class="inv-stat-value js-current-value">${{ "{:,.2f}".format(p.current_value) }}</span>
+                </div>
+                <div>
+                    {% if p.product_type == "managed" %}
+                    <span class="inv-stat-label">Gain / loss</span>
+                    <span class="inv-stat-value {{ 'positive' if p.gain >= 0 else 'negative' }}">
+                        {{ "+" if p.gain >= 0 else "−" }}${{ "{:,.2f}".format(p.gain|abs) }}
+                        ({{ "%+.2f"|format(p.gain_pct) }}%)
+                    </span>
+                    {% else %}
+                    <span class="inv-stat-label">Accrued interest</span>
+                    <span class="inv-stat-value positive js-accrued">+${{ "{:,.2f}".format(p.accrued) }}</span>
+                    {% endif %}
+                </div>
+                {% if p.product_type == "fixed_term" %}
+                <div>
+                    <span class="inv-stat-label">At maturity</span>
+                    <span class="inv-stat-value">${{ "{:,.2f}".format(p.maturity_value) }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if p.product_type == "fixed_term" %}
+            <div class="inv-progress" title="{{ p.progress_pct }}% of term elapsed">
+                <div class="inv-progress-bar" style="width: {{ p.progress_pct }}%"></div>
+            </div>
+            <div class="inv-progress-label">
+                {% if p.is_matured %}Matured — ready to collect{% else %}{{ p.days_left }} day{{ "" if p.days_left == 1 else "s" }} left{% endif %}
+            </div>
+            {% endif %}
+
+            {% if p.product_type == "managed" %}
+            <div class="inv-holdings">
+                {% for h in p.holdings %}<span class="inv-chip">{{ h.symbol }}</span>{% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="inv-actions">
+                {% if p.product_type == "savings" %}
+                <button class="inv-btn inv-btn-secondary" onclick="openInvestModal('{{ p.product_code }}')">
+                    <i class="fas fa-plus"></i> Add funds
+                </button>
+                <button class="inv-btn inv-btn-primary" onclick="openInvestWithdraw({{ p.id }})">
+                    <i class="fas fa-arrow-down"></i> Withdraw
+                </button>
+                {% elif p.product_type == "fixed_term" %}
+                <button class="inv-btn {{ 'inv-btn-primary' if p.is_matured else 'inv-btn-secondary' }}" onclick="openInvestWithdraw({{ p.id }})">
+                    {% if p.is_matured %}<i class="fas fa-check"></i> Collect payout{% else %}<i class="fas fa-door-open"></i> Exit early{% endif %}
+                </button>
+                {% else %}
+                <button class="inv-btn inv-btn-primary" onclick="openInvestWithdraw({{ p.id }})">
+                    <i class="fas fa-tag"></i> Sell portfolio
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="inv-empty">
+        <i class="fas fa-seedling"></i>
+        <p>You have no active investments yet. Explore a product above to get started.</p>
+    </div>
+    {% endif %}
+</div>

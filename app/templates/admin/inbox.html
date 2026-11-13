@@ -1,0 +1,196 @@
+{% extends "admin/base.html" %}
+
+{% block title %}StocksCo Admin – Inbox{% endblock %}
+
+{% set active_page = 'inbox' %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/investment.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/inbox.css') }}">
+{% endblock %}
+
+{% block page_title %}Inbox{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+  <div class="card-header">
+    <div class="card-title">Contact messages <span class="inbox-unread" id="unreadBadge" style="display:none;"></span></div>
+    <div class="card-subtitle">Messages sent through the contact-us form. Reply by email, then mark them resolved.</div>
+  </div>
+
+  <div class="filters">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input class="search-input" type="text" id="searchInput" placeholder="Search name, email or message…"
+             oninput="debouncedFetch()"/>
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="resetAndFetch()">
+      <option value="open">Open (not resolved)</option>
+      <option value="all">All messages</option>
+      {% for value, label in statuses %}
+      <option value="{{ value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="inbox-list" id="inboxList"><div class="inbox-empty">Loading…</div></div>
+
+  <div class="pagination">
+    <div class="page-info" id="pageInfo">—</div>
+    <div class="page-btns">
+      <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+      <button class="page-btn page-btn-next" id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const STATUSES = {{ statuses | tojson }};
+let currentPage = 1;
+let totalPages  = 1;
+let _debounceTimer = null;
+let rows = [];
+
+function setUnread(n) {
+  const badge = document.getElementById('unreadBadge');
+  badge.textContent = `${n} unread`;
+  badge.style.display = n ? '' : 'none';
+}
+
+async function fetchMessages() {
+  const params = new URLSearchParams({ page: currentPage, status: document.getElementById('statusFilter').value });
+  const q = document.getElementById('searchInput').value.trim();
+  if (q) params.set('q', q);
+
+  const list = document.getElementById('inboxList');
+  list.innerHTML = '<div class="inbox-empty">Loading…</div>';
+  try {
+    const res = await fetch(`/admin/api/inbox?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    rows = data.messages;
+    totalPages = data.total_pages;
+    setUnread(data.unread);
+    render(data);
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = '<div class="inbox-empty">Failed to load messages. Please refresh.</div>';
+  }
+}
+
+// Messages are built with textContent — everything in them is user-supplied
+function render({ total, page, per_page }) {
+  const list = document.getElementById('inboxList');
+  if (!rows.length) {
+    list.innerHTML = '<div class="inbox-empty">No messages here.</div>';
+    document.getElementById('pageInfo').textContent = 'No results';
+    document.getElementById('prevBtn').disabled = true;
+    document.getElementById('nextBtn').disabled = true;
+    return;
+  }
+
+  list.replaceChildren(...rows.map((m, i) => {
+    const item = document.createElement('details');
+    item.className = 'inbox-item' + (m.status === 'unread' ? ' is-unread' : '');
+    item.addEventListener('toggle', () => { if (item.open && m.status === 'unread') setStatus(i, 'read'); });
+
+    const summary = document.createElement('summary');
+    const who = document.createElement('div');
+    who.className = 'inbox-who';
+    who.textContent = m.name;
+    const meta = document.createElement('div');
+    meta.className = 'inbox-meta';
+    meta.textContent = `${m.category} · ${m.date}`;
+    const preview = document.createElement('div');
+    preview.className = 'inbox-preview';
+    preview.textContent = m.message;
+    const badge = document.createElement('span');
+    badge.className = `inbox-status s-${m.status}`;
+    badge.textContent = m.status_label;
+    const head = document.createElement('div');
+    head.className = 'inbox-head';
+    head.append(who, badge);
+    summary.append(head, meta, preview);
+
+    const body = document.createElement('div');
+    body.className = 'inbox-body';
+    const text = document.createElement('p');
+    text.className = 'inbox-text';
+    text.textContent = m.message;
+    const contact = document.createElement('div');
+    contact.className = 'inbox-contact';
+    const mail = document.createElement('a');
+    mail.href = `mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent('Re: ' + m.category)}`;
+    mail.textContent = m.email;
+    contact.append(mail, document.createTextNode(` · ${m.phone}`));
+    if (m.user_id) {
+      const link = document.createElement('a');
+      link.href = `/admin/users/${Number(m.user_id)}`;
+      link.textContent = 'View account';
+      contact.append(document.createTextNode(' · '), link);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'inbox-actions';
+    const label = document.createElement('label');
+    label.textContent = 'Status ';
+    const select = document.createElement('select');
+    select.className = 'filter-select';
+    STATUSES.forEach(([value, text]) => select.add(new Option(text, value, false, value === m.status)));
+    select.addEventListener('change', () => setStatus(i, select.value));
+    label.appendChild(select);
+    actions.appendChild(label);
+
+    body.append(text, contact, actions);
+    item.append(summary, body);
+    return item;
+  }));
+
+  const start = (page - 1) * per_page + 1;
+  const end   = Math.min(page * per_page, total);
+  document.getElementById('pageInfo').textContent = `Showing ${start}–${end} of ${total}`;
+  document.getElementById('prevBtn').disabled = page <= 1;
+  document.getElementById('nextBtn').disabled = page >= totalPages;
+}
+
+async function setStatus(index, status) {
+  const m = rows[index];
+  try {
+    const res  = await fetch(`/admin/api/inbox/${m.id}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
+    m.status = data.status;
+    m.status_label = data.status_label;
+    setUnread(data.unread);
+    const item = document.getElementById('inboxList').children[index];
+    item.classList.toggle('is-unread', data.status === 'unread');
+    const badge = item.querySelector('.inbox-status');
+    badge.className = `inbox-status s-${data.status}`;
+    badge.textContent = data.status_label;
+  } catch (err) {
+    alert('Could not update the message. Please try again.');
+  }
+}
+
+function resetAndFetch() { currentPage = 1; fetchMessages(); }
+function debouncedFetch() { clearTimeout(_debounceTimer); _debounceTimer = setTimeout(resetAndFetch, 350); }
+function changePage(dir) {
+  const next = currentPage + dir;
+  if (next < 1 || next > totalPages) return;
+  currentPage = next;
+  fetchMessages();
+}
+
+fetchMessages();
+</script>
+{% endblock %}

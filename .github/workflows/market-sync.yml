@@ -1,0 +1,133 @@
+name: Market Data Sync
+
+# Routine market data refresh runs on Vercel: cron-job.org calls
+# /cron/market-sync every 5 minutes (plus a daily Vercel cron backup).
+# The fast/full syncs below are kept for manual runs only, which keeps
+# this private repo inside GitHub's free Actions minutes.
+on:
+  schedule:
+    # Investment settlement: daily at 00:15 UTC (maturities fall on weekends too)
+    - cron: '15 0 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Sync mode'
+        required: true
+        default: 'fast'
+        type: choice
+        options:
+          - fast
+          - full
+          - settle
+          - seed-etfs
+
+jobs:
+  # ── Job 1: Fast sync (manual) ───────────────────────────────────
+  # Fetches ~50 core symbols + news. Completes in ~2 minutes.
+  fast-sync:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'fast'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run fast sync
+        env:
+          DATABASE_URI:        ${{ secrets.DATABASE_URI }}
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          MARKETAUX_API_KEY:   ${{ secrets.MARKETAUX_API_KEY }}
+          SECRET_KEY:          ${{ secrets.SECRET_KEY }}
+          REDIS_URL:           ${{ secrets.REDIS_URL }}
+        run: python sync_market_data.py --mode fast
+
+  # ── Job 2: Full sync (manual) ───────────────────────────────────
+  # Fetches all ~5,520 active symbols. Completes in ~48 minutes.
+  # News is NOT fetched here — that runs via the fast sync only.
+  full-sync:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run full sync
+        env:
+          DATABASE_URI:        ${{ secrets.DATABASE_URI }}
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          MARKETAUX_API_KEY:   ${{ secrets.MARKETAUX_API_KEY }}
+          SECRET_KEY:          ${{ secrets.SECRET_KEY }}
+          REDIS_URL:           ${{ secrets.REDIS_URL }}
+        run: python sync_market_data.py --mode full
+
+  # ── Job 3: Investment settlement ────────────────────────────────
+  # Runs daily at 00:15 UTC.
+  # Pays out matured Fixed Returns / Treasury Bills positions.
+  # (Users also get matured positions settled when they open the invest page.)
+  settle-investments:
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'settle' ||
+      github.event_name == 'schedule' && (
+        github.event.schedule == '15 0 * * *'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Settle matured investments
+        env:
+          DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SECRET_KEY:   ${{ secrets.SECRET_KEY }}
+        run: python settle_investments.py
+
+  # ── Job 4: ETF registry seed (manual, ~monthly) ─────────────────
+  # Loads every US-listed ETF into the stocks registry so the ETF pages
+  # can search them; new launches appear after the next run.
+  seed-etfs:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'seed-etfs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Seed ETFs
+        env:
+          DATABASE_URI:        ${{ secrets.DATABASE_URI }}
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          SECRET_KEY:          ${{ secrets.SECRET_KEY }}
+        run: python seed_etfs.py
